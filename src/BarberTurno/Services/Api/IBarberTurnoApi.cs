@@ -1,10 +1,10 @@
 using BarberTurno.Dtos;
-// Responsable: M05
-// Cliente HTTP de la API (devuelve DTOs, nunca entidades).
+
 namespace BarberTurno.Services.Api;
 
 public interface IBarberTurnoApi
 {
+    void SetAuthToken(string? token);
     Task<ApiResult<LoginResponseDto>> LoginAsync(LoginRequestDto request);
     Task<ApiResult<List<BarberoDto>>> GetBarberosAsync();
     Task<ApiResult<List<ServicioDto>>> GetServiciosAsync();
@@ -13,4 +13,3 @@ public interface IBarberTurnoApi
     Task<ApiResult<CitaDto>> CrearCitaAsync(CrearCitaRequestDto request);   // 409 si la hora está ocupada
     Task<ApiResult<CitaDto>> CancelarCitaAsync(Guid citaId);
 }
-
