@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <!-- Ajustar TargetFramework a la versión instalada en el laboratorio -->
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- Paquetes (los agrega M03 con `dotnet add package`): Microsoft.EntityFrameworkCore.Sqlite (o Npgsql/SqlServer),
+       Microsoft.AspNetCore.Authentication.JwtBearer -->
+
+</Project>

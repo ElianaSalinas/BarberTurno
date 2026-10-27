@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Responsable: M10. Tokens de tema claro/oscuro (AppThemeBinding), tipografía, espaciados y estilos de tarjeta/botón. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    <!-- TODO(M10) -->
+</ResourceDictionary>

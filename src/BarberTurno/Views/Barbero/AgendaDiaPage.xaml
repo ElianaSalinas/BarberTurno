@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Responsable: M10. Citas del día ordenadas por hora. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             x:Class="BarberTurno.Views.AgendaDiaPage"
+             x:DataType="vm:AgendaDiaViewModel"
+             Title="Agenda del día">
+    <VerticalStackLayout Padding="16">
+        <!-- TODO(M10): interfaz (StateView, bindings, comandos). -->
+        <Label Text="Agenda del día - pendiente de implementar" />
+    </VerticalStackLayout>
+</ContentPage>

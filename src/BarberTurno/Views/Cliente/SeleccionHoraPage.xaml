@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Responsable: M08. Fecha + horas libres según duración. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             x:Class="BarberTurno.Views.SeleccionHoraPage"
+             x:DataType="vm:SeleccionHoraViewModel"
+             Title="Escoge la hora">
+    <VerticalStackLayout Padding="16">
+        <!-- TODO(M08): interfaz (StateView, bindings, comandos). -->
+        <Label Text="Escoge la hora - pendiente de implementar" />
+    </VerticalStackLayout>
+</ContentPage>
