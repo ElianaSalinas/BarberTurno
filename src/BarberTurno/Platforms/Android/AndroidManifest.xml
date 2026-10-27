@@ -1,6 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Responsable: M01 (declara los permisos). Cada módulo que usa una capacidad la solicita en tiempo de ejecución
+     y maneja el caso de negación. El HTTP sin cifrar NO va aquí: se activa solo en Debug (MainApplication.cs). -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true"></application>
-	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+	<!-- Red: consumir la API (Módulo 6) y detectar conexión (Módulo 8). -->
 	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+	<!-- Recordatorios (Módulo 10). POST_NOTIFICATIONS se pide en ejecución en Android 13+. -->
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+	<!-- Alarma exacta: si no se concede, el Módulo 10 usa una alarma inexacta. -->
+	<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+	<uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+	<!-- Reprogramar los recordatorios después de reiniciar el teléfono (Plugin.LocalNotification). -->
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 </manifest>
