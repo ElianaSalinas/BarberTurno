@@ -1,0 +1,32 @@
+# Visual Studio / .NET
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+TestResults/
+packages/
+# Android / iOS
+*.apk
+*.aab
+*.keystore
+*.jks
+# Secretos y configuración local: NUNCA al repositorio
+secrets.json
+appsettings.Development.json
+appsettings.Production.json
+*.env
+.env*
+*.pfx
+*.p12
+# Bases de datos locales
+*.db
+*.db3
+*.sqlite
+# SO / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

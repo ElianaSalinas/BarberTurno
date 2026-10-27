@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Responsable: M06. Usuario/contraseña, validación, errores, navegación según rol. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             x:Class="BarberTurno.Views.LoginPage"
+             x:DataType="vm:LoginViewModel"
+             Title="Iniciar sesión">
+    <VerticalStackLayout Padding="16">
+        <!-- TODO(M06): interfaz (StateView, bindings, comandos). -->
+        <Label Text="Iniciar sesión - pendiente de implementar" />
+    </VerticalStackLayout>
+</ContentPage>

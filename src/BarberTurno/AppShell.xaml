@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Responsable: M01. Navegación por perfil: login -> TabBar del cliente o TabBar del barbero. -->
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:views="clr-namespace:BarberTurno.Views"
+       x:Class="BarberTurno.AppShell"
+       Shell.FlyoutBehavior="Disabled">
+
+    <ShellContent Route="login" ContentTemplate="{DataTemplate views:LoginPage}" />
+
+    <TabBar Route="cliente">
+        <ShellContent Title="Barberos" Route="barberos" ContentTemplate="{DataTemplate views:BarberosPage}" />
+        <ShellContent Title="Mis citas" Route="miscitas" ContentTemplate="{DataTemplate views:MisCitasPage}" />
+        <ShellContent Title="Perfil" Route="perfilcliente" ContentTemplate="{DataTemplate views:PerfilPage}" />
+    </TabBar>
+
+    <TabBar Route="barbero">
+        <ShellContent Title="Agenda" Route="agenda" ContentTemplate="{DataTemplate views:AgendaDiaPage}" />
+        <ShellContent Title="Perfil" Route="perfilbarbero" ContentTemplate="{DataTemplate views:PerfilPage}" />
+    </TabBar>
+</Shell>

@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BarberTurno.Api/BarberTurno.Api.csproj" />
+    <Project Path="src/BarberTurno/BarberTurno.csproj" />
+  </Folder>
+</Solution>

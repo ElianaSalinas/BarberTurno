@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Responsable: M10. Detalle; opcional: marcar atendida/ausente. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             x:Class="BarberTurno.Views.DetalleCitaPage"
+             x:DataType="vm:DetalleCitaViewModel"
+             Title="Detalle de la cita">
+    <VerticalStackLayout Padding="16">
+        <!-- TODO(M10): interfaz (StateView, bindings, comandos). -->
+        <Label Text="Detalle de la cita - pendiente de implementar" />
+    </VerticalStackLayout>
+</ContentPage>
