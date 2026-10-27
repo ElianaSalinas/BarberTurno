@@ -4,6 +4,8 @@ using BarberTurno.Services.Api;
 using BarberTurno.Services.Auth;
 using BarberTurno.Services.Availability;
 using BarberTurno.Services.Booking;
+using BarberTurno.Services.Dialogs;
+using BarberTurno.Services.Navigation;
 using BarberTurno.Services.Sync;
 using BarberTurno.ViewModels;
 using BarberTurno.Views;
@@ -33,13 +35,17 @@ public static class MauiProgram
             .AddSyncLayer()          // M07
             .AddBookingLayer()       // M08
             .AddPresentationLayer(); // M01 (ViewModels y páginas)
-        // TODO(M01): INavigationService, IDialogService.
 
         return builder.Build();
     }
 
     private static IServiceCollection AddPresentationLayer(this IServiceCollection services)
     {
+        // Servicios sin estado que envuelven Shell: una sola instancia para toda la app.
+        services.AddSingleton<INavigationService, NavigationService>();
+        services.AddSingleton<IDialogService, DialogService>();
+
+        // ViewModels y páginas: Transient, cada navegación crea una pantalla nueva y limpia.
         services.AddTransient<LoginViewModel>();
         services.AddTransient<LoginPage>();
         services.AddTransient<BarberosViewModel>();
