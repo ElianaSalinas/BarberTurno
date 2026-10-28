@@ -1,5 +1,5 @@
 // Responsable: M02
-// Convierte EstadoCita al color de estado correspondiente para la UI.
+// Convierte EstadoCita al color de estado definido en AppTheme.xaml (única fuente de verdad).
 using BarberTurno.Models;
 using System.Globalization;
 
@@ -7,15 +7,8 @@ namespace BarberTurno.Helpers.Converters;
 
 /// <summary>
 /// Convierte un valor <see cref="EstadoCita"/> en el <see cref="Color"/> de estado
-/// definido en la paleta de la app (AppTheme.xaml):
-/// <list type="table">
-///   <item><term>Confirmada</term><description>Verde (#27AE60)</description></item>
-///   <item><term>Pendiente</term><description>Ámbar (#E67E22)</description></item>
-///   <item><term>Rechazada</term><description>Rojo (#E74C3C)</description></item>
-///   <item><term>Cancelada</term><description>Gris (#95A5A6)</description></item>
-///   <item><term>Atendida</term><description>Verde oscuro (#1E8449)</description></item>
-///   <item><term>Ausente</term><description>Gris oscuro (#717D7E)</description></item>
-/// </list>
+/// leyendo directamente los recursos de <c>AppTheme.xaml</c> según el tema claro u oscuro activo.
+/// Si no encuentra el recurso en el diccionario de la aplicación, devuelve <see cref="Colors.Gray"/> como respaldo.
 /// </summary>
 public class EstadoCitaToColorConverter : IValueConverter
 {
@@ -24,16 +17,37 @@ public class EstadoCitaToColorConverter : IValueConverter
     {
         if (value is not EstadoCita estado) return Colors.Gray;
 
-        return estado switch
+        var claveBase = estado switch
         {
-            EstadoCita.Confirmada => Color.FromArgb("#27AE60"),
-            EstadoCita.Pendiente  => Color.FromArgb("#E67E22"),
-            EstadoCita.Rechazada  => Color.FromArgb("#E74C3C"),
-            EstadoCita.Cancelada  => Color.FromArgb("#95A5A6"),
-            EstadoCita.Atendida   => Color.FromArgb("#1E8449"),
-            EstadoCita.Ausente    => Color.FromArgb("#717D7E"),
-            _                     => Colors.Gray
+            EstadoCita.Confirmada => "EstadoConfirmada",
+            EstadoCita.Pendiente  => "EstadoPendiente",
+            EstadoCita.Rechazada  => "EstadoRechazada",
+            EstadoCita.Cancelada  => "EstadoCancelada",
+            EstadoCita.Atendida   => "EstadoAtendida",
+            EstadoCita.Ausente    => "EstadoAusente",
+            _                     => ""
         };
+
+        if (string.IsNullOrEmpty(claveBase))
+            return Colors.Gray;
+
+        var recursos = Application.Current?.Resources;
+        if (recursos is null)
+            return Colors.Gray;
+
+        // 1. Intentar obtener la variante específica del tema activo (Claro / Oscuro) para mejor contraste
+        var esOscuro  = Application.Current?.RequestedTheme == AppTheme.Dark;
+        var claveTema = esOscuro ? $"{claveBase}Oscuro" : $"{claveBase}Claro";
+
+        if (recursos.TryGetValue(claveTema, out var recursoTema) && recursoTema is Color colorTema)
+            return colorTema;
+
+        // 2. Si no existe variante por tema, buscar la clave base en AppTheme.xaml
+        if (recursos.TryGetValue(claveBase, out var recursoBase) && recursoBase is Color colorBase)
+            return colorBase;
+
+        // 3. Respaldo seguro si el diccionario aún no fue registrado
+        return Colors.Gray;
     }
 
     /// <inheritdoc/>

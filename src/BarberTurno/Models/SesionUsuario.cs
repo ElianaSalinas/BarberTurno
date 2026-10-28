@@ -22,4 +22,10 @@ public class SesionUsuario
     /// aquí se guarda solo en memoria para adjuntarlo a las peticiones HTTP.
     /// </summary>
     public string Token { get; set; } = "";
+
+    /// <summary>
+    /// Fecha y hora de expiración del token en hora local del dispositivo.
+    /// Permite a M05 verificar si la sesión sigue vigente antes de restaurarla al abrir la app.
+    /// </summary>
+    public DateTime ExpiraEn { get; set; }
 }

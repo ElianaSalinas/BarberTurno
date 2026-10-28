@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
     Responsable: M02 · AppTheme.xaml
-    Tema visual de BarberTurno: paleta, tipografía y estilos reutilizables.
+    Tema visual de BarberTurno: paleta, tipografía Open Sans y estilos reutilizables.
 
-    ACTIVACIÓN: M01 debe agregar esta línea en App.xaml (ResourceDictionary.MergedDictionaries),
+    ACTIVACIÓN: M01 debe asegurarse de que esta línea esté en App.xaml (ResourceDictionary.MergedDictionaries),
     DESPUÉS de Colors.xaml y Styles.xaml:
         <ResourceDictionary Source="Resources/Styles/AppTheme.xaml" />
 
-    FUENTES: actualmente usa OpenSansRegular y OpenSansSemibold (registradas en MauiProgram por M01).
-    Para usar Inter (la fuente indicada en el ADR visual), M01 debe:
-      1. Copiar Inter-Regular.ttf, Inter-SemiBold.ttf e Inter-Bold.ttf a Resources/Fonts/.
-      2. Registrarlas en MauiProgram: fonts.AddFont("Inter-Regular.ttf", "InterRegular"); etc.
-      3. Reemplazar "OpenSansRegular"/"OpenSansSemibold" por "InterRegular"/"InterSemiBold"/"InterBold".
+    FUENTES: usa OpenSansRegular y OpenSansSemibold, ya incluidas en la plantilla MAUI y registradas en MauiProgram.cs.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -44,13 +40,40 @@
     <Color x:Key="BordeClaro">#DDD8D2</Color>
     <Color x:Key="BordeOscuro">#2C2C2C</Color>
 
-    <!-- Colores de estado de cita (contraste legible en ambos temas) -->
-    <Color x:Key="EstadoConfirmada">#27AE60</Color>  <!-- Verde (Confirmada) -->
-    <Color x:Key="EstadoPendiente">#D68910</Color>   <!-- Ámbar (Pendiente) -->
-    <Color x:Key="EstadoRechazada">#E74C3C</Color>   <!-- Rojo (Rechazada) -->
-    <Color x:Key="EstadoCancelada">#7F8C8D</Color>   <!-- Gris (Cancelada) -->
-    <Color x:Key="EstadoAtendida">#1A8A4A</Color>    <!-- Verde oscuro (Atendida) -->
-    <Color x:Key="EstadoAusente">#5D6D7E</Color>     <!-- Gris azulado (Ausente) -->
+    <!-- ══════════════════════════════════════════════════════════
+         COLORES DE ESTADO DE CITA (único lugar de definición)
+         Variantes Claro/Oscuro para garantizar contraste legible en ambos temas,
+         más clave base consumida por EstadoCitaToColorConverter.
+    ══════════════════════════════════════════════════════════ -->
+    <!-- Confirmada (Verde) -->
+    <Color x:Key="EstadoConfirmada">#27AE60</Color>
+    <Color x:Key="EstadoConfirmadaClaro">#1E8449</Color>
+    <Color x:Key="EstadoConfirmadaOscuro">#2ECC71</Color>
+
+    <!-- Pendiente (Ámbar) -->
+    <Color x:Key="EstadoPendiente">#D68910</Color>
+    <Color x:Key="EstadoPendienteClaro">#B7770D</Color>
+    <Color x:Key="EstadoPendienteOscuro">#F39C12</Color>
+
+    <!-- Rechazada (Rojo) -->
+    <Color x:Key="EstadoRechazada">#E74C3C</Color>
+    <Color x:Key="EstadoRechazadaClaro">#C0392B</Color>
+    <Color x:Key="EstadoRechazadaOscuro">#EC7063</Color>
+
+    <!-- Cancelada (Gris) -->
+    <Color x:Key="EstadoCancelada">#7F8C8D</Color>
+    <Color x:Key="EstadoCanceladaClaro">#5D6D7E</Color>
+    <Color x:Key="EstadoCanceladaOscuro">#95A5A6</Color>
+
+    <!-- Atendida (Verde azulado oscuro) -->
+    <Color x:Key="EstadoAtendida">#16A085</Color>
+    <Color x:Key="EstadoAtendidaClaro">#117A65</Color>
+    <Color x:Key="EstadoAtendidaOscuro">#1ABC9C</Color>
+
+    <!-- Ausente (Gris pizarra) -->
+    <Color x:Key="EstadoAusente">#5D6D7E</Color>
+    <Color x:Key="EstadoAusenteClaro">#4A5568</Color>
+    <Color x:Key="EstadoAusenteOscuro">#85929E</Color>
 
     <!-- ══════════════════════════════════════════════════════════
          INSTANCIAS DE CONVERTIDORES
@@ -62,7 +85,7 @@
     <converters:BoolInvertidoConverter         x:Key="BoolInvertido" />
 
     <!-- ══════════════════════════════════════════════════════════
-         ESCALA TIPOGRÁFICA
+         ESCALA TIPOGRÁFICA — Familia única: Open Sans (OpenSansRegular, OpenSansSemibold)
          Mínimo: 12 pt. Todos con LineBreakMode=WordWrap para adaptarse al tamaño del sistema sin cortarse.
     ══════════════════════════════════════════════════════════ -->
 

@@ -10,8 +10,11 @@ namespace BarberTurno.Models;
 [Table("clientes")]
 public class Cliente
 {
-    /// <summary>Clave primaria autoincremental generada por SQLite.</summary>
-    [PrimaryKey, AutoIncrement]
+    /// <summary>
+    /// Clave primaria asignada por el servidor. NO lleva AutoIncrement para que SQLite
+    /// conserve exactamente el mismo Id que viene de la API y las citas (ClienteId) coincidan.
+    /// </summary>
+    [PrimaryKey]
     public int Id { get; set; }
 
     /// <summary>Nombre completo del cliente. Indexado para búsquedas rápidas.</summary>
