@@ -1,4 +1,3 @@
-using Android.Content;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Storage;
 
@@ -25,11 +24,11 @@ public static class DataServiceRegistration
         services.AddSingleton<IAppDatabase, AppDatabase>();
 
         // ---------- Módulo 4 · Repositorios (Singleton) ----------
-        // TODO(módulo 4): registrar aquí cuando las clases implementen sus interfaces, por ejemplo:
-        // services.AddSingleton<IBarberoRepository, BarberoRepository>();
-        // services.AddSingleton<IServicioRepository, ServicioRepository>();
-        // services.AddSingleton<IClienteRepository, ClienteRepository>();
-        // services.AddSingleton<ICitaRepository, CitaRepository>();
+        // Singleton: no guardan estado propio y comparten la única conexión de IAppDatabase.
+        services.AddSingleton<Repositories.IBarberoRepository, Repositories.BarberoRepository>();
+        services.AddSingleton<Repositories.IServicioRepository, Repositories.ServicioRepository>();
+        services.AddSingleton<Repositories.IClienteRepository, Repositories.ClienteRepository>();
+        services.AddSingleton<Repositories.ICitaRepository, Repositories.CitaRepository>();
 
         return services;
     }
