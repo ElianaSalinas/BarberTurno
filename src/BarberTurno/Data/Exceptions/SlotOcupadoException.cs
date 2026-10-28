@@ -1,4 +1,3 @@
-using Android.Database.Sqlite;
 using SQLite;
 
 // Responsable: Módulo 3 · Base de datos SQLite

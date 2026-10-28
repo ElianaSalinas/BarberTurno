@@ -1,4 +1,3 @@
-using Android.Renderscripts;
 using BarberTurno.Models;
 using Microsoft.Extensions.Logging;
 using SQLite;
