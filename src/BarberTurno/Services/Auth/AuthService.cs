@@ -1,6 +1,6 @@
-// Responsable: M05
-// Implementa IAuthService: login contra la API, restaurar sesión desde
-// SecureStorage y logout. Nunca guarda la contraseña.
+// Responsable: M5
+// Implementa IAuthService: login contra la API, registro, restaurar sesión
+// desde SecureStorage y logout. Nunca guarda la contraseña.
 using BarberTurno.Dtos;
 using BarberTurno.Models;
 using BarberTurno.Services.Api;
@@ -10,14 +10,10 @@ namespace BarberTurno.Services.Auth;
 public class AuthService : IAuthService
 {
     // ── Dependencias inyectadas ───────────────────────────────────────────────
-    // El constructor recibe las interfaces, nunca las clases concretas.
-    // Así el contenedor de DI puede cambiar la implementación sin tocar aquí.
-    private readonly IBarberTurnoApi  _api;
-    private readonly ISessionStorage  _sessionStorage;
+    private readonly IBarberTurnoApi _api;
+    private readonly ISessionStorage _sessionStorage;
 
     // ── Estado en memoria ─────────────────────────────────────────────────────
-    // SesionActual es null hasta que LoginAsync o RestaurarSesionAsync tengan éxito.
-    // Es público porque lo leen PerfilViewModel, ReservasViewModel, etc.
     public SesionUsuario? SesionActual { get; private set; }
 
     // ── Constructor ───────────────────────────────────────────────────────────
@@ -34,61 +30,112 @@ public class AuthService : IAuthService
     {
         try
         {
-            // 1. Construimos el DTO con las credenciales (nunca se guardan).
-            //    LoginRequestDto vive en Dtos/Dtos.cs (módulo M05 de red).
+            // Construimos el DTO con las credenciales. La contraseña solo existe
+            // en memoria mientras dura la petición, jamás se persiste.
             var request = new LoginRequestDto
             {
                 Usuario  = usuario,
-                Password = password   // Solo viaja en la petición HTTP, jamás se persiste.
+                Password = password
             };
 
-            // 2. Llamamos a la API. ApiResult<T> es el sobre tipado de M05:
-            //    evita que tengamos que atrapar HttpRequestException aquí.
             var resultado = await _api.LoginAsync(request);
 
-            // 3. ¿Sin conexión? El módulo de red pone SinConexion = true
-            //    cuando hay un timeout o fallo de red.
+            // Sin conexión: timeout o fallo de red.
             if (resultado.SinConexion)
                 return ResultadoLogin.SinConexion;
 
-            // 4. ¿Credenciales incorrectas? El servidor devuelve HTTP 401.
+            // HTTP 401 = no autenticado: el servidor reconoce la ruta pero
+            // rechaza las credenciales (usuario o contraseña incorrectos).
             if (resultado.CodigoHttp == 401)
                 return ResultadoLogin.CredencialesInvalidas;
 
-            // 5. ¿Éxito con datos? Validamos que el sobre contenga datos reales.
             if (resultado.Exito && resultado.Datos is { } datos)
             {
-                // 5a. Convertimos el rol string -> enum.
-                //     ignoreCase: true acepta "cliente", "Cliente", "CLIENTE".
-                //     El rol lo dicta SIEMPRE el servidor, nunca la UI.
+                // El rol lo dicta SIEMPRE el servidor. ignoreCase acepta
+                // "cliente", "Cliente" y "CLIENTE".
                 if (!Enum.TryParse<RolUsuario>(datos.Rol, ignoreCase: true, out var rol))
-                {
-                    // Si el servidor devuelve un rol desconocido (bug de API o
-                    // versión desactualizada), no guardamos nada y reportamos error.
                     return ResultadoLogin.Error;
-                }
 
-                // 5b. Construimos el objeto de sesión (sin contraseña).
                 var sesion = DtoASesion(datos, rol);
-
-                // 5c. Persistimos en SecureStorage: token, expiración y datos de sesión.
                 await _sessionStorage.SaveSesionAsync(datos.Token, datos.ExpiraEnUtc, sesion);
-
-                // 5d. Actualizamos el estado en memoria.
                 SesionActual = sesion;
-
                 return ResultadoLogin.Exito;
             }
 
-            // 6. La respuesta vino sin error pero sin datos útiles: caso raro,
-            //    puede ser un bug del servidor o un contrato roto.
             return ResultadoLogin.Error;
         }
         catch
         {
-            // 7. Excepción completamente inesperada (p. ej. NullReferenceException
-            //    en alguna capa). No dejamos caer la app: reportamos Error.
+            // Excepción inesperada: la app no debe caer.
             return ResultadoLogin.Error;
+        }
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // REGISTRO
+    // ═════════════════════════════════════════════════════════════════════════
+    public async Task<ResultadoRegistro> RegistrarAsync(
+        string nombre,
+        string telefono,
+        string usuario,
+        string password,
+        RolUsuario rol)
+    {
+        try
+        {
+            // TODO(M5 red): descomentar cuando el módulo de red agregue
+            // RegistroRequestDto en Dtos/Dtos.cs e IBarberTurnoApi.RegistrarAsync.
+            // ────────────────────────────────────────────────────────────────
+            // var request = new RegistroRequestDto
+            // {
+            //     Nombre   = nombre,
+            //     Telefono = telefono,
+            //     Usuario  = usuario,
+            //     Password = password,       // Solo viaja en la petición HTTP, nunca se persiste.
+            //     Rol      = rol.ToString()  // "Cliente" o "Barbero" como texto para la API.
+            // };
+            //
+            // var resultado = await _api.RegistrarAsync(request);
+            //
+            // // Sin conexión.
+            // if (resultado.SinConexion)
+            //     return ResultadoRegistro.SinConexion;
+            //
+            // // HTTP 409 = el usuario (email/nombre) ya existe en el servidor.
+            // if (resultado.CodigoHttp == 409)
+            //     return ResultadoRegistro.UsuarioYaExiste;
+            //
+            // // HTTP 400 = datos inválidos: campo vacío, formato incorrecto, rol no permitido.
+            // if (resultado.CodigoHttp == 400)
+            //     return ResultadoRegistro.DatosInvalidos;
+            //
+            // if (resultado.Exito && resultado.Datos is { } datos)
+            // {
+            //     // Usamos el rol que devolvió el SERVIDOR, no el que eligió el usuario.
+            //     // Ambos deberían coincidir, pero el servidor es la fuente de verdad.
+            //     if (!Enum.TryParse<RolUsuario>(datos.Rol, ignoreCase: true, out var rolServidor))
+            //         return ResultadoRegistro.Error;
+            //
+            //     // Reutilizamos DtoASesion: misma conversión que en LoginAsync,
+            //     // sin duplicar código.
+            //     var sesion = DtoASesion(datos, rolServidor);
+            //     await _sessionStorage.SaveSesionAsync(datos.Token, datos.ExpiraEnUtc, sesion);
+            //     SesionActual = sesion;
+            //     return ResultadoRegistro.Exito;
+            // }
+            //
+            // return ResultadoRegistro.Error;
+            // ────────────────────────────────────────────────────────────────
+
+            // Mientras el módulo de red no entregue RegistrarAsync,
+            // el método compila y devuelve Error de forma segura.
+            // Esto NO afecta el login ni la restauración de sesión.
+            _ = nombre; _ = telefono; _ = usuario; _ = password; _ = rol; // Evita CS0168
+            return await Task.FromResult(ResultadoRegistro.Error);
+        }
+        catch
+        {
+            return ResultadoRegistro.Error;
         }
     }
 
@@ -97,27 +144,20 @@ public class AuthService : IAuthService
     // ═════════════════════════════════════════════════════════════════════════
     public async Task<bool> RestaurarSesionAsync()
     {
-        // Leemos las tres piezas. Cualquiera puede devolver null si:
-        //   - Nunca se guardó (primera vez que abre la app).
-        //   - El Keystore de Android fue invalidado (reinstalación).
-        //   - El dato estaba dañado (SessionStorage ya hizo Clear() en ese caso).
         var token  = await _sessionStorage.GetTokenAsync();
         var expira = await _sessionStorage.GetExpiracionAsync();
         var sesion = await _sessionStorage.GetSesionAsync();
 
-        // Si falta cualquiera de las tres, la sesión no es utilizable.
+        // Si falta cualquiera, no hay sesión utilizable.
         if (token is null || expira is null || sesion is null)
         {
-            _sessionStorage.Clear(); // Limpieza defensiva por si quedó basura parcial.
+            _sessionStorage.Clear();
             SesionActual = null;
             return false;
         }
 
-        // Comprobamos si el token todavía es válido.
-        // AddMinutes(1): margen de 60 segundos para evitar que la app deje pasar
-        // un token que expirará antes de que el servidor lo procese.
-        // (Un token "válido" con 10 segundos de vida causaría un error 401 en la
-        //  siguiente petición, con peor experiencia de usuario.)
+        // Margen de 1 minuto: descartamos tokens que expiran casi de inmediato
+        // para evitar un 401 en la primera petición tras entrar a la app.
         if (expira.Value <= DateTime.UtcNow.AddMinutes(1))
         {
             _sessionStorage.Clear();
@@ -125,8 +165,7 @@ public class AuthService : IAuthService
             return false;
         }
 
-        // Todo en orden: reconstruimos la sesión en memoria.
-        // NO llamamos a la API: funciona sin conexión a internet.
+        // Todo válido. No llamamos a la API: funciona sin internet.
         SesionActual = sesion;
         return true;
     }
@@ -136,29 +175,23 @@ public class AuthService : IAuthService
     // ═════════════════════════════════════════════════════════════════════════
     public Task LogoutAsync()
     {
-        // Borramos el token y los datos de SecureStorage.
         _sessionStorage.Clear();
-
-        // Limpiamos la sesión en memoria.
         SesionActual = null;
-
-        // Task.CompletedTask porque Clear() es síncrono.
-        // Si en el futuro Clear() se vuelve async, basta cambiar esta línea.
         return Task.CompletedTask;
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    // MÉTODO PRIVADO: conversión DTO -> modelo de dominio
+    // HELPER PRIVADO: DTO -> modelo de dominio
     // ═════════════════════════════════════════════════════════════════════════
-    // NOTA: Lo ideal sería mover esta lógica a DtoMapper (Mappers/DtoMapper.cs),
-    // que es el lugar arquitectónico para conversiones DTO<->Modelo.
-    // No lo hacemos aquí porque DtoMapper no es un archivo del módulo M05
-    // y no podemos modificarlo sin coordinarlo con el responsable.
+    // NOTA: Lo ideal sería mover esta conversión a Mappers/DtoMapper.cs,
+    // que es el lugar arquitectónico para transformaciones DTO <-> Modelo.
+    // No lo hacemos porque DtoMapper.cs no es un archivo del módulo M5.
+    // LoginAsync y RegistrarAsync (cuando esté activo) lo reutilizan sin duplicar.
     private static SesionUsuario DtoASesion(LoginResponseDto dto, RolUsuario rol)
         => new()
         {
             UsuarioId = dto.UsuarioId,
             Nombre    = dto.Nombre,
-            Rol       = rol    // Viene de Enum.TryParse, nunca de la UI.
+            Rol       = rol   // Siempre viene del servidor vía Enum.TryParse.
         };
 }

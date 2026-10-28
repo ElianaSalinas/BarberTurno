@@ -1,4 +1,4 @@
-// Responsable: M05
+// Responsable: M5
 // Inicio/cierre/restauración de sesión y rol activo.
 using BarberTurno.Models;
 
@@ -21,9 +21,22 @@ public interface IAuthService
     Task<ResultadoLogin> LoginAsync(string usuario, string password);
 
     /// <summary>
+    /// Registra una cuenta nueva como Cliente o Barbero.
+    /// Si el registro tiene éxito, la sesión queda iniciada automáticamente
+    /// (mismo comportamiento que LoginAsync exitoso).
+    /// NUNCA guarda la contraseña.
+    /// </summary>
+    Task<ResultadoRegistro> RegistrarAsync(
+        string nombre,
+        string telefono,
+        string usuario,
+        string password,
+        RolUsuario rol);
+
+    /// <summary>
     /// Al abrir la app: si hay token válido en SecureStorage y no expiró,
     /// reconstruye SesionActual y devuelve true (sin llamar a la API).
-    /// Si algo falla o expiró, devuelve false y el ViewModel navega al login.
+    /// Lo llama LoginViewModel.InicializarAsync() desde OnAppearing.
     /// </summary>
     Task<bool> RestaurarSesionAsync();
 
