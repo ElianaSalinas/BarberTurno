@@ -9,7 +9,7 @@
       • ConDatos  → Vista real proporcionada por la propiedad Contenido
 
     Uso típico en XAML:
-      <controls:StateView Estado="{Binding EstadoPantalla}"
+      <controls:StateView Estado="{Binding Estado}"
                           TextoVacio="No hay citas disponibles."
                           TextoError="{Binding MensajeError}"
                           ComandoReintentar="{Binding CargarCommand}">
@@ -54,6 +54,7 @@
                    HorizontalTextAlignment="Center"
                    FontSize="16"
                    FontFamily="OpenSansRegular"
+                   LineBreakMode="WordWrap"
                    TextColor="{AppThemeBinding Light=#5A5A5A, Dark=#A8A8A8}" />
         </VerticalStackLayout>
 
@@ -69,6 +70,7 @@
                    HorizontalTextAlignment="Center"
                    FontSize="16"
                    FontFamily="OpenSansRegular"
+                   LineBreakMode="WordWrap"
                    TextColor="#E74C3C" />
             <Button x:Name="BtnReintentar"
                     Text="Reintentar"

@@ -46,7 +46,7 @@ public class ClienteDto
     public string Telefono { get; set; } = "";
 }
 
-/// <summary>DTO de barbero que viaja por red.</summary>
+/// <summary>DTO de barbero que viaja por red incluyendo su horario de trabajo.</summary>
 public class BarberoDto
 {
     [JsonPropertyName("id")]
@@ -57,6 +57,15 @@ public class BarberoDto
 
     [JsonPropertyName("fotoUrl")]
     public string? FotoUrl { get; set; }
+
+    [JsonPropertyName("horaEntrada")]
+    public TimeSpan HoraEntrada { get; set; } = new TimeSpan(9, 0, 0);
+
+    [JsonPropertyName("horaSalida")]
+    public TimeSpan HoraSalida { get; set; } = new TimeSpan(18, 0, 0);
+
+    [JsonPropertyName("diasTrabajo")]
+    public string DiasTrabajo { get; set; } = "1,2,3,4,5,6";
 
     [JsonPropertyName("servicioIds")]
     public List<int> ServicioIds { get; set; } = new();

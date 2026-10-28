@@ -1,35 +1,61 @@
 // Responsable: M02
-// Convierte un DateTime a texto amigable en español para mostrar en la UI.
+// Convierte un DateTime a texto amigable en español (es-DO con respaldo a "es") en formato de 12 horas AM/PM.
 using System.Globalization;
 
 namespace BarberTurno.Helpers.Converters;
 
 /// <summary>
-/// Convierte un <see cref="DateTime"/> a una cadena amigable en español.
+/// Convierte un <see cref="DateTime"/> a una cadena amigable en español dominicano ("es-DO")
+/// garantizando siempre el formato de 12 horas con AM/PM.
+/// Si el dispositivo no dispone de la cultura "es-DO", usa "es" como respaldo sin lanzar excepción.
 /// Ejemplos de salida:
 /// <list type="bullet">
 ///   <item>Hoy a las 3:30 PM</item>
 ///   <item>Mañana a las 10:00 AM</item>
 ///   <item>lun 27 oct, 9:00 AM</item>
 /// </list>
-/// <para>
-/// La entrada puede estar en UTC o local; si está en UTC se convierte a hora local antes de formatear.
-/// </para>
 /// </summary>
 public class FechaAmigableConverter : IValueConverter
 {
-    private static readonly CultureInfo Espanol = new("es-ES");
+    private static readonly CultureInfo CulturaEspanol = CrearCulturaSegura();
+
+    private static CultureInfo CrearCulturaSegura()
+    {
+        CultureInfo cultura;
+        try
+        {
+            cultura = new CultureInfo("es-DO");
+        }
+        catch (CultureNotFoundException)
+        {
+            try
+            {
+                // Respaldo a español neutro si el dispositivo no tiene es-DO
+                cultura = new CultureInfo("es");
+            }
+            catch (CultureNotFoundException)
+            {
+                cultura = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+            }
+        }
+
+        // Asegura que siempre muestre exactamente "AM" y "PM" en formato 12h
+        cultura.DateTimeFormat.AMDesignator = "AM";
+        cultura.DateTimeFormat.PMDesignator = "PM";
+        return CultureInfo.ReadOnly(cultura);
+    }
 
     /// <inheritdoc/>
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is not DateTime fecha) return "";
 
-        // Asegurar hora local para mostrar
+        // Si por alguna razón viene en UTC, se pasa a hora local antes de mostrar
         var local = fecha.Kind == DateTimeKind.Utc ? fecha.ToLocalTime() : fecha;
         var hoy   = DateTime.Today;
 
-        var hora = local.ToString("h:mm tt", Espanol);
+        // "h:mm tt" fuerza formato de 12 horas (1–12) con designador AM/PM
+        var hora = local.ToString("h:mm tt", CulturaEspanol);
 
         if (local.Date == hoy)
             return $"Hoy a las {hora}";
@@ -38,8 +64,8 @@ public class FechaAmigableConverter : IValueConverter
             return $"Mañana a las {hora}";
 
         // Formato: "lun 27 oct, 9:00 AM"
-        var diaSemana = local.ToString("ddd", Espanol);
-        var diaMes    = local.ToString("d MMM", Espanol);
+        var diaSemana = local.ToString("ddd", CulturaEspanol).TrimEnd('.');
+        var diaMes    = local.ToString("d MMM", CulturaEspanol).TrimEnd('.');
         return $"{diaSemana} {diaMes}, {hora}";
     }
 

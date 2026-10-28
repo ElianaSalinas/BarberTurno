@@ -11,7 +11,8 @@ namespace BarberTurno.Mappers;
 /// <para>
 /// Reglas de conversión:
 /// <list type="bullet">
-///   <item>Fechas: el DTO lleva UTC; la entidad almacena UTC y muestra hora local solo en la UI.</item>
+///   <item>Ids de catálogo (Cliente, Barbero, Servicio): se copian tal cual desde el servidor.</item>
+///   <item>Fechas: el DTO lleva UTC; la entidad almacena y usa hora local en la app.</item>
 ///   <item>Estado: viaja como string en minúsculas en el JSON; aquí se convierte a/desde <see cref="EstadoCita"/>.</item>
 ///   <item>Valores nulos o desconocidos: se usa un valor seguro por defecto (nunca lanza excepción).</item>
 /// </list>
@@ -19,31 +20,58 @@ namespace BarberTurno.Mappers;
 /// </summary>
 public static class DtoMapper
 {
-    // ── Barbero ───────────────────────────────────────────────────────────────
+    // ── Cliente ───────────────────────────────────────────────────────────────
 
-    /// <summary>Convierte un BarberoDto (respuesta de la API) en entidad local.</summary>
-    public static Barbero ToEntidad(this BarberoDto dto) => new()
+    /// <summary>Convierte un ClienteDto en entidad local conservando el Id del servidor.</summary>
+    public static Cliente ToEntidad(this ClienteDto dto) => new()
     {
-        Id      = dto.Id,
-        Nombre  = dto.Nombre ?? "",
-        FotoUrl = dto.FotoUrl
+        Id       = dto.Id, // Se conserva el Id exacto del servidor
+        Nombre   = dto.Nombre ?? "",
+        Telefono = dto.Telefono ?? ""
     };
 
-    /// <summary>Convierte una entidad Barbero en DTO para enviar a la API.</summary>
+    /// <summary>Convierte una entidad Cliente en DTO conservando su Id.</summary>
+    public static ClienteDto ToDto(this Cliente entidad) => new()
+    {
+        Id       = entidad.Id,
+        Nombre   = entidad.Nombre,
+        Telefono = entidad.Telefono
+    };
+
+    // ── Barbero ───────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Convierte un BarberoDto (respuesta de la API) en entidad local conservando el Id
+    /// del servidor y su horario laboral (HoraEntrada, HoraSalida y DiasTrabajo).
+    /// </summary>
+    public static Barbero ToEntidad(this BarberoDto dto) => new()
+    {
+        Id          = dto.Id, // Se conserva el Id exacto del servidor
+        Nombre      = dto.Nombre ?? "",
+        FotoUrl     = dto.FotoUrl,
+        HoraEntrada = dto.HoraEntrada,
+        HoraSalida  = dto.HoraSalida,
+        DiasTrabajo = string.IsNullOrWhiteSpace(dto.DiasTrabajo) ? "1,2,3,4,5,6" : dto.DiasTrabajo
+    };
+
+    /// <summary>Convierte una entidad Barbero en DTO incluyendo su horario laboral.</summary>
     public static BarberoDto ToDto(this Barbero entidad) => new()
     {
         Id          = entidad.Id,
         Nombre      = entidad.Nombre,
         FotoUrl     = entidad.FotoUrl,
+        HoraEntrada = entidad.HoraEntrada,
+        HoraSalida  = entidad.HoraSalida,
+        DiasTrabajo = entidad.DiasTrabajo,
         ServicioIds = new List<int>() // se rellena en capa de servicio si se necesita
     };
 
     // ── Servicio ──────────────────────────────────────────────────────────────
 
-    /// <summary>Convierte un ServicioDto (respuesta de la API) en entidad local.</summary>
+    /// <summary>Convierte un ServicioDto (respuesta de la API) en entidad local conservando el Id del servidor.</summary>
     public static Servicio ToEntidad(this ServicioDto dto) => new()
     {
-        Id          = dto.Id,
+        Id          = dto.Id, // Se conserva el Id exacto del servidor
         Nombre      = dto.Nombre ?? "",
         DuracionMin = dto.DuracionMin,
         Precio      = dto.Precio
@@ -115,8 +143,7 @@ public static class DtoMapper
 
     /// <summary>
     /// Construye la sesión en memoria a partir de la respuesta de login de la API.
-    /// El token se almacena en SecureStorage por M05; aquí queda en la sesión para
-    /// adjuntarlo a las peticiones HTTP.
+    /// Convierte ExpiraEnUtc a hora local para que M05 pueda compararla con DateTime.Now.
     /// </summary>
     public static SesionUsuario ToSesion(this LoginResponseDto dto) => new()
     {
@@ -125,7 +152,8 @@ public static class DtoMapper
         Rol       = dto.Rol?.Equals("Barbero", StringComparison.OrdinalIgnoreCase) == true
                         ? RolUsuario.Barbero
                         : RolUsuario.Cliente,
-        Token     = dto.Token ?? ""
+        Token     = dto.Token ?? "",
+        ExpiraEn  = DateTime.SpecifyKind(dto.ExpiraEnUtc, DateTimeKind.Utc).ToLocalTime()
     };
 
     // ── CrearCitaRequestDto ───────────────────────────────────────────────────
