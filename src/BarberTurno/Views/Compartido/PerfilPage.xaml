@@ -3,11 +3,70 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             xmlns:controls="clr-namespace:BarberTurno.Controls"
              x:Class="BarberTurno.Views.PerfilPage"
              x:DataType="vm:PerfilViewModel"
              Title="Perfil">
-    <VerticalStackLayout Padding="16">
-        <!-- TODO(M09): interfaz (StateView, bindings, comandos). -->
-        <Label Text="Perfil - pendiente de implementar" />
-    </VerticalStackLayout>
+
+    <controls:StateView State="{Binding State}"
+                        ErrorText="{Binding MensajeError}"
+                        RetryCommand="{Binding CargarCommand}">
+
+        <ScrollView>
+            <VerticalStackLayout Padding="16,24" Spacing="20">
+
+                <!-- Avatar con inicial, nombre y rol -->
+                <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                    <Border WidthRequest="88"
+                            HeightRequest="88"
+                            HorizontalOptions="Center"
+                            StrokeShape="RoundRectangle 44"
+                            StrokeThickness="0"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}">
+                        <Label Text="{Binding Inicial}"
+                               FontSize="36"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                    </Border>
+                    <Label Text="{Binding Nombre}"
+                           FontFamily="OpenSansSemibold"
+                           FontSize="22"
+                           HorizontalTextAlignment="Center" />
+                    <Label Text="{Binding RolTexto}"
+                           FontSize="14"
+                           HorizontalTextAlignment="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                </VerticalStackLayout>
+
+                <!-- Tema -->
+                <Border Padding="16,12"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Tema oscuro"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="16" />
+                            <Label Text="Cambia la apariencia de la aplicación"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding TemaOscuro}"
+                                VerticalOptions="Center"
+                                SemanticProperties.Description="Activar tema oscuro" />
+                    </Grid>
+                </Border>
+
+                <!-- Cerrar sesión -->
+                <Button Text="Cerrar sesión"
+                        Command="{Binding CerrarSesionCommand}"
+                        BackgroundColor="Transparent"
+                        BorderWidth="1"
+                        BorderColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}"
+                        TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </controls:StateView>
 </ContentPage>
