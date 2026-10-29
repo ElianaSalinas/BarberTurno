@@ -1,7 +1,92 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- Responsable: M09. Control reutilizable: carga / vacío / error (con botón Reintentar) / contenido. -->
+<!--
+    M02 · StateView
+    Control reutilizable de estados de pantalla.
+    Muestra uno de los cuatro estados en función de la propiedad Estado:
+      • Cargando  → ActivityIndicator animado
+      • Vacio     → Mensaje de lista vacía (configurable)
+      • Error     → Mensaje de error + botón "Reintentar" (enlazable a un comando)
+      • ConDatos  → Vista real proporcionada por la propiedad Contenido
+
+    Uso típico en XAML:
+      <controls:StateView Estado="{Binding Estado}"
+                          TextoVacio="No hay citas disponibles."
+                          TextoError="{Binding MensajeError}"
+                          ComandoReintentar="{Binding CargarCommand}">
+          <controls:StateView.Contenido>
+              <CollectionView ItemsSource="{Binding Citas}" ... />
+          </controls:StateView.Contenido>
+      </controls:StateView>
+-->
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="BarberTurno.Controls.StateView">
-    <!-- TODO(M09): ActivityIndicator, mensaje vacío, mensaje de error + Reintentar, ContentPresenter. -->
+             x:Class="BarberTurno.Controls.StateView"
+             x:Name="Root">
+    <Grid>
+
+        <!-- ── Estado: Cargando ──────────────────────────────────────────── -->
+        <VerticalStackLayout x:Name="CargandoLayout"
+                             IsVisible="False"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center"
+                             Spacing="16">
+            <ActivityIndicator IsRunning="True"
+                               Color="{AppThemeBinding Light=#C0392B, Dark=#C0392B}"
+                               HeightRequest="48"
+                               WidthRequest="48"
+                               HorizontalOptions="Center" />
+            <Label Text="Cargando..."
+                   HorizontalOptions="Center"
+                   FontSize="14"
+                   FontFamily="OpenSansRegular"
+                   TextColor="{AppThemeBinding Light=#5A5A5A, Dark=#A8A8A8}" />
+        </VerticalStackLayout>
+
+        <!-- ── Estado: Vacío ─────────────────────────────────────────────── -->
+        <VerticalStackLayout x:Name="VacioLayout"
+                             IsVisible="False"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center"
+                             Spacing="12"
+                             Padding="32,0">
+            <Label x:Name="LblVacio"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   FontSize="16"
+                   FontFamily="OpenSansRegular"
+                   LineBreakMode="WordWrap"
+                   TextColor="{AppThemeBinding Light=#5A5A5A, Dark=#A8A8A8}" />
+        </VerticalStackLayout>
+
+        <!-- ── Estado: Error ─────────────────────────────────────────────── -->
+        <VerticalStackLayout x:Name="ErrorLayout"
+                             IsVisible="False"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center"
+                             Spacing="20"
+                             Padding="32,0">
+            <Label x:Name="LblError"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   FontSize="16"
+                   FontFamily="OpenSansRegular"
+                   LineBreakMode="WordWrap"
+                   TextColor="#E74C3C" />
+            <Button x:Name="BtnReintentar"
+                    Text="Reintentar"
+                    BackgroundColor="#C0392B"
+                    TextColor="White"
+                    FontFamily="OpenSansSemibold"
+                    FontSize="16"
+                    CornerRadius="12"
+                    Padding="20,14"
+                    MinimumHeightRequest="52"
+                    HorizontalOptions="Center" />
+        </VerticalStackLayout>
+
+        <!-- ── Estado: Con datos (contenido real) ────────────────────────── -->
+        <ContentView x:Name="ConDatosLayout"
+                     IsVisible="False" />
+
+    </Grid>
 </ContentView>
