@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Responsable: M5. Pantalla de registro: rol, datos personales, contraseña. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             x:Class="BarberTurno.Views.RegistroPage"
+             x:DataType="vm:RegistroViewModel"
+             Title="Crear cuenta"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="32,60,32,32"
+            Spacing="14"
+            VerticalOptions="Center">
+
+            <!-- ── Encabezado ───────────────────────────────────────────── -->
+            <Label Text="Crear cuenta"
+                   Style="{StaticResource Headline}" />
+
+            <!-- ── Selección de rol ─────────────────────────────────────── -->
+            <!-- GroupName="Rol" garantiza que solo uno puede estar activo.
+                 IsChecked enlazado en TwoWay: la vista actualiza el ViewModel
+                 y el ViewModel puede actualizar la vista. -->
+            <Label Text="¿Cómo te quieres registrar?"
+                   Style="{StaticResource SubHeadline}"
+                   FontSize="16"
+                   Margin="0,8,0,0" />
+
+            <HorizontalStackLayout Spacing="24" HorizontalOptions="Center">
+                <RadioButton x:Name="RadioCliente"
+                             Content="Cliente"
+                             GroupName="Rol"
+                             IsChecked="{Binding EsCliente, Mode=TwoWay}" />
+                <RadioButton x:Name="RadioBarbero"
+                             Content="Barbero"
+                             GroupName="Rol"
+                             IsChecked="{Binding EsBarbero, Mode=TwoWay}" />
+            </HorizontalStackLayout>
+
+            <!-- ── Campos de datos ──────────────────────────────────────── -->
+            <!-- El estilo implícito de Entry en Styles.xaml aplica fuente,
+                 colores y placeholder según el tema claro/oscuro. -->
+
+            <Entry x:Name="EntryNombre"
+                   Text="{Binding Nombre}"
+                   Placeholder="Nombre completo"
+                   Keyboard="Text"
+                   ReturnType="Next" />
+
+            <Entry x:Name="EntryTelefono"
+                   Text="{Binding Telefono}"
+                   Placeholder="Teléfono (10 dígitos)"
+                   Keyboard="Telephone"
+                   ReturnType="Next" />
+
+            <Entry x:Name="EntryUsuario"
+                   Text="{Binding Usuario}"
+                   Placeholder="Usuario"
+                   Keyboard="Email"
+                   ReturnType="Next" />
+
+            <!-- ── Contraseñas ───────────────────────────────────────────── -->
+            <Entry x:Name="EntryPassword"
+                   Text="{Binding Password}"
+                   Placeholder="Contraseña (mínimo 6 caracteres)"
+                   IsPassword="True"
+                   ReturnType="Next" />
+
+            <!-- El Completed de EntryConfirmarPassword llama a RegistrarCommand
+                 desde el code-behind (es un ICommand válido, no un método). -->
+            <Entry x:Name="EntryConfirmarPassword"
+                   Text="{Binding ConfirmarPassword}"
+                   Placeholder="Confirmar contraseña"
+                   IsPassword="True"
+                   ReturnType="Done"
+                   ReturnCommand="{Binding RegistrarCommand}" />
+
+            <!-- ── Mensaje de error ─────────────────────────────────────── -->
+            <!-- Visible por defecto. El DataTrigger lo oculta cuando
+                 MensajeError es "" (cadena vacía). Al tener texto, el trigger
+                 deja de aplicar y el Label recupera IsVisible=True (visible). -->
+            <Label x:Name="LabelError"
+                   Text="{Binding MensajeError}"
+                   TextColor="{AppThemeBinding Light={StaticResource Magenta}, Dark={StaticResource Magenta}}"
+                   FontSize="13"
+                   HorizontalTextAlignment="Center">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label"
+                                 Binding="{Binding MensajeError}"
+                                 Value="">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
+
+            <!-- ── Botón principal ──────────────────────────────────────── -->
+            <!-- Sin IsEnabled manual: AsyncRelayCommand deshabilita el botón
+                 automáticamente mientras RegistrarCommand está en ejecución
+                 (AllowConcurrentExecutions=false por defecto). -->
+            <Button Text="Crear cuenta"
+                    Command="{Binding RegistrarCommand}"
+                    Margin="0,8,0,0" />
+
+            <!-- ── Indicador de carga ────────────────────────────────────── -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               HorizontalOptions="Center" />
+
+            <!-- ── Enlace al login ───────────────────────────────────────── -->
+            <Button Text="¿Ya tienes cuenta? Inicia sesión"
+                    Command="{Binding VolverALoginCommand}"
+                    BackgroundColor="Transparent"
+                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                    FontSize="13"
+                    Margin="0,8,0,0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

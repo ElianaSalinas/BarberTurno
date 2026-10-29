@@ -1,13 +1,104 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- Responsable: M06. Usuario/contraseña, validación, errores, navegación según rol. -->
+<!-- Responsable: M5. Pantalla de login: usuario/contraseña, errores y navegación a registro. -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
              x:Class="BarberTurno.Views.LoginPage"
              x:DataType="vm:LoginViewModel"
-             Title="Iniciar sesión">
-    <VerticalStackLayout Padding="16">
-        <!-- TODO(M06): interfaz (StateView, bindings, comandos). -->
-        <Label Text="Iniciar sesión - pendiente de implementar" />
-    </VerticalStackLayout>
+             Title="Iniciar sesión"
+             Shell.NavBarIsVisible="False">
+
+    <!-- ScrollView: evita que el teclado virtual de Android tape los campos.
+         Al abrir el teclado, el contenido sube y los campos siguen visibles. -->
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="32,60,32,32"
+            Spacing="16"
+            VerticalOptions="Center">
+
+            <!-- ── Encabezado ───────────────────────────────────────────── -->
+            <!-- Usa el estilo "Headline" definido en Styles.xaml (32px, MidnightBlue/White) -->
+            <Label Text="BarberTurno"
+                   Style="{StaticResource Headline}" />
+
+            <!-- Usa el estilo "SubHeadline" definido en Styles.xaml (24px) -->
+            <Label Text="Iniciar sesión"
+                   Style="{StaticResource SubHeadline}"
+                   Margin="0,0,0,16" />
+
+            <!-- ── Campo: Usuario ───────────────────────────────────────── -->
+            <!-- El estilo implícito de Entry (Styles.xaml) aplica automáticamente:
+                 fuente, colores de texto y placeholder con AppThemeBinding. -->
+            <!-- El foco al siguiente campo se maneja en code-behind (Completed event),
+                 que es comportamiento visual puro, no lógica de negocio. -->
+            <Entry x:Name="EntryUsuario"
+                   Text="{Binding Usuario}"
+                   Placeholder="Usuario"
+                   Keyboard="Email"
+                   ReturnType="Next" />
+
+            <!-- ── Campo: Contraseña ────────────────────────────────────── -->
+            <Entry x:Name="EntryPassword"
+                   Text="{Binding Password}"
+                   Placeholder="Contraseña"
+                   IsPassword="True"
+                   ReturnType="Done"
+                   ReturnCommand="{Binding LoginCommand}" />
+
+            <!-- ── Mensaje de error ─────────────────────────────────────── -->
+            <!-- Invisible por defecto; aparece solo cuando MensajeError tiene texto.
+                 DataTrigger: cuando MensajeError != "", pone IsVisible = True.
+                 No usamos convertidores porque ViewStateToVisibilityConverter
+                 todavía no está implementado (TODO M09). -->
+            <!-- Visible por defecto. El DataTrigger lo oculta cuando MensajeError=""
+                 (cadena vacía). Al tener texto, el trigger deja de aplicar y el Label
+                 recupera su IsVisible por defecto: True (visible). -->
+            <Label x:Name="LabelError"
+                   Text="{Binding MensajeError}"
+                   TextColor="{AppThemeBinding Light={StaticResource Magenta}, Dark={StaticResource Magenta}}"
+                   FontSize="13"
+                   HorizontalTextAlignment="Center">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label"
+                                 Binding="{Binding MensajeError}"
+                                 Value="">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                    <!-- Cuando MensajeError deja de ser "" el trigger de arriba
+                         deja de aplicar y IsVisible vuelve al valor inicial: True.
+                         Por eso ponemos IsVisible="False" como inicial y
+                         confiamos en que solo el trigger con Value="" lo oculta. -->
+                </Label.Triggers>
+            </Label>
+
+            <!-- ── Botón principal ──────────────────────────────────────── -->
+            <!-- El estilo implícito de Button (Styles.xaml) aplica colores,
+                 CornerRadius=8, MinimumHeightRequest=44 y el estado Disabled
+                 (gris automático cuando IsEnabled=False). -->
+            <!-- IsEnabled no necesita binding manual: AsyncRelayCommand (generado por
+                 [RelayCommand]) deshabilita el botón automáticamente mientras el
+                 comando está en ejecución (AllowConcurrentExecutions=false por defecto). -->
+            <Button Text="Entrar"
+                    Command="{Binding LoginCommand}"
+                    Margin="0,8,0,0" />
+
+            <!-- ── Indicador de carga ────────────────────────────────────── -->
+            <!-- El estilo implícito de ActivityIndicator (Styles.xaml) pone
+                 Primary en claro y White en oscuro. -->
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               HorizontalOptions="Center" />
+
+            <!-- ── Botón de registro ─────────────────────────────────────── -->
+            <!-- Sin estilo de Button para que parezca un link de texto.
+                 BackgroundColor Transparent y TextColor del tema. -->
+            <Button Text="¿No tienes cuenta? Regístrate"
+                    Command="{Binding IrARegistroCommand}"
+                    BackgroundColor="Transparent"
+                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                    FontSize="13"
+                    Margin="0,8,0,0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
