@@ -1,6 +1,6 @@
 using BarberTurno.Services.Availability;
 using Microsoft.Extensions.DependencyInjection;
-// Responsable: M08
+// Responsable: M07
 // Registro de DI de disponibilidad y reserva.
 namespace BarberTurno.Services.Booking;
 

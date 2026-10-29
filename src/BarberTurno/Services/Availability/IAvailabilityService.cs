@@ -1,5 +1,5 @@
 using BarberTurno.Models;
-// Responsable: M08
+// Responsable: M07
 // Calcula horas libres según duración del servicio y citas existentes.
 namespace BarberTurno.Services.Availability;
 

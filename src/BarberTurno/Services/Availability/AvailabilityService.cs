@@ -6,7 +6,7 @@ using BarberTurno.Services.Api;
 
 namespace BarberTurno.Services.Availability;
 
-public class AvailabilityService 
+public class AvailabilityService : IAvailabilityService
 {
 
     private readonly IBarberoRepository _barberoRepository;
@@ -24,18 +24,12 @@ public class AvailabilityService
 
     //Calculo simpole para saber si una cita nueva se solapa con una ya puesta.
     //
-    //TODO: Mejorar para devuelver el tiempo de solapamiento. 
+     
     private static bool TieneSolapamiento(DateTime inicioExistente, DateTime finExistente, DateTime inicioNuevo, DateTime finNuevo) 
     {
-        if (inicioNuevo < finExistente && finNuevo > inicioExistente)
-        {
-            return true;
-        }
-        else 
-        { 
-            return false; 
-        }
-        
+        return inicioNuevo < finExistente &&
+               finNuevo > inicioExistente;
+
     }
 
     private  List<SlotDisponible> GenerarFranjas(DateOnly fecha, TimeOnly horaInicio, TimeOnly horaFin, int duracionMins, int intervaloMins) 
@@ -78,7 +72,7 @@ public class AvailabilityService
             bool ocupada = false;
 
             foreach (var cita in citasExistentes)
-            { if ((cita.Estado == EstadoCita.Confirmada || cita.Estado == EstadoCita.PendienteConfirmacion || cita.Estado == EstadoCita.Atendida || cita.Estado == EstadoCita.Ausente) && cita.BarberoId == barberoID && TieneSolapamiento(cita.Inicio, cita.Fin, franja.Inicio, franja.Fin))
+            { if ((cita.Estado == EstadoCita.Confirmada || cita.Estado == EstadoCita.Pendiente || cita.Estado == EstadoCita.Atendida || cita.Estado == EstadoCita.Ausente) && cita.BarberoId == barberoID && TieneSolapamiento(cita.Inicio, cita.Fin, franja.Inicio, franja.Fin))
                 {
                     ocupada = true;
                     break;
@@ -199,7 +193,7 @@ public class AvailabilityService
             fecha);
 
         var citasPendientes = citasLocales
-            .Where(c => c.Estado == EstadoCita.PendienteConfirmacion)
+            .Where(c => c.Estado == EstadoCita.Pendiente)
             .ToList();
 
         // No ofrecer horarios solicitados localmente
