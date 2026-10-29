@@ -1,14 +1,20 @@
+using BarberTurno.Helpers;
 using Microsoft.Extensions.DependencyInjection;
-// Responsable: M05
-// Registro de DI de la capa de red.
+
 namespace BarberTurno.Services.Api;
 
 public static class ApiServiceRegistration
 {
     public static IServiceCollection AddApiLayer(this IServiceCollection services)
     {
-        // TODO(M05): HttpClient tipado (IBarberTurnoApi) con BaseAddress y timeout.
+        services.AddSingleton(sp => new HttpClient
+        {
+            BaseAddress = new Uri(AppConstants.ApiBaseUrl),
+            Timeout = TimeSpan.FromSeconds(15)
+        });
+
+        services.AddSingleton<IBarberTurnoApi, BarberTurnoApi>();
+
         return services;
     }
 }
-

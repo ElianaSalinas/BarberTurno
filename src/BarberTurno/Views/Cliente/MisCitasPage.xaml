@@ -3,11 +3,136 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             xmlns:controls="clr-namespace:BarberTurno.Controls"
+             xmlns:conv="clr-namespace:BarberTurno.Helpers.Converters"
              x:Class="BarberTurno.Views.MisCitasPage"
              x:DataType="vm:MisCitasViewModel"
              Title="Mis citas">
-    <VerticalStackLayout Padding="16">
-        <!-- TODO(M09): interfaz (StateView, bindings, comandos). -->
-        <Label Text="Mis citas - pendiente de implementar" />
-    </VerticalStackLayout>
+
+    <ContentPage.Resources>
+        <conv:EstadoCitaToTextoConverter x:Key="EstadoTexto" />
+        <conv:EstadoCitaToColorConverter x:Key="EstadoColor" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <!-- Aviso sin conexión -->
+        <Border Grid.Row="0"
+                IsVisible="{Binding SinConexion}"
+                StrokeThickness="0"
+                Padding="16,8"
+                BackgroundColor="{AppThemeBinding Light=#FEF3C7, Dark=#78350F}">
+            <Label Text="Sin conexión · mostrando datos guardados"
+                   FontSize="13"
+                   HorizontalTextAlignment="Center"
+                   TextColor="{AppThemeBinding Light=#78350F, Dark=#FEF3C7}" />
+        </Border>
+
+        <!-- Pestañas: Próximas / Anteriores -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="8" Margin="16,12,16,4">
+            <Button Grid.Column="0"
+                    Text="Próximas"
+                    Command="{Binding VerProximasCommand}"
+                    BackgroundColor="Transparent"
+                    BorderWidth="1"
+                    BorderColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                    SemanticProperties.Description="Ver citas próximas">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding MostrandoProximas}" Value="True">
+                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+
+            <Button Grid.Column="1"
+                    Text="Anteriores"
+                    Command="{Binding VerAnterioresCommand}"
+                    BackgroundColor="Transparent"
+                    BorderWidth="1"
+                    BorderColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                    SemanticProperties.Description="Ver citas anteriores">
+                <Button.Triggers>
+                    <DataTrigger TargetType="Button" Binding="{Binding MostrandoProximas}" Value="False">
+                        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}" />
+                    </DataTrigger>
+                </Button.Triggers>
+            </Button>
+        </Grid>
+
+        <controls:StateView Grid.Row="2"
+                            State="{Binding State}"
+                            EmptyText="{Binding TextoVacio}"
+                            ErrorText="{Binding MensajeError}"
+                            RetryCommand="{Binding CargarCommand}">
+
+            <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                         Command="{Binding RefrescarCommand}">
+                <CollectionView ItemsSource="{Binding Citas}"
+                                SelectionMode="None"
+                                Margin="0,8,0,12">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
+                    </CollectionView.ItemsLayout>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CitaItem">
+                            <Border Margin="16,0"
+                                    Padding="16"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}">
+
+                                <VerticalStackLayout Spacing="8">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <Label Grid.Column="0"
+                                               Text="{Binding ServicioNombre}"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="17"
+                                               VerticalOptions="Center" />
+
+                                        <!-- Estado visible: Pendiente / Confirmada / Rechazada ... -->
+                                        <Border Grid.Column="1"
+                                                StrokeThickness="0"
+                                                StrokeShape="RoundRectangle 10"
+                                                Padding="10,4"
+                                                BackgroundColor="{Binding Estado, Converter={StaticResource EstadoColor}}"
+                                                SemanticProperties.Description="{Binding Estado, Converter={StaticResource EstadoTexto}, StringFormat='Estado de la cita: {0}'}">
+                                            <Label Text="{Binding Estado, Converter={StaticResource EstadoTexto}}"
+                                                   FontSize="12"
+                                                   TextColor="White" />
+                                        </Border>
+                                    </Grid>
+
+                                    <Label Text="{Binding BarberoNombre, StringFormat='con {0}'}"
+                                           FontSize="14"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                    <Label Text="{Binding FechaTexto}"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="15" />
+
+                                    <Label Text="{Binding MotivoRechazo}"
+                                           IsVisible="{Binding TieneMotivo}"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" />
+
+                                    <Button Text="Cancelar cita"
+                                            IsVisible="{Binding PuedeCancelar}"
+                                            HorizontalOptions="Start"
+                                            BackgroundColor="Transparent"
+                                            BorderWidth="1"
+                                            BorderColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}"
+                                            TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MisCitasViewModel}}, Path=CancelarCommand}"
+                                            CommandParameter="{Binding .}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </RefreshView>
+        </controls:StateView>
+    </Grid>
 </ContentPage>

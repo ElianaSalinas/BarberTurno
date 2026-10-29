@@ -1,8 +1,11 @@
-// Responsable: M04
-// Entidad de base de datos del servidor. Una fila por cada bloque de agenda ocupado: UNIQUE(BarberoId, BloqueInicio) hace imposible el solape para cualquier duración.
 namespace BarberTurno.Api.Domain;
 
 public class CitaBloqueEntity
 {
-    // TODO(M04): propiedades
+    public int Id { get; set; }
+    public int BarberoId { get; set; }
+    public DateTime BloqueInicioUtc { get; set; }
+    public Guid CitaId { get; set; }
+
+    public CitaEntity? Cita { get; set; }
 }

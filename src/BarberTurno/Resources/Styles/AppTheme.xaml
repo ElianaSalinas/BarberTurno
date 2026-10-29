@@ -1,18 +1,267 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
-    Responsable: M10.
+    Responsable: M02 · AppTheme.xaml
+    Tema visual de BarberTurno: paleta, tipografía Open Sans y estilos reutilizables.
 
-    Tema visual de BarberTurno.
-    Define tokens de color y estilos reutilizables para las pantallas
-    del barbero: Agenda, Detalle de cita e Historial.
+    ACTIVACIÓN: M01 debe asegurarse de que esta línea esté en App.xaml (ResourceDictionary.MergedDictionaries),
+    DESPUÉS de Colors.xaml y Styles.xaml:
+        <ResourceDictionary Source="Resources/Styles/AppTheme.xaml" />
 
+    FUENTES: usa OpenSansRegular y OpenSansSemibold, ya incluidas en la plantilla MAUI y registradas en MauiProgram.cs.
+
+    Sección M10 (Responsable: M10):
+    Tokens de color y estilos reutilizables para las pantallas del barbero:
+    Agenda, Detalle de cita e Historial.
     No contiene datos de clientes, citas, horas ni lógica de negocio.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                    xmlns:converters="clr-namespace:BarberTurno.Helpers.Converters">
+
+    <!-- ══════════════════════════════════════════════════════════
+         PALETA BARBERTURNO (M02)
+         Estilo moderno urbano y minimalista. Tema claro y oscuro.
+    ══════════════════════════════════════════════════════════ -->
+
+    <!-- Acento principal: rojo barbero — único color de acento de la app -->
+    <Color x:Key="AcentoRojo">#C0392B</Color>
+    <Color x:Key="AcentoRojoOscuro">#A93226</Color>
+
+    <!-- Fondos: casi negro en oscuro, blanco roto en claro (nunca puro) -->
+    <Color x:Key="FondoOscuro">#121212</Color>
+    <Color x:Key="FondoClaro">#F5F0EB</Color>
+
+    <!-- Superficies de tarjetas y campos -->
+    <Color x:Key="SuperficieOscuro">#1E1E1E</Color>
+    <Color x:Key="SuperficieClaro">#FFFFFF</Color>
+
+    <!-- Texto: casi negro en claro, casi blanco en oscuro (nunca puro) -->
+    <Color x:Key="TextoPrincipalClaro">#1A1A1A</Color>
+    <Color x:Key="TextoPrincipalOscuro">#F0EEEB</Color>
+    <Color x:Key="TextoSecundarioClaro">#5A5A5A</Color>
+    <Color x:Key="TextoSecundarioOscuro">#A8A8A8</Color>
+
+    <!-- Bordes y separadores -->
+    <Color x:Key="BordeClaro">#DDD8D2</Color>
+    <Color x:Key="BordeOscuro">#2C2C2C</Color>
+
+    <!-- ══════════════════════════════════════════════════════════
+         COLORES DE ESTADO DE CITA (único lugar de definición)
+         Variantes Claro/Oscuro para garantizar contraste legible en ambos temas,
+         más clave base consumida por EstadoCitaToColorConverter.
+    ══════════════════════════════════════════════════════════ -->
+    <!-- Confirmada (Verde) -->
+    <Color x:Key="EstadoConfirmada">#27AE60</Color>
+    <Color x:Key="EstadoConfirmadaClaro">#1E8449</Color>
+    <Color x:Key="EstadoConfirmadaOscuro">#2ECC71</Color>
+
+    <!-- Pendiente (Ámbar) -->
+    <Color x:Key="EstadoPendiente">#D68910</Color>
+    <Color x:Key="EstadoPendienteClaro">#B7770D</Color>
+    <Color x:Key="EstadoPendienteOscuro">#F39C12</Color>
+
+    <!-- Rechazada (Rojo) -->
+    <Color x:Key="EstadoRechazada">#E74C3C</Color>
+    <Color x:Key="EstadoRechazadaClaro">#C0392B</Color>
+    <Color x:Key="EstadoRechazadaOscuro">#EC7063</Color>
+
+    <!-- Cancelada (Gris) -->
+    <Color x:Key="EstadoCancelada">#7F8C8D</Color>
+    <Color x:Key="EstadoCanceladaClaro">#5D6D7E</Color>
+    <Color x:Key="EstadoCanceladaOscuro">#95A5A6</Color>
+
+    <!-- Atendida (Verde azulado oscuro) -->
+    <Color x:Key="EstadoAtendida">#16A085</Color>
+    <Color x:Key="EstadoAtendidaClaro">#117A65</Color>
+    <Color x:Key="EstadoAtendidaOscuro">#1ABC9C</Color>
+
+    <!-- Ausente (Gris pizarra) -->
+    <Color x:Key="EstadoAusente">#5D6D7E</Color>
+    <Color x:Key="EstadoAusenteClaro">#4A5568</Color>
+    <Color x:Key="EstadoAusenteOscuro">#85929E</Color>
+
+    <!-- ══════════════════════════════════════════════════════════
+         INSTANCIAS DE CONVERTIDORES
+         Al estar aquí quedan disponibles en toda la app como StaticResource.
+    ══════════════════════════════════════════════════════════ -->
+    <converters:ViewStateToVisibilityConverter x:Key="ViewStateToVisibility" />
+    <converters:EstadoCitaToColorConverter     x:Key="EstadoCitaToColor" />
+    <converters:FechaAmigableConverter         x:Key="FechaAmigable" />
+    <converters:BoolInvertidoConverter         x:Key="BoolInvertido" />
+
+    <!-- ══════════════════════════════════════════════════════════
+         ESCALA TIPOGRÁFICA — Familia única: Open Sans (OpenSansRegular, OpenSansSemibold)
+         Mínimo: 12 pt. Todos con LineBreakMode=WordWrap para adaptarse al tamaño del sistema sin cortarse.
+    ══════════════════════════════════════════════════════════ -->
+
+    <!-- Titulo: encabezado principal de pantalla — 28 pt Bold -->
+    <Style x:Key="Titulo" TargetType="Label">
+        <Setter Property="FontFamily"     Value="OpenSansSemibold" />
+        <Setter Property="FontSize"       Value="28" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="TextColor"      Value="{AppThemeBinding Light={StaticResource TextoPrincipalClaro},
+                                                                  Dark={StaticResource TextoPrincipalOscuro}}" />
+        <Setter Property="LineBreakMode"  Value="WordWrap" />
+    </Style>
+
+    <!-- Subtitulo: sección o encabezado secundario — 20 pt SemiBold -->
+    <Style x:Key="Subtitulo" TargetType="Label">
+        <Setter Property="FontFamily"    Value="OpenSansSemibold" />
+        <Setter Property="FontSize"      Value="20" />
+        <Setter Property="TextColor"     Value="{AppThemeBinding Light={StaticResource TextoPrincipalClaro},
+                                                                 Dark={StaticResource TextoPrincipalOscuro}}" />
+        <Setter Property="LineBreakMode" Value="WordWrap" />
+    </Style>
+
+    <!-- TituloTarjeta: encabezado dentro de una tarjeta — 17 pt SemiBold -->
+    <Style x:Key="TituloTarjeta" TargetType="Label">
+        <Setter Property="FontFamily"    Value="OpenSansSemibold" />
+        <Setter Property="FontSize"      Value="17" />
+        <Setter Property="TextColor"     Value="{AppThemeBinding Light={StaticResource TextoPrincipalClaro},
+                                                                 Dark={StaticResource TextoPrincipalOscuro}}" />
+        <Setter Property="LineBreakMode" Value="WordWrap" />
+    </Style>
+
+    <!-- Cuerpo: texto principal de contenido — 16 pt Regular -->
+    <Style x:Key="Cuerpo" TargetType="Label">
+        <Setter Property="FontFamily"    Value="OpenSansRegular" />
+        <Setter Property="FontSize"      Value="16" />
+        <Setter Property="TextColor"     Value="{AppThemeBinding Light={StaticResource TextoPrincipalClaro},
+                                                                 Dark={StaticResource TextoPrincipalOscuro}}" />
+        <Setter Property="LineBreakMode" Value="WordWrap" />
+    </Style>
+
+    <!-- Secundario: texto de soporte, metadatos — 14 pt Regular -->
+    <Style x:Key="Secundario" TargetType="Label">
+        <Setter Property="FontFamily"    Value="OpenSansRegular" />
+        <Setter Property="FontSize"      Value="14" />
+        <Setter Property="TextColor"     Value="{AppThemeBinding Light={StaticResource TextoSecundarioClaro},
+                                                                 Dark={StaticResource TextoSecundarioOscuro}}" />
+        <Setter Property="LineBreakMode" Value="WordWrap" />
+    </Style>
+
+    <!-- Etiqueta: etiqueta pequeña y compacta — 12 pt SemiBold (mínimo de la app) -->
+    <Style x:Key="Etiqueta" TargetType="Label">
+        <Setter Property="FontFamily"    Value="OpenSansSemibold" />
+        <Setter Property="FontSize"      Value="12" />
+        <Setter Property="TextColor"     Value="{AppThemeBinding Light={StaticResource TextoPrincipalClaro},
+                                                                 Dark={StaticResource TextoPrincipalOscuro}}" />
+        <Setter Property="LineBreakMode" Value="WordWrap" />
+    </Style>
+
+    <!-- ══════════════════════════════════════════════════════════
+         BOTONES
+    ══════════════════════════════════════════════════════════ -->
+
+    <!-- BtnPrincipal: acción primaria con rojo barbero, esquinas redondeadas -->
+    <Style x:Key="BtnPrincipal" TargetType="Button">
+        <Setter Property="BackgroundColor"      Value="{StaticResource AcentoRojo}" />
+        <Setter Property="TextColor"            Value="White" />
+        <Setter Property="FontFamily"           Value="OpenSansSemibold" />
+        <Setter Property="FontSize"             Value="16" />
+        <Setter Property="CornerRadius"         Value="12" />
+        <Setter Property="Padding"              Value="20,14" />
+        <Setter Property="MinimumHeightRequest" Value="52" />
+        <Setter Property="BorderWidth"          Value="0" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.4" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="PointerOver" />
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <!-- BtnSecundario: acción secundaria con borde rojo y fondo transparente -->
+    <Style x:Key="BtnSecundario" TargetType="Button">
+        <Setter Property="BackgroundColor"      Value="Transparent" />
+        <Setter Property="TextColor"            Value="{StaticResource AcentoRojo}" />
+        <Setter Property="BorderColor"          Value="{StaticResource AcentoRojo}" />
+        <Setter Property="BorderWidth"          Value="1.5" />
+        <Setter Property="FontFamily"           Value="OpenSansSemibold" />
+        <Setter Property="FontSize"             Value="16" />
+        <Setter Property="CornerRadius"         Value="12" />
+        <Setter Property="Padding"              Value="20,14" />
+        <Setter Property="MinimumHeightRequest" Value="52" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.4" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="PointerOver" />
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TARJETA (Border reutilizable)
+         Usar como: <Border Style="{StaticResource Tarjeta}">...</Border>
+    ══════════════════════════════════════════════════════════ -->
+    <Style x:Key="Tarjeta" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SuperficieClaro},
+                                                                   Dark={StaticResource SuperficieOscuro}}" />
+        <Setter Property="Stroke"          Value="{AppThemeBinding Light={StaticResource BordeClaro},
+                                                                   Dark={StaticResource BordeOscuro}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape">
+            <Setter.Value>
+                <RoundRectangle CornerRadius="16" />
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Padding" Value="16" />
+    </Style>
+
+    <!-- ══════════════════════════════════════════════════════════
+         CAMPO DE TEXTO (Entry reutilizable)
+         Usar como: <Entry Style="{StaticResource CampoTexto}" />
+    ══════════════════════════════════════════════════════════ -->
+    <Style x:Key="CampoTexto" TargetType="Entry">
+        <Setter Property="FontFamily"           Value="OpenSansRegular" />
+        <Setter Property="FontSize"             Value="16" />
+        <Setter Property="TextColor"            Value="{AppThemeBinding Light={StaticResource TextoPrincipalClaro},
+                                                                        Dark={StaticResource TextoPrincipalOscuro}}" />
+        <Setter Property="PlaceholderColor"     Value="{AppThemeBinding Light={StaticResource TextoSecundarioClaro},
+                                                                        Dark={StaticResource TextoSecundarioOscuro}}" />
+        <Setter Property="BackgroundColor"      Value="{AppThemeBinding Light={StaticResource SuperficieClaro},
+                                                                        Dark={StaticResource SuperficieOscuro}}" />
+        <Setter Property="MinimumHeightRequest" Value="52" />
+        <Setter Property="Margin"               Value="0,4" />
+    </Style>
+
+    <!-- ══════════════════════════════════════════════════════════
+         ETIQUETA DE ESTADO DE CITA
+         Usar como: <Label Style="{StaticResource EtiquetaEstado}"
+                           TextColor="{Binding Estado, Converter={StaticResource EstadoCitaToColor}}"
+                           Text="{Binding Estado}" />
+    ══════════════════════════════════════════════════════════ -->
+    <Style x:Key="EtiquetaEstado" TargetType="Label">
+        <Setter Property="FontFamily"        Value="OpenSansSemibold" />
+        <Setter Property="FontSize"          Value="12" />
+        <Setter Property="TextColor"         Value="White" />
+        <Setter Property="Padding"           Value="8,4" />
+        <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="LineBreakMode"     Value="WordWrap" />
+    </Style>
+
+
+    <!-- ╔══════════════════════════════════════════════════════════╗
+         ║  SECCIÓN M10 — PANTALLAS DEL BARBERO                     ║
+         ║  Agenda, Detalle de cita e Historial.                    ║
+         ╚══════════════════════════════════════════════════════════╝ -->
 
     <!-- ============================================================
-         TOKENS DE COLOR — MODO CLARO
+         TOKENS DE COLOR M10 — MODO CLARO
          Basados en el diseño de Figma.
          ============================================================ -->
 
@@ -42,7 +291,7 @@
 
 
     <!-- ============================================================
-         TOKENS DE COLOR — MODO OSCURO
+         TOKENS DE COLOR M10 — MODO OSCURO
          Son equivalentes semánticos, no una inversión automática.
          ============================================================ -->
 
@@ -57,7 +306,7 @@
 
 
     <!-- ============================================================
-         ESTILOS DE CONTENEDORES
+         ESTILOS DE CONTENEDORES M10
          Se aplican de forma explícita con Style="{StaticResource ...}".
          Así no modificamos las vistas de Cliente pertenecientes a M09.
          ============================================================ -->
@@ -120,7 +369,7 @@
 
 
     <!-- ============================================================
-         ESTILOS DE TEXTO
+         ESTILOS DE TEXTO M10
          ============================================================ -->
 
     <!-- Nombre de la app dentro de la cabecera. -->
@@ -195,7 +444,7 @@
 
 
     <!-- ============================================================
-         ESTILOS DE ACCIONES
+         ESTILOS DE ACCIONES M10
          ============================================================ -->
 
     <!-- Botón dorado principal: “Marcar llegada”. -->
