@@ -11,6 +11,7 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
+        Routing.RegisterRoute("registro", typeof(RegistroPage));
         Routing.RegisterRoute(Routes.Servicios, typeof(ServiciosPage));
         Routing.RegisterRoute(Routes.SeleccionHora, typeof(SeleccionHoraPage));
         Routing.RegisterRoute(Routes.ConfirmarReserva, typeof(ConfirmarReservaPage));

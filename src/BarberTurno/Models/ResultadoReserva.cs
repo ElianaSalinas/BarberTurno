@@ -8,10 +8,13 @@ namespace BarberTurno.Models;
 /// </summary>
 public enum ResultadoReservaTipo
 {
-    Confirmada,         // el servidor aceptó la cita
-    Pendiente,          // sin conexión: la cita se guardó localmente para sincronizar luego
-    SlotOcupado,        // el servidor o SQLite detectaron conflicto de horario
-    Error               // error inesperado (red, servidor, etc.)
+    Confirmada = 0,         // el servidor aceptó la cita
+    Pendiente = 1,          // sin conexión: la cita se guardó localmente para sincronizar luego
+    SlotOcupado = 2,        // el servidor o SQLite detectaron conflicto de horario
+    Error = 3,              // error inesperado (red, servidor, etc.)
+    PendienteSinConexion = 4,
+    HoraOcupada = 5,
+    Invalida = 6
 }
 
 /// <summary>
