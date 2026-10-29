@@ -1,6 +1,8 @@
 using BarberTurno.ViewModels;
-// Responsable: M10
-// Code-behind mínimo: solo asigna el BindingContext. Sin lógica de negocio.
+
+// Responsable: M10.
+// Code-behind mínimo: recibe el ViewModel desde inyección de dependencias
+// y lo asigna como contexto de Binding.
 namespace BarberTurno.Views;
 
 public partial class DetalleCitaPage : ContentPage
@@ -8,6 +10,8 @@ public partial class DetalleCitaPage : ContentPage
     public DetalleCitaPage(DetalleCitaViewModel viewModel)
     {
         InitializeComponent();
+
+        // Conecta DetalleCitaPage.xaml con DetalleCitaViewModel.cs.
         BindingContext = viewModel;
     }
 }
