@@ -1,3 +1,4 @@
+using BarberTurno.Services.Availability;
 using Microsoft.Extensions.DependencyInjection;
 // Responsable: M08
 // Registro de DI de disponibilidad y reserva.
@@ -7,7 +8,9 @@ public static class BookingServiceRegistration
 {
     public static IServiceCollection AddBookingLayer(this IServiceCollection services)
     {
-        // TODO(M08): IAvailabilityService, IBookingService.
+        // TODO(M07): IAvailabilityService, IBookingService.
+        services.AddTransient<IAvailabilityService, AvailabilityService>();
+        services.AddTransient<IBookingService, BookingService>();
         return services;
     }
 }
