@@ -11,7 +11,8 @@
         Carga AgendaDiaPage al abrir la app para validar la interfaz.
     -->
     <ShellContent Route="login"
-                  ContentTemplate="{DataTemplate views:AgendaDiaPage}" />
+              ContentTemplate="{DataTemplate views:LoginPage}" />
+
 
     <!-- Navegación de Cliente: no modificar. -->
     <TabBar Route="cliente">
