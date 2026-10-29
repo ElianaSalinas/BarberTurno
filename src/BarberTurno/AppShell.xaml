@@ -6,14 +6,11 @@
        x:Class="BarberTurno.AppShell"
        Shell.FlyoutBehavior="Disabled">
 
-    <!--
-        PRUEBA TEMPORAL M10.
-        Carga AgendaDiaPage al abrir la app para validar la interfaz.
-    -->
+    <!-- Pantalla de Login inicial de la aplicación -->
     <ShellContent Route="login"
-                  ContentTemplate="{DataTemplate views:AgendaDiaPage}" />
+                  ContentTemplate="{DataTemplate views:LoginPage}" />
 
-    <!-- Navegación de Cliente: no modificar. -->
+    <!-- Navegación de Cliente -->
     <TabBar Route="cliente">
         <ShellContent Title="Barberos"
                       Route="barberos"
@@ -28,7 +25,7 @@
                       ContentTemplate="{DataTemplate views:PerfilPage}" />
     </TabBar>
 
-    <!-- Navegación de Barbero definida por M01. -->
+    <!-- Navegación de Barbero -->
     <TabBar Route="barbero">
         <ShellContent Title="Agenda"
                       Route="agenda"

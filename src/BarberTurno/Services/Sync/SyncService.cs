@@ -1,6 +1,9 @@
 // Responsable: M07
 // Implementa ISyncService; reintenta al volver la conexión.
 using BarberTurno.Data.Repositories;
+using BarberTurno.Dtos;
+using BarberTurno.Mappers;
+using BarberTurno.Models;
 using BarberTurno.Services.Api;
 using BarberTurno.Services.Network;
 
@@ -46,20 +49,20 @@ public class SyncService : ISyncService
         try
         {
             var resultadoBarberos = await _api.GetBarberosAsync();
-            if (resultadoBarberos.IsSuccess && resultadoBarberos.Data != null)
+            if (resultadoBarberos.Exito && resultadoBarberos.Datos != null)
             {
-                foreach (var barbero in resultadoBarberos.Data)
+                foreach (var barberoDto in resultadoBarberos.Datos)
                 {
-                    await _barberoRepo.SaveItemAsync(barbero);
+                    await _barberoRepo.SaveItemAsync(barberoDto.ToEntidad());
                 }
             }
 
             var resultadoServicios = await _api.GetServiciosAsync();
-            if (resultadoServicios.IsSuccess && resultadoServicios.Data != null)
+            if (resultadoServicios.Exito && resultadoServicios.Datos != null)
             {
-                foreach (var servicio in resultadoServicios.Data)
+                foreach (var servicioDto in resultadoServicios.Datos)
                 {
-                    await _servicioRepo.SaveItemAsync(servicio);
+                    await _servicioRepo.SaveItemAsync(servicioDto.ToEntidad());
                 }
             }
         }
@@ -79,18 +82,26 @@ public class SyncService : ISyncService
         {
             try
             {
-                var respuesta = await _api.CrearCitaAsync(cita);
-
-                if (respuesta.IsSuccess)
+                var request = new CrearCitaRequestDto
                 {
-                    cita.Estado = "Confirmada";
-                    cita.IsSynced = true;
+                    Id = cita.Id,
+                    BarberoId = cita.BarberoId,
+                    ServicioId = cita.ServicioId,
+                    InicioUtc = cita.Inicio.ToUniversalTime()
+                };
+
+                var respuesta = await _api.CrearCitaAsync(request);
+
+                if (respuesta.Exito)
+                {
+                    cita.Estado = EstadoCita.Confirmada;
+                    cita.PendienteSincronizar = false;
                     await _citaRepo.SaveItemAsync(cita);
                 }
-                else if (respuesta.StatusCode == System.Net.HttpStatusCode.Conflict)
+                else if (respuesta.CodigoHttp == 409)
                 {
-                    cita.Estado = "Rechazada";
-                    cita.IsSynced = true;
+                    cita.Estado = EstadoCita.Rechazada;
+                    cita.PendienteSincronizar = false;
                     await _citaRepo.SaveItemAsync(cita);
 
                     ReservaRechazada?.Invoke(this, cita.Id);

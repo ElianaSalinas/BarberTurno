@@ -15,7 +15,13 @@ public class EstadoCitaToColorConverter : IValueConverter
     /// <inheritdoc/>
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is not EstadoCita estado) return Colors.Gray;
+        EstadoCita estado;
+        if (value is EstadoCita e)
+            estado = e;
+        else if (value is string s && Enum.TryParse<EstadoCita>(s, true, out var parsed))
+            estado = parsed;
+        else
+            return Colors.Gray;
 
         var claveBase = estado switch
         {
@@ -53,4 +59,35 @@ public class EstadoCitaToColorConverter : IValueConverter
     /// <inheritdoc/>
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException("EstadoCitaToColorConverter no soporta conversión inversa.");
+}
+
+/// <summary>
+/// Convierte un valor <see cref="EstadoCita"/> o cadena en un texto legible para la UI.
+/// </summary>
+public class EstadoCitaToTextoConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        EstadoCita estado;
+        if (value is EstadoCita e)
+            estado = e;
+        else if (value is string s && Enum.TryParse<EstadoCita>(s, true, out var parsed))
+            estado = parsed;
+        else
+            return value?.ToString() ?? string.Empty;
+
+        return estado switch
+        {
+            EstadoCita.Pendiente  => "Pendiente",
+            EstadoCita.Confirmada => "Confirmada",
+            EstadoCita.Rechazada  => "Rechazada",
+            EstadoCita.Cancelada  => "Cancelada",
+            EstadoCita.Atendida   => "Atendida",
+            EstadoCita.Ausente    => "Ausente",
+            _                     => estado.ToString()
+        };
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException("EstadoCitaToTextoConverter no soporta conversión inversa.");
 }

@@ -9,5 +9,10 @@ public class ApiResult<T>
     public int? CodigoHttp { get; set; }   // 409 = hora ocupada
     public bool SinConexion { get; set; }  // fallo de red/timeout: resultado desconocido
     public string? Error { get; set; }
-}
 
+    // Compatibilidad con código en inglés
+    public bool IsSuccess => Exito;
+    public T? Data => Datos;
+    public int? StatusCode => CodigoHttp;
+    public string? ErrorMessage => Error;
+}
