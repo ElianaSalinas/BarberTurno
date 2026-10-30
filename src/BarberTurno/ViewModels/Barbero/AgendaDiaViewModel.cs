@@ -89,6 +89,50 @@ public partial class AgendaDiaViewModel : BaseViewModel
         NombreBarbero = _auth.SesionActual?.Nombre ?? "";
     }
 
+    private BarberTurno.Data.Repositories.ICitaRepository? _citas;
+    private BarberTurno.Data.Repositories.IClienteRepository? _clientes;
+    private BarberTurno.Data.Repositories.IServicioRepository? _servicios;
+
+    public AgendaDiaViewModel(
+        BarberTurno.Services.Auth.IAuthService auth,
+        BarberTurno.Data.Repositories.ICitaRepository citas,
+        BarberTurno.Data.Repositories.IClienteRepository clientes,
+        BarberTurno.Data.Repositories.IServicioRepository servicios) : this(auth)
+    {
+        _citas = citas;
+        _clientes = clientes;
+        _servicios = servicios;
+    }
+
+    // Carga las citas reales de hoy cada vez que aparece la pantalla.
+    public override void OnAppearing() => _ = CargarAgendaAsync();
+
+    private async Task CargarAgendaAsync()
+    {
+        if (_auth is null || _citas is null || _clientes is null || _servicios is null)
+            return;
+        try
+        {
+            FechaResumen = CrearResumenDeFecha(DateTime.Today);
+            var (items, ingresos) = await BarberTurno.Helpers.AgendaLoader.CargarAsync(
+                _auth, _citas, _clientes, _servicios, DateOnly.FromDateTime(DateTime.Now));
+
+            CitasDelDia.Clear();
+            foreach (var i in items) CitasDelDia.Add(i);
+
+            CantidadCitas = CitasDelDia.Count;
+            EstaAgendaVacia = CitasDelDia.Count == 0;
+            TieneProximaCita = CitasDelDia.Count > 0;
+            ProximaCita = CitasDelDia.Count > 0 ? CitasDelDia[0] : new CitaAgendaItem();
+            IngresosDelDia = ingresos > 0 ? $"${ingresos:N0}" : string.Empty;
+            MetaIngresos = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
+    }
+
     public AgendaDiaViewModel()
     {
         // Se muestra la fecha real del dispositivo en español.

@@ -203,7 +203,11 @@
                         <Label Grid.Column="1"
                                Text="Ver calendario"
                                Style="{StaticResource M10TextAction}"
-                               VerticalOptions="End" />
+                               VerticalOptions="End">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnVerCalendarioTapped" />
+                            </Label.GestureRecognizers>
+                        </Label>
                     </Grid>
                     <!--
                     Estado vacío propio de M10.
