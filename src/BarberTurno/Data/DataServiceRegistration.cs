@@ -15,7 +15,7 @@ public static class DataServiceRegistration
         services.AddSingleton(_ => new DatabaseOptions(
             RutaArchivo: Path.Combine(FileSystem.Current.AppDataDirectory, DatabaseOptions.NombreArchivoPorDefecto),
 #if DEBUG
-            SembrarDatosDePrueba: true));
+            SembrarDatosDePrueba: false));
 #else
             SembrarDatosDePrueba: false));
 #endif

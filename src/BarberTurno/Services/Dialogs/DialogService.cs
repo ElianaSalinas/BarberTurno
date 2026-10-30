@@ -1,5 +1,5 @@
 // Responsable: M01
-// Implementa IDialogService con DisplayAlert de MAUI en el hilo principal y protegido con try/catch.
+// Implementa IDialogService con DisplayAlertAsync de MAUI en el hilo principal y protegido con try/catch.
 using System.Diagnostics;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
@@ -17,7 +17,7 @@ public class DialogService : IDialogService
                 var pagina = ObtenerPaginaActiva();
                 if (pagina != null)
                 {
-                    await pagina.DisplayAlert(titulo, mensaje, "Aceptar");
+                    await pagina.DisplayAlertAsync(titulo, mensaje, "Aceptar");
                 }
             });
         }
@@ -36,7 +36,7 @@ public class DialogService : IDialogService
                 var pagina = ObtenerPaginaActiva();
                 if (pagina != null)
                 {
-                    return await pagina.DisplayAlert(titulo, mensaje, aceptar, cancelar);
+                    return await pagina.DisplayAlertAsync(titulo, mensaje, aceptar, cancelar);
                 }
                 return false;
             });

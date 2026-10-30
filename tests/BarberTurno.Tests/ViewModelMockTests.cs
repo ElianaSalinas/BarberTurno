@@ -1,6 +1,9 @@
 using BarberTurno.Data.Repositories;
 using AppViewState = BarberTurno.Helpers.ViewState;
+using BarberTurno.Dtos;
 using BarberTurno.Models;
+using BarberTurno.Services.Api;
+using BarberTurno.Services.Auth;
 using BarberTurno.Services.Dialogs;
 using BarberTurno.Services.Navigation;
 using BarberTurno.Services.Network;
@@ -96,5 +99,203 @@ public class ViewModelMockTests
         Assert.Equal(AppViewState.Error, viewModel.State);
         Assert.False(string.IsNullOrEmpty(viewModel.MensajeError));
         Assert.Empty(viewModel.Barberos);
+    }
+
+    [Fact]
+    public async Task AgendaDiaViewModel_DiaSiguiente_CargaCitasDelDiaSiguienteCorrectamente()
+    {
+        // 1. Arrange
+        var mockAuth = new Mock<IAuthService>();
+        var mockCitaRepo = new Mock<ICitaRepository>();
+        var mockClienteRepo = new Mock<IClienteRepository>();
+        var mockServicioRepo = new Mock<IServicioRepository>();
+        var mockBarberoRepo = new Mock<IBarberoRepository>();
+        var mockSync = new Mock<ISyncService>();
+        var mockNav = new Mock<INavigationService>();
+
+        var manana = DateTime.Today.AddDays(1);
+        var diaManana = DateOnly.FromDateTime(manana);
+
+        mockAuth.Setup(a => a.SesionActual).Returns(new SesionUsuario
+        {
+            UsuarioId = 2,
+            Nombre = "Juan Pérez",
+            Rol = RolUsuario.Barbero
+        });
+
+        mockBarberoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Barbero>
+        {
+            new() { Id = 1, Nombre = "Juan Pérez" }
+        });
+
+        var citaManana = new Cita
+        {
+            Id = Guid.NewGuid(),
+            BarberoId = 1,
+            ClienteId = 10,
+            ServicioId = 5,
+            Inicio = manana.Date.AddHours(10), // 10:00 AM de mañana
+            Fin = manana.Date.AddHours(10).AddMinutes(45),
+            Estado = EstadoCita.Confirmada
+        };
+
+        mockCitaRepo.Setup(r => r.GetAgendaBarberoAsync(1, diaManana))
+                    .ReturnsAsync(new List<Cita> { citaManana });
+
+        mockClienteRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new Cliente
+        {
+            Id = 10,
+            Nombre = "Carlos Santana",
+            Telefono = "8095551234"
+        });
+
+        mockServicioRepo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(new Servicio
+        {
+            Id = 5,
+            Nombre = "Corte y Barba",
+            DuracionMin = 45,
+            Precio = 800m
+        });
+
+        var viewModel = new AgendaDiaViewModel(
+            mockAuth.Object,
+            mockCitaRepo.Object,
+            mockClienteRepo.Object,
+            mockServicioRepo.Object,
+            mockBarberoRepo.Object,
+            mockSync.Object,
+            mockNav.Object
+        );
+
+        // 2. Act: avanzar al día siguiente
+        await viewModel.DiaSiguienteCommand.ExecuteAsync(null);
+
+        // 3. Assert
+        Assert.Equal(manana.Date, viewModel.FechaSeleccionada.Date);
+        Assert.Equal(1, viewModel.CantidadCitas);
+        Assert.False(viewModel.EstaAgendaVacia);
+        Assert.Equal(AppViewState.ConDatos, viewModel.State);
+        Assert.Single(viewModel.CitasDelDia);
+        Assert.Equal("Carlos Santana", viewModel.CitasDelDia[0].NombreCliente);
+        Assert.Equal("CS", viewModel.CitasDelDia[0].InicialesCliente);
+        Assert.Equal("Corte y Barba · 45 min", viewModel.CitasDelDia[0].Servicio);
+        Assert.Equal("RD$ 800", viewModel.IngresosDelDia);
+        Assert.True(viewModel.PuedeVolverAHoy);
+    }
+
+    [Fact]
+    public async Task AgendaDiaViewModel_DiaSinCitas_PasaAEstadoVacioYCantidadCero()
+    {
+        // 1. Arrange
+        var mockAuth = new Mock<IAuthService>();
+        var mockCitaRepo = new Mock<ICitaRepository>();
+        var mockClienteRepo = new Mock<IClienteRepository>();
+        var mockServicioRepo = new Mock<IServicioRepository>();
+        var mockBarberoRepo = new Mock<IBarberoRepository>();
+        var mockSync = new Mock<ISyncService>();
+        var mockNav = new Mock<INavigationService>();
+
+        mockAuth.Setup(a => a.SesionActual).Returns(new SesionUsuario
+        {
+            UsuarioId = 2,
+            Nombre = "Juan Pérez",
+            Rol = RolUsuario.Barbero
+        });
+
+        mockBarberoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Barbero>
+        {
+            new() { Id = 1, Nombre = "Juan Pérez" }
+        });
+
+        mockCitaRepo.Setup(r => r.GetAgendaBarberoAsync(It.IsAny<int>(), It.IsAny<DateOnly>()))
+                    .ReturnsAsync(new List<Cita>());
+
+        var viewModel = new AgendaDiaViewModel(
+            mockAuth.Object,
+            mockCitaRepo.Object,
+            mockClienteRepo.Object,
+            mockServicioRepo.Object,
+            mockBarberoRepo.Object,
+            mockSync.Object,
+            mockNav.Object
+        );
+
+        // 2. Act
+        await viewModel.CargarAgendaAsync();
+
+        // 3. Assert
+        Assert.Equal(0, viewModel.CantidadCitas);
+        Assert.True(viewModel.EstaAgendaVacia);
+        Assert.Equal(AppViewState.Vacio, viewModel.State);
+        Assert.Empty(viewModel.CitasDelDia);
+        Assert.Equal("RD$ 0", viewModel.IngresosDelDia);
+    }
+
+    [Fact]
+    public async Task PerfilViewModel_CrearServicio_PrecioInvalido_MuestraErrorYNoLlamaApi()
+    {
+        // 1. Arrange
+        var mockAuth = new Mock<IAuthService>();
+        var mockNav = new Mock<INavigationService>();
+        var mockDialogs = new Mock<IDialogService>();
+        var mockApi = new Mock<IBarberTurnoApi>();
+        var mockBarberos = new Mock<IBarberoRepository>();
+        var mockServicios = new Mock<IServicioRepository>();
+        var mockSync = new Mock<ISyncService>();
+
+        var viewModel = new PerfilViewModel(
+            mockAuth.Object,
+            mockNav.Object,
+            mockDialogs.Object,
+            mockApi.Object,
+            mockBarberos.Object,
+            mockServicios.Object,
+            mockSync.Object
+        );
+
+        viewModel.NuevoServicioNombre = "Corte Premium";
+        viewModel.NuevoServicioPrecio = "cero"; // Invalido
+
+        // 2. Act
+        await viewModel.CrearNuevoServicioCommand.ExecuteAsync(null);
+
+        // 3. Assert
+        Assert.True(viewModel.TieneErrorServicio);
+        Assert.Equal("Ingresa un precio válido mayor a 0 (ej. 500).", viewModel.MensajeErrorServicio);
+        mockApi.Verify(a => a.CrearServicioAsync(It.IsAny<CrearServicioDto>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task PerfilViewModel_CrearServicio_NombreVacio_MuestraErrorYNoLlamaApi()
+    {
+        // 1. Arrange
+        var mockAuth = new Mock<IAuthService>();
+        var mockNav = new Mock<INavigationService>();
+        var mockDialogs = new Mock<IDialogService>();
+        var mockApi = new Mock<IBarberTurnoApi>();
+        var mockBarberos = new Mock<IBarberoRepository>();
+        var mockServicios = new Mock<IServicioRepository>();
+        var mockSync = new Mock<ISyncService>();
+
+        var viewModel = new PerfilViewModel(
+            mockAuth.Object,
+            mockNav.Object,
+            mockDialogs.Object,
+            mockApi.Object,
+            mockBarberos.Object,
+            mockServicios.Object,
+            mockSync.Object
+        );
+
+        viewModel.NuevoServicioNombre = "   "; // Espacios en blanco
+        viewModel.NuevoServicioPrecio = "500";
+
+        // 2. Act
+        await viewModel.CrearNuevoServicioCommand.ExecuteAsync(null);
+
+        // 3. Assert
+        Assert.True(viewModel.TieneErrorServicio);
+        Assert.Equal("Ingresa el nombre del servicio.", viewModel.MensajeErrorServicio);
+        mockApi.Verify(a => a.CrearServicioAsync(It.IsAny<CrearServicioDto>()), Times.Never);
     }
 }

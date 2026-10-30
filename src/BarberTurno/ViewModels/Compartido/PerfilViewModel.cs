@@ -2,6 +2,7 @@
 // Datos del usuario, cambio de tema (claro/oscuro), gestión de perfil de barbero y cerrar sesión.
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.ApplicationModel;
@@ -93,6 +94,17 @@ public partial class PerfilViewModel : BaseViewModel
 
     [ObservableProperty]
     private string nuevoServicioDuracion = "30";
+
+    public List<int> DuracionesDisponibles { get; } = new() { 15, 20, 30, 45, 60, 90, 120 };
+
+    [ObservableProperty]
+    private int duracionSeleccionada = 30;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TieneErrorServicio))]
+    private string? mensajeErrorServicio;
+
+    public bool TieneErrorServicio => !string.IsNullOrEmpty(MensajeErrorServicio);
 
     /// <summary>La página avisa al aparecer: marca visible y delega la carga.</summary>
     public override void OnAppearing()
@@ -247,22 +259,24 @@ public partial class PerfilViewModel : BaseViewModel
     [RelayCommand]
     private async Task CrearNuevoServicioAsync()
     {
+        MensajeErrorServicio = null;
+
         if (string.IsNullOrWhiteSpace(NuevoServicioNombre))
         {
-            await _dialogs.ShowAlertAsync("Atención", "Ingresa el nombre del servicio.");
+            MensajeErrorServicio = "Ingresa el nombre del servicio.";
+            await _dialogs.ShowAlertAsync("Atención", MensajeErrorServicio);
             return;
         }
 
-        if (!decimal.TryParse(NuevoServicioPrecio, out var precio) || precio <= 0)
+        var precioStr = NuevoServicioPrecio?.Trim().Replace(',', '.');
+        if (!decimal.TryParse(precioStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var precio) || precio <= 0)
         {
-            await _dialogs.ShowAlertAsync("Atención", "Ingresa un precio válido mayor a 0.");
+            MensajeErrorServicio = "Ingresa un precio válido mayor a 0 (ej. 500).";
+            await _dialogs.ShowAlertAsync("Atención", MensajeErrorServicio);
             return;
         }
 
-        if (!int.TryParse(NuevoServicioDuracion, out var duracion) || duracion <= 0)
-        {
-            duracion = 30;
-        }
+        int duracion = DuracionSeleccionada > 0 ? DuracionSeleccionada : 30;
 
         try
         {
@@ -287,7 +301,8 @@ public partial class PerfilViewModel : BaseViewModel
 
                 NuevoServicioNombre = "";
                 NuevoServicioPrecio = "";
-                NuevoServicioDuracion = "30";
+                DuracionSeleccionada = 30;
+                MensajeErrorServicio = null;
 
                 var sesion = _auth.SesionActual;
                 if (sesion != null)
@@ -297,7 +312,8 @@ public partial class PerfilViewModel : BaseViewModel
             }
             else
             {
-                await _dialogs.ShowAlertAsync("Error", "No se pudo registrar el nuevo servicio en el servidor.");
+                MensajeErrorServicio = "No se pudo registrar el nuevo servicio en el servidor.";
+                await _dialogs.ShowAlertAsync("Error", MensajeErrorServicio);
             }
         }
         catch (Exception ex)

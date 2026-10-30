@@ -1,4 +1,4 @@
-// Responsable: M07
+// Responsable: M07 / M04
 // Implementa ISyncService; reintenta al volver la conexión con protección contra excepciones y duplicidad.
 using System.Diagnostics;
 using BarberTurno.Data.Repositories;
@@ -19,6 +19,7 @@ public class SyncService : ISyncService
     private readonly ICitaRepository _citaRepo;
     private readonly IBarberTurnoApi _api;
     private readonly SemaphoreSlim _catalogLock = new(1, 1);
+    private readonly SemaphoreSlim _citasLock = new(1, 1);
     private readonly SemaphoreSlim _pendingLock = new(1, 1);
 
     public event EventHandler<Guid>? ReservaRechazada;
@@ -45,6 +46,7 @@ public class SyncService : ISyncService
                 try
                 {
                     await SincronizarCatalogosAsync();
+                    await SincronizarCitasAsync();
                     await SincronizarPendientesAsync();
                 }
                 catch (Exception ex)
@@ -66,59 +68,109 @@ public class SyncService : ISyncService
         try
         {
             // 1. Sincronizar servicios PRIMERO para que existan antes de vincularlos con barberos
-            var resultadoServicios = await _api.GetServiciosAsync();
-            if (resultadoServicios.Exito && resultadoServicios.Datos != null)
+            try
             {
-                foreach (var servicioDto in resultadoServicios.Datos)
+                var resultadoServicios = await _api.GetServiciosAsync();
+                if (resultadoServicios.Exito && resultadoServicios.Datos != null)
                 {
-                    await _servicioRepo.SaveItemAsync(servicioDto.ToEntidad());
+                    var servicios = resultadoServicios.Datos.Select(s => s.ToEntidad()).ToList();
+                    await _servicioRepo.ReplaceAllAsync(servicios);
                 }
             }
-
-            // 2. Sincronizar barberos CON sus relaciones de servicios
-            var resultadoBarberos = await _api.GetBarberosAsync();
-            if (resultadoBarberos.Exito && resultadoBarberos.Datos != null)
+            catch (Exception ex)
             {
-                foreach (var barberoDto in resultadoBarberos.Datos)
+                Debug.WriteLine($"[SyncService] Error al sincronizar servicios: {ex.Message}");
+            }
+
+            // 2. Sincronizar barberos CON sus relaciones de servicios de forma atómica
+            try
+            {
+                var resultadoBarberos = await _api.GetBarberosAsync();
+                if (resultadoBarberos.Exito && resultadoBarberos.Datos != null)
                 {
-                    var barbero = barberoDto.ToEntidad();
+                    var barberos = new List<Barbero>();
+                    var todasRelaciones = new List<BarberoServicio>();
 
-                    // Distinct evita violar el índice único IX_BarberoServicio_Unico (BarberoId, ServicioId) si la API repite un ID
-                    var relaciones = (barberoDto.ServicioIds ?? new List<int>())
-                        .Distinct()
-                        .Select(sId => new BarberoServicio { BarberoId = barbero.Id, ServicioId = sId });
+                    foreach (var barberoDto in resultadoBarberos.Datos)
+                    {
+                        var barbero = barberoDto.ToEntidad();
+                        barberos.Add(barbero);
 
-                    await _barberoRepo.UpsertAsync(barbero, relaciones);
+                        var relaciones = (barberoDto.ServicioIds ?? new List<int>())
+                            .Distinct()
+                            .Select(sId => new BarberoServicio { BarberoId = barbero.Id, ServicioId = sId });
+
+                        todasRelaciones.AddRange(relaciones);
+                    }
+
+                    await _barberoRepo.ReplaceAllAsync(barberos, todasRelaciones);
                 }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[SyncService] Error al sincronizar barberos: {ex.Message}");
             }
 
             // 3. Sincronizar clientes
-            var resultadoClientes = await _api.GetClientesAsync();
-            if (resultadoClientes.Exito && resultadoClientes.Datos != null)
+            try
             {
-                foreach (var clienteDto in resultadoClientes.Datos)
+                var resultadoClientes = await _api.GetClientesAsync();
+                if (resultadoClientes.Exito && resultadoClientes.Datos != null)
                 {
-                    await _clienteRepo.UpsertAsync(clienteDto.ToEntidad());
+                    var clientes = resultadoClientes.Datos.Select(c => c.ToEntidad()).ToList();
+                    await _clienteRepo.UpsertRangeAsync(clientes);
                 }
             }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[SyncService] Error al sincronizar clientes: {ex.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SyncService] Error general al sincronizar catálogos: {ex.Message}");
+        }
+        finally
+        {
+            _catalogLock.Release();
+        }
+    }
 
-            // 4. Sincronizar citas
+    public async Task SincronizarCitasAsync()
+    {
+        if (!_networkService.HayConexion) return;
+
+        if (!await _citasLock.WaitAsync(0))
+        {
+            Debug.WriteLine("[SyncService] Sincronización de citas ya en progreso, omitiendo.");
+            return;
+        }
+
+        try
+        {
             var resultadoCitas = await _api.GetMisCitasAsync();
             if (resultadoCitas.Exito && resultadoCitas.Datos != null)
             {
                 foreach (var citaDto in resultadoCitas.Datos)
                 {
-                    await _citaRepo.SaveItemAsync(citaDto.ToEntidad());
+                    try
+                    {
+                        await _citaRepo.SaveItemAsync(citaDto.ToEntidad());
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[SyncService] Error al guardar cita {citaDto.Id}: {ex.Message}");
+                    }
                 }
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[SyncService] Error al sincronizar catálogos: {ex.Message}");
+            Debug.WriteLine($"[SyncService] Error al sincronizar citas: {ex.Message}");
         }
         finally
         {
-            _catalogLock.Release();
+            _citasLock.Release();
         }
     }
 

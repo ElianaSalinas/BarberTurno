@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
@@ -74,15 +74,33 @@
 
                     <!-- Crear nuevo servicio personalizado -->
                     <Border Style="{StaticResource BtCard}" Padding="16">
-                        <VerticalStackLayout Spacing="8">
+                        <VerticalStackLayout Spacing="10">
                             <Label Text="Crear nuevo servicio" Style="{StaticResource BtH2}" />
                             <Label Text="¿Ofreces un corte o servicio especial? Agrégalo al catálogo:" FontSize="12" Style="{StaticResource BtMuted}" />
 
-                            <Entry Placeholder="Nombre del servicio (ej. Fade + Barba)" Text="{Binding NuevoServicioNombre}" />
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                                <Entry Placeholder="Precio ($)" Text="{Binding NuevoServicioPrecio}" Keyboard="Numeric" />
-                                <Entry Grid.Column="1" Placeholder="Duración (min)" Text="{Binding NuevoServicioDuracion}" Keyboard="Numeric" />
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Nombre del servicio" FontSize="12" FontAttributes="Bold" Style="{StaticResource BtText}" />
+                                <Entry Placeholder="Ej. Corte Ejecutivo + Barba" Text="{Binding NuevoServicioNombre}" />
+                            </VerticalStackLayout>
+
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Precio (RD$)" FontSize="12" FontAttributes="Bold" Style="{StaticResource BtText}" />
+                                    <Entry Placeholder="Ej. 600" Text="{Binding NuevoServicioPrecio}" Keyboard="Numeric" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                    <Label Text="Duración (minutos)" FontSize="12" FontAttributes="Bold" Style="{StaticResource BtText}" />
+                                    <Picker ItemsSource="{Binding DuracionesDisponibles}"
+                                            SelectedItem="{Binding DuracionSeleccionada}"
+                                            Title="Seleccionar minutos" />
+                                </VerticalStackLayout>
                             </Grid>
+
+                            <Label Text="{Binding MensajeErrorServicio}"
+                                   TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}"
+                                   FontSize="12"
+                                   IsVisible="{Binding TieneErrorServicio}" />
 
                             <Button Text="+ Crear y asignar servicio" Command="{Binding CrearNuevoServicioCommand}"
                                     BackgroundColor="{AppThemeBinding Light=#18202D, Dark=#2A2C22}" TextColor="White"

@@ -1,4 +1,4 @@
-// Responsable: M5
+// Responsable: M5 / M04
 // Valida campos, llama a IAuthService, traduce el resultado en un mensaje
 // y navega según el rol. Sin lógica de negocio: eso es responsabilidad de AuthService.
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,6 +7,7 @@ using BarberTurno.Helpers;
 using BarberTurno.Models;
 using BarberTurno.Services.Auth;
 using BarberTurno.Services.Navigation;
+using BarberTurno.Services.Sync;
 
 namespace BarberTurno.ViewModels;
 
@@ -18,6 +19,7 @@ public partial class LoginViewModel : BaseViewModel
     // ── Dependencias ─────────────────────────────────────────────────────────
     private readonly IAuthService _authService;
     private readonly INavigationService _nav;
+    private readonly ISyncService? _sync;
     private bool _inicializado;
 
     // ── Propiedades observables ───────────────────────────────────────────────
@@ -29,10 +31,11 @@ public partial class LoginViewModel : BaseViewModel
     private string _password = string.Empty;
 
     // ── Constructor ───────────────────────────────────────────────────────────
-    public LoginViewModel(IAuthService authService, INavigationService nav)
+    public LoginViewModel(IAuthService authService, INavigationService nav, ISyncService? sync = null)
     {
         _authService = authService;
         _nav         = nav;
+        _sync        = sync;
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -50,7 +53,10 @@ public partial class LoginViewModel : BaseViewModel
             // Si el token es válido, navega directo a la pantalla del rol.
             bool sesionActiva = await _authService.RestaurarSesionAsync();
             if (sesionActiva)
+            {
+                DispararSincronizacionSegundoPlano();
                 await NavegarSegunRolAsync();
+            }
         }
         catch
         {
@@ -90,6 +96,7 @@ public partial class LoginViewModel : BaseViewModel
             switch (resultado)
             {
                 case ResultadoLogin.Exito:
+                    DispararSincronizacionSegundoPlano();
                     await NavegarSegunRolAsync();
                     break;
 
@@ -139,5 +146,22 @@ public partial class LoginViewModel : BaseViewModel
             : Routes.Cliente;  // "//cliente"
 
         await _nav.GoToAsync(ruta);
+    }
+
+    private void DispararSincronizacionSegundoPlano()
+    {
+        if (_sync is null) return;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _sync.SincronizarCatalogosAsync();
+                await _sync.SincronizarCitasAsync();
+            }
+            catch
+            {
+                // Silencioso: la sincronización de fondo no interrumpe el flujo del usuario
+            }
+        });
     }
 }

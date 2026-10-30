@@ -118,6 +118,71 @@
                                Style="{StaticResource M10Subtitle}" />
                     </VerticalStackLayout>
 
+                    <!-- Barra de navegacion de fecha (Dia anterior, Fecha, Dia siguiente, Boton Hoy) -->
+                    <Border Background="{AppThemeBinding Light={StaticResource M10LightSurface},
+                                                         Dark={StaticResource M10DarkSurface}}"
+                            Stroke="{AppThemeBinding Light={StaticResource M10LightBorder},
+                                                     Dark={StaticResource M10DarkBorder}}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="8,4">
+                        <Grid ColumnDefinitions="44,*,44,Auto"
+                              ColumnSpacing="4"
+                              VerticalOptions="Center">
+
+                            <!-- Boton Dia Anterior (minimo 44x44 para accesibilidad tactil) -->
+                            <Button Text="&#x2039;"
+                                    FontSize="24"
+                                    FontAttributes="Bold"
+                                    TextColor="{AppThemeBinding Light={StaticResource M10LightText},
+                                                                 Dark={StaticResource M10DarkText}}"
+                                    BackgroundColor="Transparent"
+                                    HeightRequest="44"
+                                    WidthRequest="44"
+                                    Padding="0"
+                                    Command="{Binding DiaAnteriorCommand}" />
+
+                            <!-- Texto Fecha Seleccionada -->
+                            <Label Grid.Column="1"
+                                   Text="{Binding FechaResumen}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light={StaticResource M10LightText},
+                                                               Dark={StaticResource M10DarkText}}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   HorizontalTextAlignment="Center" />
+
+                            <!-- Boton Dia Siguiente (minimo 44x44) -->
+                            <Button Grid.Column="2"
+                                    Text="&#x203A;"
+                                    FontSize="24"
+                                    FontAttributes="Bold"
+                                    TextColor="{AppThemeBinding Light={StaticResource M10LightText},
+                                                                 Dark={StaticResource M10DarkText}}"
+                                    BackgroundColor="Transparent"
+                                    HeightRequest="44"
+                                    WidthRequest="44"
+                                    Padding="0"
+                                    Command="{Binding DiaSiguienteCommand}" />
+
+                            <!-- Boton 'Hoy' si la vista esta en un dia diferente a hoy -->
+                            <Button Grid.Column="3"
+                                    Text="Hoy"
+                                    FontSize="12"
+                                    FontFamily="OpenSansSemibold"
+                                    TextColor="{AppThemeBinding Light={StaticResource M10LightGold},
+                                                                 Dark={StaticResource M10DarkGold}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource M10LightDarkCard},
+                                                                       Dark={StaticResource M10DarkDarkCard}}"
+                                    CornerRadius="12"
+                                    HeightRequest="36"
+                                    Padding="10,0"
+                                    Command="{Binding HoyCommand}"
+                                    IsVisible="{Binding PuedeVolverAHoy}" />
+                        </Grid>
+                    </Border>
+
                     <!--
                         Próxima cita.
                         ProximaCita se llena posteriormente desde ICitaRepository.

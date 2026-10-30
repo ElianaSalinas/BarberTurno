@@ -50,7 +50,8 @@ public class ApiDbContext : DbContext
 
         // Semilla de datos (Seed Data)
         // Hash de BCrypt para "123456"
-        string passwordHash = BCrypt.Net.BCrypt.HashPassword("123456");
+        // Hash fijo de BCrypt para "123456" que coincide exactamente con el sembrado en Supabase
+        const string passwordHash = "$2a$11$z9N8IviCtl4FShxUiMhUyedH2UXHd30R66OlqflT5lO1748MXpEWi";
 
         modelBuilder.Entity<UsuarioEntity>().HasData(
             new UsuarioEntity

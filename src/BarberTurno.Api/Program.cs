@@ -1,3 +1,4 @@
+// Responsable: M04 - Seguridad, conexión a base de datos y configuración API
 using System.Text;
 using BarberTurno.Api.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -7,7 +8,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Base de datos (Soporta PostgreSQL para Supabase o SQLite local de respaldo)
+// 1. Base de datos (PostgreSQL en Supabase mediante User Secrets / variables de entorno)
 var rawConn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(rawConn))
 {
@@ -32,17 +33,25 @@ if (!string.IsNullOrWhiteSpace(rawConn) &&
         var userInfo = uri.UserInfo.Split(':');
         var user = userInfo.Length > 0 ? Uri.UnescapeDataString(userInfo[0]) : "postgres";
         var pass = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
-        connectionString = $"Host={uri.Host};Port={(uri.Port > 0 ? uri.Port : 5432)};Database={uri.AbsolutePath.TrimStart('/')};Username={user};Password={pass};SSL Mode=Require;Trust Server Certificate=true";
+        connectionString = $"Host={uri.Host};Port={(uri.Port > 0 ? uri.Port : 5432)};Database={uri.AbsolutePath.TrimStart('/')};Username={user};Password={pass};SSL Mode=Require";
     }
 }
 else
 {
-    if (builder.Environment.IsProduction())
+    var allowLocalSqlite = builder.Configuration.GetValue<bool>("Database:UseLocalSqlite", false);
+    if (!allowLocalSqlite)
     {
-        throw new InvalidOperationException("CRÍTICO: No se ha configurado la cadena de conexión de PostgreSQL/Supabase en Production.");
+        // Falla rápida explicativa para evitar que un desarrollador trabaje accidentalmente contra SQLite local
+        throw new InvalidOperationException(
+            "CRÍTICO: No se ha configurado la cadena de conexión a PostgreSQL/Supabase.\n" +
+            "Para desarrollo, configure los User Secrets ejecutando en la carpeta src/BarberTurno.Api:\n" +
+            "dotnet user-secrets set \"ConnectionStrings:DefaultConnection\" \"Host=...;Port=5432;Database=postgres;Username=...;Password=...;SSL Mode=Require\"\n" +
+            "o defina la variable de entorno DATABASE_URL.\n" +
+            "Si desea usar SQLite local explícitamente para pruebas aisladas, configure '\"Database\": { \"UseLocalSqlite\": true }' en appsettings.Development.json.");
     }
+
     Console.ForegroundColor = ConsoleColor.Yellow;
-    Console.WriteLine("[ADVERTENCIA API] No se configuró PostgreSQL/Supabase en user-secrets ni en variables de entorno. Usando SQLite local ('Data Source=barberturno.db').");
+    Console.WriteLine("[ADVERTENCIA API] Modo explícito de SQLite activado ('Data Source=barberturno.db').");
     Console.ResetColor();
     connectionString = "Data Source=barberturno.db";
 }
@@ -73,7 +82,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 4. Autenticación con JWT Bearer
+// 4. Autenticación y Autorización con JWT Bearer
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "BarberTurnoClaveSuperSecretaDeSeguridad126!JwtKey2026";
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "BarberTurnoApi";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "BarberTurnoApp";
@@ -95,11 +104,14 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtIssuer,
         ValidateAudience = true,
         ValidAudience = jwtAudience,
+        ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
 });
 
-// 5. Swagger con soporte para JWT
+builder.Services.AddAuthorization();
+
+// 5. Swagger con soporte estándar HTTP Bearer
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -112,10 +124,10 @@ builder.Services.AddSwaggerGen(options =>
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Encabezado de autorización JWT. Ejemplo: 'Bearer {token}'",
+        Description = "Ingrese el token JWT obtenido en /api/auth/login",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
+        Type = SecuritySchemeType.Http,
         Scheme = "bearer",
         BearerFormat = "JWT"
     });
@@ -183,49 +195,48 @@ if (!app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Endpoint de diagnóstico para verificar conexión sin exponer contraseñas
-app.MapGet("/api/diagnostico", async (ApiDbContext db) =>
+// Endpoint de diagnóstico seguro solo en desarrollo (nunca en producción)
+if (app.Environment.IsDevelopment())
 {
-    var conn = db.Database.GetDbConnection();
-    var proveedor = db.Database.ProviderName ?? "Desconocido";
-    var host = conn.DataSource;
-    var database = conn.Database;
-
-    try
+    app.MapGet("/api/diagnostico", async (ApiDbContext db, ILogger<Program> logger) =>
     {
-        var totalUsuarios = await db.Usuarios.CountAsync();
-        var totalBarberos = await db.Barberos.CountAsync();
-        var totalServicios = await db.Servicios.CountAsync();
-        var totalCitas = await db.Citas.CountAsync();
+        var conn = db.Database.GetDbConnection();
+        var proveedor = db.Database.ProviderName ?? "Desconocido";
+        var host = conn.DataSource;
+        var database = conn.Database;
 
-        return Results.Ok(new
+        try
         {
-            proveedor,
-            host,
-            database,
-            tablasCreadas = true,
-            conteos = new
+            var totalUsuarios = await db.Usuarios.CountAsync();
+            var totalBarberos = await db.Barberos.CountAsync();
+            var totalServicios = await db.Servicios.CountAsync();
+            var totalCitas = await db.Citas.CountAsync();
+
+            return Results.Ok(new
             {
-                usuarios = totalUsuarios,
-                barberos = totalBarberos,
-                servicios = totalServicios,
-                citas = totalCitas
-            }
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.Ok(new
+                proveedor,
+                host,
+                database,
+                tablasCreadas = true,
+                conteos = new
+                {
+                    usuarios = totalUsuarios,
+                    barberos = totalBarberos,
+                    servicios = totalServicios,
+                    citas = totalCitas
+                }
+            });
+        }
+        catch (Exception ex)
         {
-            proveedor,
-            host,
-            database,
-            tablasCreadas = false,
-            mensaje = "Conexión a PostgreSQL/Supabase exitosa, pero las tablas aún no han sido creadas en el servidor.",
-            detalle = ex.Message
-        });
-    }
-});
+            logger.LogError(ex, "Error al consultar estado de la base de datos.");
+            return Results.Problem(
+                title: "Error al consultar base de datos",
+                detail: "No se pudo consultar el conteo de tablas. Verifique los logs del servidor.",
+                statusCode: 500);
+        }
+    });
+}
 
 app.MapControllers();
 
