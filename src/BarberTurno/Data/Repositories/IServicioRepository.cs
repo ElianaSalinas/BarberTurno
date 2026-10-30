@@ -4,6 +4,7 @@ using BarberTurno.Models;
 // Contrato del repositorio de servicios (corte, barba, etc.). Solo acceso a datos.
 namespace BarberTurno.Data.Repositories;
 
+/// <summary>Contrato de persistencia local para el catálogo de servicios.</summary>
 public interface IServicioRepository
 {
     // Todos los servicios guardados, ordenados por nombre

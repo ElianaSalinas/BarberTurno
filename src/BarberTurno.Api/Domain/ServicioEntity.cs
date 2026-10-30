@@ -1,5 +1,6 @@
 namespace BarberTurno.Api.Domain;
 
+/// <summary>Entidad del catálogo de servicios ofrecidos por la barbería.</summary>
 public class ServicioEntity
 {
     public int Id { get; set; }

@@ -9,6 +9,7 @@ using BarberTurno.Models;
 // Este repositorio no valida códigos ni decide nada: solo guarda y consulta.
 namespace BarberTurno.Data.Repositories;
 
+/// <summary>Contrato de almacenamiento local para barberos y sus servicios.</summary>
 public interface IBarberoRepository
 {
     // Barberos vinculados guardados localmente, ordenados por nombre

@@ -8,16 +8,19 @@ namespace BarberTurno.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+/// <summary>Expone y administra el catálogo de servicios consumido por la aplicación.</summary>
 public class ServiciosController : ControllerBase
 {
     private readonly ApiDbContext _context;
 
+    /// <summary>Recibe el contexto EF Core que persiste el catálogo.</summary>
     public ServiciosController(ApiDbContext context)
     {
         _context = context;
     }
 
     [HttpGet]
+    /// <summary>Devuelve los servicios disponibles en formato de transferencia.</summary>
     public async Task<ActionResult<List<ServicioDto>>> GetServicios()
     {
         var servicios = await _context.Servicios
@@ -35,6 +38,7 @@ public class ServiciosController : ControllerBase
     }
 
     [HttpPost]
+    /// <summary>Crea un servicio y devuelve el catálogo normalizado para la aplicación.</summary>
     public async Task<ActionResult<ServicioDto>> CrearServicio([FromBody] CrearServicioDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Nombre))

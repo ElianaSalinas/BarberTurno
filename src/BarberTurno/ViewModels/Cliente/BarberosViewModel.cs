@@ -12,6 +12,7 @@ using BarberTurno.Services.Sync;
 // Lista de barberos y sus servicios (cuatro estados). Sin lógica de negocio: lee repositorios y delega.
 namespace BarberTurno.ViewModels;
 
+/// <summary>Carga los barberos disponibles y navega al detalle de sus servicios.</summary>
 public partial class BarberosViewModel : ClienteViewModelBase
 {
     private readonly IBarberoRepository _barberos;

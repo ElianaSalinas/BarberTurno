@@ -9,6 +9,7 @@ namespace BarberTurno.Models;
 /// La tabla se crea en M03 (AppDatabase).
 /// </summary>
 [Table("servicios")]
+/// <summary>Describe un servicio reservable y su duración para calcular horarios.</summary>
 public class Servicio
 {
     /// <summary>

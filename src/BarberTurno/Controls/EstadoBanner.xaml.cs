@@ -23,6 +23,7 @@ public partial class EstadoBanner : ContentView
         nameof(LoadingText), typeof(string), typeof(EstadoBanner), "Cargando…",
         propertyChanged: (b, _, n) => ((EstadoBanner)b).TextoCarga.Text = n as string ?? "Cargando…");
 
+    /// <summary>Inicializa las secciones visuales del banner.</summary>
     public EstadoBanner() => InitializeComponent();
 
     public EstadoPantalla State { get => (EstadoPantalla)GetValue(StateProperty); set => SetValue(StateProperty, value); }
@@ -30,6 +31,7 @@ public partial class EstadoBanner : ContentView
     public ICommand? RetryCommand { get => (ICommand?)GetValue(RetryCommandProperty); set => SetValue(RetryCommandProperty, value); }
     public string LoadingText { get => (string)GetValue(LoadingTextProperty); set => SetValue(LoadingTextProperty, value); }
 
+    /// <summary>Sincroniza la visibilidad del banner con las propiedades enlazables.</summary>
     private void Actualizar()
     {
         var cargando = State == EstadoPantalla.Cargando;

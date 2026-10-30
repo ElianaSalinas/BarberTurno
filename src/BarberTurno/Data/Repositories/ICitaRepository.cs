@@ -12,6 +12,7 @@ using BarberTurno.Models;
 //  - Las fechas son hora local (el DtoMapper de M02 convierte desde/hacia UTC).
 namespace BarberTurno.Data.Repositories;
 
+/// <summary>Contrato de persistencia local para reservas y consultas de agenda.</summary>
 public interface ICitaRepository
 {
     // Cita por Id, o <c>null</c>

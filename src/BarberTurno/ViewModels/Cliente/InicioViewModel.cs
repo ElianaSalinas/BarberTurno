@@ -11,6 +11,7 @@ using BarberTurno.Services.Navigation;
 
 namespace BarberTurno.ViewModels;
 
+/// <summary>Prepara la pantalla inicial del cliente y sus accesos a barberos y servicios.</summary>
 public partial class InicioViewModel : BaseViewModel
 {
     private static readonly CultureInfo Es = new("es-ES");

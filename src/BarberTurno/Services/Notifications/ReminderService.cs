@@ -12,6 +12,7 @@ using Plugin.LocalNotification;
 
 namespace BarberTurno.Services.Notifications;
 
+/// <summary>Programa y cancela recordatorios locales de citas usando las reservas almacenadas.</summary>
 public class ReminderService : IReminderService
 {
     /// <summary>Con cuánta anticipación se avisa de la cita.</summary>
@@ -71,6 +72,7 @@ public class ReminderService : IReminderService
         }
     }
 
+    /// <summary>Programa el aviso previo a una cita activa cuando el sistema lo permite.</summary>
     public async Task ProgramarAsync(Cita cita)
     {
         try
@@ -116,6 +118,7 @@ public class ReminderService : IReminderService
         }
     }
 
+    /// <summary>Cancela el aviso asociado a una cita cancelada o rechazada.</summary>
     public Task CancelarAsync(Guid citaId)
     {
         try
@@ -141,6 +144,7 @@ public class ReminderService : IReminderService
     /// Alinea los recordatorios con las citas vigentes del cliente: programa las que faltan
     /// y cancela las de citas canceladas, rechazadas o pasadas. Se llama tras sincronizar.
     /// </summary>
+    /// <summary>Alinea avisos locales con las citas vigentes guardadas en SQLite.</summary>
     public async Task ReconciliarAsync()
     {
         try

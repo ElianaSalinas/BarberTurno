@@ -2,6 +2,7 @@ using BarberTurno.Models;
 
 namespace BarberTurno.Data.Repositories;
 
+/// <summary>Ofrece nombres de compatibilidad para operaciones frecuentes de los repositorios locales.</summary>
 public static class RepositoryExtensions
 {
     public static Task SaveItemAsync(this IBarberoRepository repo, Barbero barbero) =>

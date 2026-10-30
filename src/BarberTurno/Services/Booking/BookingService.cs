@@ -9,6 +9,7 @@ using BarberTurno.Services.Notifications;
 
 namespace BarberTurno.Services.Booking;
 
+/// <summary>Coordina la reserva entre la API, la base SQLite y los recordatorios del dispositivo.</summary>
 public class BookingService : IBookingService
 {
     private readonly IBarberTurnoApi _api;
@@ -17,6 +18,7 @@ public class BookingService : IBookingService
     private readonly IAuthService? _auth;
     private readonly IReminderService? _reminders;
 
+    /// <summary>Recibe las dependencias usadas para confirmar o dejar pendiente una cita.</summary>
     public BookingService(
         IBarberTurnoApi api,
         ICitaRepository citaRepo,
@@ -31,6 +33,7 @@ public class BookingService : IBookingService
         _reminders = reminders;
     }
 
+    /// <summary>Intenta crear la cita remota y conserva una reserva pendiente cuando no hay conexión.</summary>
     public async Task<ResultadoReserva> ReservarAsync(ReservaSolicitud solicitud)
     {
         var citaId = Guid.NewGuid();
@@ -42,6 +45,7 @@ public class BookingService : IBookingService
             InicioUtc = solicitud.Inicio.ToUniversalTime()
         };
 
+        // La API es la autoridad final para impedir reservas simultáneas.
         var apiResult = await _api.CrearCitaAsync(request);
 
         if (apiResult.Exito && apiResult.Datos != null)
@@ -109,6 +113,7 @@ public class BookingService : IBookingService
         };
     }
 
+    /// <summary>Cancela la cita en la API, actualiza su copia local y retira el aviso programado.</summary>
     public async Task<bool> CancelarAsync(Guid citaId)
     {
         var result = await _api.CancelarCitaAsync(citaId);
@@ -126,6 +131,7 @@ public class BookingService : IBookingService
         return result.Exito;
     }
 
+    /// <summary>Programa el aviso local si el módulo de notificaciones está disponible.</summary>
     private async Task ProgramarRecordatorioAsync(Cita cita)
     {
         if (_reminders is not null)

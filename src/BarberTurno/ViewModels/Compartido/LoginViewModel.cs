@@ -11,6 +11,7 @@ using BarberTurno.Services.Sync;
 
 namespace BarberTurno.ViewModels;
 
+/// <summary>Autentica al usuario, conserva la sesión y abre la navegación según su rol.</summary>
 public partial class LoginViewModel : BaseViewModel
 {
     // ── Constante de ruta ─────────────────────────────────────────────────────

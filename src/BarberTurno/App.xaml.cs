@@ -6,8 +6,10 @@ using Microsoft.Maui.Storage;
 // Punto de entrada de la app. Mantiene la sesión en SecureStorage según criterio del Módulo 5.
 namespace BarberTurno;
 
+/// <summary>Inicializa el tema y coordina el ciclo de vida global de la aplicación.</summary>
 public partial class App : Application
 {
+    /// <summary>Restaura el tema guardado antes de mostrar la primera ventana.</summary>
     public App()
     {
         InitializeComponent();
@@ -19,6 +21,7 @@ public partial class App : Application
         // La sesión NO se borra al abrir: LoginPage la restaura desde SecureStorage mientras el token siga vigente.
     }
 
+    /// <summary>Crea la ventana con splash y conecta la sincronización al paso a segundo plano.</summary>
     protected override Window CreateWindow(IActivationState? activationState)
     {
         var window = new Window();
@@ -29,6 +32,7 @@ public partial class App : Application
         {
             try
             {
+                // Usa el servicio singleton para enviar reservas que quedaron pendientes sin conexión.
                 var sync = IPlatformApplication.Current?.Services.GetService<BarberTurno.Services.Sync.ISyncService>();
                 if (sync is not null)
                     await sync.SincronizarPendientesAsync();

@@ -5,6 +5,7 @@ using ViewStateHelper = BarberTurno.Helpers.ViewState;
 
 namespace BarberTurno.ViewModels;
 
+/// <summary>Base compartida para el estado visual y mensajes de todas las pantallas MVVM.</summary>
 public abstract partial class BaseViewModel : ObservableObject
 {
     [ObservableProperty]
@@ -19,6 +20,9 @@ public abstract partial class BaseViewModel : ObservableObject
     [ObservableProperty]
     private string titulo = string.Empty;
 
+    /// <summary>Permite a la vista iniciar cargas al mostrarse.</summary>
     public virtual void OnAppearing() { }
+
+    /// <summary>Permite a la vista liberar suscripciones al ocultarse.</summary>
     public virtual void OnDisappearing() { }
 }

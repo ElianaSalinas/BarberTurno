@@ -10,6 +10,7 @@ using BarberTurno.ViewModels;
 namespace BarberTurno.ViewModels;
 
 /// <summary>Panel del barbero: los servicios que ofrece, con la foto de cada uno.</summary>
+/// <summary>Muestra al barbero los servicios asignados y permite abrir la edición del perfil.</summary>
 public partial class MisServiciosViewModel : BaseViewModel
 {
     private readonly IAuthService _auth;

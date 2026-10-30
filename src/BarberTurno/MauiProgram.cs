@@ -17,8 +17,10 @@ using BarberTurno.Views;
 // Responsable: M01 (composición de la app). Cada capa registra sus servicios en su propio archivo *Registration.cs.
 namespace BarberTurno;
 
+/// <summary>Configura la aplicación MAUI y registra las capas que consumen la API y SQLite.</summary>
 public static class MauiProgram
 {
+    /// <summary>Crea el contenedor de dependencias usado por páginas y ViewModels.</summary>
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
@@ -51,6 +53,7 @@ public static class MauiProgram
         return builder.Build();
     }
 
+    /// <summary>Registra las páginas y ViewModels que forman la capa de presentación.</summary>
     private static IServiceCollection AddPresentationLayer(this IServiceCollection services)
     {
         services.AddTransient<LoginViewModel>();

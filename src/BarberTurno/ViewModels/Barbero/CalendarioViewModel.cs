@@ -10,6 +10,7 @@ using BarberTurno.Services.Navigation;
 namespace BarberTurno.ViewModels;
 
 /// <summary>Calendario del barbero: elige un día y muestra sus turnos reales.</summary>
+/// <summary>Presenta las citas del barbero en calendario y abre su detalle.</summary>
 public partial class CalendarioViewModel : BaseViewModel
 {
     private readonly IAuthService _auth;

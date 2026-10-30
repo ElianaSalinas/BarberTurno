@@ -7,6 +7,7 @@ using BarberTurno.Services.Api;
 
 namespace BarberTurno.Services.Auth;
 
+/// <summary>Gestiona el acceso y la sesión activa conectando la API con el almacenamiento seguro del dispositivo.</summary>
 public class AuthService : IAuthService
 {
     // ── Dependencias inyectadas ───────────────────────────────────────────────
@@ -17,6 +18,7 @@ public class AuthService : IAuthService
     public SesionUsuario? SesionActual { get; private set; }
 
     // ── Constructor ───────────────────────────────────────────────────────────
+    /// <summary>Recibe el cliente REST y el almacén seguro que conserva la sesión.</summary>
     public AuthService(IBarberTurnoApi api, ISessionStorage sessionStorage)
     {
         _api            = api;
@@ -26,6 +28,7 @@ public class AuthService : IAuthService
     // ═════════════════════════════════════════════════════════════════════════
     // LOGIN
     // ═════════════════════════════════════════════════════════════════════════
+    /// <summary>Valida las credenciales en la API y guarda la sesión y JWT al tener éxito.</summary>
     public async Task<ResultadoLogin> LoginAsync(string usuario, string password)
     {
         try
@@ -67,6 +70,7 @@ public class AuthService : IAuthService
     // ═════════════════════════════════════════════════════════════════════════
     // REGISTRO
     // ═════════════════════════════════════════════════════════════════════════
+    /// <summary>Registra el usuario remoto e inicia su sesión inmediatamente.</summary>
     public async Task<ResultadoRegistro> RegistrarAsync(
         string nombre,
         string telefono,
@@ -119,6 +123,7 @@ public class AuthService : IAuthService
     // ═════════════════════════════════════════════════════════════════════════
     // RESTAURAR SESIÓN
     // ═════════════════════════════════════════════════════════════════════════
+    /// <summary>Restaura una sesión vigente desde SecureStorage y vuelve a configurar el JWT.</summary>
     public async Task<bool> RestaurarSesionAsync()
     {
         var token  = await _sessionStorage.GetTokenAsync();
@@ -155,6 +160,7 @@ public class AuthService : IAuthService
     // ═════════════════════════════════════════════════════════════════════════
     // LOGOUT
     // ═════════════════════════════════════════════════════════════════════════
+    /// <summary>Elimina la sesión local y evita que el token se envíe en futuras solicitudes.</summary>
     public Task LogoutAsync()
     {
         _sessionStorage.Clear();

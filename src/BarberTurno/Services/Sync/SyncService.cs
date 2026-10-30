@@ -11,6 +11,7 @@ using BarberTurno.Services.Notifications;
 
 namespace BarberTurno.Services.Sync;
 
+/// <summary>Mantiene los datos SQLite alineados con la API y reintenta las citas pendientes al volver la red.</summary>
 public class SyncService : ISyncService
 {
     private readonly INetworkService _networkService;
@@ -26,6 +27,7 @@ public class SyncService : ISyncService
 
     public event EventHandler<Guid>? ReservaRechazada;
 
+    /// <summary>Recibe los repositorios locales, la API y el detector de conexión usados por la sincronización.</summary>
     public SyncService(
         INetworkService networkService,
         IBarberoRepository barberoRepo,
@@ -61,6 +63,7 @@ public class SyncService : ISyncService
         };
     }
 
+    /// <summary>Descarga servicios, barberos y clientes de la API y actualiza sus copias locales.</summary>
     public async Task SincronizarCatalogosAsync()
     {
         if (!_networkService.HayConexion) return;
@@ -140,6 +143,7 @@ public class SyncService : ISyncService
         }
     }
 
+    /// <summary>Actualiza las citas locales con el estado remoto y reconcilia sus recordatorios.</summary>
     public async Task SincronizarCitasAsync()
     {
         if (!_networkService.HayConexion) return;
@@ -182,6 +186,7 @@ public class SyncService : ISyncService
         }
     }
 
+    /// <summary>Envía a la API las citas creadas sin conexión y comunica los conflictos de horario.</summary>
     public async Task SincronizarPendientesAsync()
     {
         if (!_networkService.HayConexion) return;

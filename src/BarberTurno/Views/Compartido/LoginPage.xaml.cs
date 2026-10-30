@@ -5,10 +5,12 @@ using BarberTurno.ViewModels;
 
 namespace BarberTurno.Views;
 
+/// <summary>Gestiona el inicio de sesión visual mediante LoginViewModel.</summary>
 public partial class LoginPage : ContentPage
 {
     private readonly LoginViewModel _viewModel;
 
+    /// <summary>Asigna el ViewModel y configura el avance de foco entre campos.</summary>
     public LoginPage(LoginViewModel viewModel)
     {
         InitializeComponent();
@@ -18,6 +20,7 @@ public partial class LoginPage : ContentPage
         EntryUsuario.Completed += (s, e) => EntryPassword.Focus();
     }
 
+    /// <summary>Inicia la restauración de sesión cuando la vista ya está lista.</summary>
     protected override void OnAppearing()
     {
         base.OnAppearing();

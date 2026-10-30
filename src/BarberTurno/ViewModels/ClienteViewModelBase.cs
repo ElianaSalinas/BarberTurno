@@ -6,6 +6,7 @@ using Microsoft.Maui.ApplicationModel;
 
 namespace BarberTurno.ViewModels;
 
+/// <summary>Base de las pantallas de cliente que refleja los cambios de conectividad.</summary>
 public abstract partial class ClienteViewModelBase : BaseViewModel
 {
     protected readonly INetworkService Network;

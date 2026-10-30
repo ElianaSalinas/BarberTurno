@@ -3,6 +3,7 @@ using BarberTurno.Models;
 
 namespace BarberTurno.ViewModels;
 
+/// <summary>Adaptador de un servicio para enlazarlo directamente en la interfaz.</summary>
 public sealed class ServicioItem
 {
     public int Id { get; }

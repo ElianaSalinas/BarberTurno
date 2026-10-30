@@ -12,6 +12,7 @@ using SQLite;
 //  - La autoridad final es el servidor (M06/M07).
 namespace BarberTurno.Data.Repositories;
 
+/// <summary>Accede a las citas almacenadas en SQLite para la agenda, historial y sincronización.</summary>
 public sealed class CitaRepository : ICitaRepository
 {
     private readonly IAppDatabase _db;
@@ -106,6 +107,7 @@ public sealed class CitaRepository : ICitaRepository
             .ToListAsync();
     }
 
+    /// <summary>Comprueba si una cita activa del barbero se cruza con el intervalo indicado.</summary>
     public async Task<bool> ExisteSolapamientoAsync(int barberoId, DateTime inicio, DateTime fin, Guid? excluirId = null)
     {
         var conn = await _db.GetConnectionAsync();
@@ -139,6 +141,7 @@ public sealed class CitaRepository : ICitaRepository
         CambiarEstadoAsync(id, estado, motivo, marcarSincronizada: true);
 
 
+    /// <summary>Inserta o actualiza varias citas recibidas desde la sincronización remota.</summary>
     public async Task UpsertRangeAsync(IEnumerable<Cita> citas)
     {
         // Primero las que liberan hora: así "mi cita pasó a Rechazada" se aplica antes que

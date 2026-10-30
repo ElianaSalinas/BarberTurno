@@ -2,12 +2,14 @@ using System.Text.Json.Serialization;
 
 namespace BarberTurno.Dtos;
 
+/// <summary>Datos enviados para actualizar la foto de un barbero en la API.</summary>
 public class ActualizarFotoDto
 {
     [JsonPropertyName("fotoUrl")]
     public string? FotoUrl { get; set; }
 }
 
+/// <summary>Datos enviados para crear un servicio nuevo en el catálogo remoto.</summary>
 public class CrearServicioDto
 {
     [JsonPropertyName("nombre")]

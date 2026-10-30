@@ -2,6 +2,7 @@
 // Resultado tipado de una llamada (evita lanzar excepciones para casos esperados).
 namespace BarberTurno.Services.Api;
 
+/// <summary>Representa el resultado controlado de una llamada a la API para que la UI no dependa de excepciones.</summary>
 public class ApiResult<T>
 {
     public bool Exito { get; set; }

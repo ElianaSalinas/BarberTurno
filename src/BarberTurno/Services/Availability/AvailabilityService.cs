@@ -6,6 +6,7 @@ using BarberTurno.Services.Api;
 
 namespace BarberTurno.Services.Availability;
 
+/// <summary>Obtiene horarios libres desde la API y calcula un respaldo local con SQLite si no hay conexión.</summary>
 public class AvailabilityService : IAvailabilityService
 {
     private readonly IBarberTurnoApi _api;
@@ -13,6 +14,7 @@ public class AvailabilityService : IAvailabilityService
     private readonly IServicioRepository _servicioRepo;
     private readonly ICitaRepository _citaRepo;
 
+    /// <summary>Recibe los clientes remoto y locales que participan en el cálculo de disponibilidad.</summary>
     public AvailabilityService(
         IBarberTurnoApi api,
         IBarberoRepository barberoRepo,
@@ -25,6 +27,7 @@ public class AvailabilityService : IAvailabilityService
         _citaRepo = citaRepo;
     }
 
+    /// <summary>Devuelve los bloques disponibles para el barbero, servicio y fecha solicitados.</summary>
     public async Task<IReadOnlyList<SlotDisponible>> GetHorasLibresAsync(int barberoId, int servicioId, DateOnly fecha)
     {
         // 1. Intentar consultar disponibilidad al servidor (autoridad)

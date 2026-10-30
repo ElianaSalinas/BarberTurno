@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 namespace BarberTurno.Dtos;
 
 /// <summary>Datos enviados al servidor para registrar una cuenta.</summary>
+/// <summary>Datos enviados a la API para crear una cuenta.</summary>
 public class RegistroRequestDto
 {
     [JsonPropertyName("nombre")]
@@ -24,6 +25,7 @@ public class RegistroRequestDto
 }
 
 /// <summary>Datos enviados al servidor para iniciar sesión.</summary>
+/// <summary>Credenciales enviadas al endpoint de inicio de sesión.</summary>
 public class LoginRequestDto
 {
     [JsonPropertyName("usuario")]
@@ -34,6 +36,7 @@ public class LoginRequestDto
 }
 
 /// <summary>Respuesta del servidor tras un login exitoso.</summary>
+/// <summary>Sesión y token que la API devuelve después de autenticar al usuario.</summary>
 public class LoginResponseDto
 {
     [JsonPropertyName("token")]
@@ -56,6 +59,7 @@ public class LoginResponseDto
 }
 
 /// <summary>DTO de cliente que viaja por red.</summary>
+/// <summary>Forma JSON de un cliente intercambiada con la API.</summary>
 public class ClienteDto
 {
     [JsonPropertyName("id")]
@@ -69,6 +73,7 @@ public class ClienteDto
 }
 
 /// <summary>DTO de barbero que viaja por red incluyendo su horario de trabajo.</summary>
+/// <summary>Forma JSON de un barbero, incluidos los servicios que ofrece.</summary>
 public class BarberoDto
 {
     [JsonPropertyName("id")]
@@ -94,6 +99,7 @@ public class BarberoDto
 }
 
 /// <summary>DTO de servicio ofrecido en la barbería.</summary>
+/// <summary>Forma JSON de un servicio del catálogo remoto.</summary>
 public class ServicioDto
 {
     [JsonPropertyName("id")]
@@ -113,6 +119,7 @@ public class ServicioDto
 }
 
 /// <summary>DTO de cita reservada con fechas en UTC y estado en texto.</summary>
+/// <summary>Forma JSON de una cita devuelta por la API.</summary>
 public class CitaDto
 {
     [JsonPropertyName("id")]
@@ -141,6 +148,7 @@ public class CitaDto
 }
 
 /// <summary>DTO de franja horaria disponible devuelta por el servidor.</summary>
+/// <summary>Forma JSON de un intervalo de disponibilidad en UTC.</summary>
 public class SlotDto
 {
     [JsonPropertyName("inicioUtc")]
@@ -151,6 +159,7 @@ public class SlotDto
 }
 
 /// <summary>Id = clave de idempotencia: reintentar con el mismo Id nunca crea una segunda cita.</summary>
+/// <summary>Datos que se envían a la API al crear una cita.</summary>
 public class CrearCitaRequestDto
 {
     [JsonPropertyName("id")]

@@ -16,6 +16,7 @@ namespace BarberTurno.Models;
 /// </para>
 /// </summary>
 [Table("citas")]
+/// <summary>Representa una reserva local, incluida su sincronización y estado de atención.</summary>
 public class Cita
 {
     /// <summary>

@@ -6,6 +6,7 @@ using BarberTurno.Models;
 
 namespace BarberTurno.Services.Auth;
 
+/// <summary>Guarda de forma segura el token, vencimiento y perfil usados para restaurar la sesión.</summary>
 public class SessionStorage : ISessionStorage
 {
     // ── Claves de SecureStorage ────────────────────────────────────────────────
@@ -18,6 +19,7 @@ public class SessionStorage : ISessionStorage
     // ── Guardar ───────────────────────────────────────────────────────────────
 
     /// <inheritdoc/>
+    /// <summary>Persiste los datos de sesión después de un acceso o registro exitoso.</summary>
     public async Task SaveSesionAsync(string token, DateTime expiraEnUtc, SesionUsuario sesion)
     {
         // Guardamos el token tal cual llega del servidor.
@@ -113,6 +115,7 @@ public class SessionStorage : ISessionStorage
     // ── Limpiar ───────────────────────────────────────────────────────────────
 
     /// <inheritdoc/>
+    /// <summary>Elimina los datos protegidos al cerrar sesión o detectar que expiró.</summary>
     public void Clear()
     {
         // Eliminamos SOLO nuestras tres claves.

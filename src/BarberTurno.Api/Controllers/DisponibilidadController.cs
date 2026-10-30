@@ -7,16 +7,19 @@ namespace BarberTurno.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+/// <summary>Calcula horarios reservables usando las citas activas guardadas en la API.</summary>
 public class DisponibilidadController : ControllerBase
 {
     private readonly ApiDbContext _context;
 
+    /// <summary>Recibe el contexto EF Core usado para consultar agenda, barbero y servicio.</summary>
     public DisponibilidadController(ApiDbContext context)
     {
         _context = context;
     }
 
     [HttpGet]
+    /// <summary>Devuelve slots libres de 30 minutos para un barbero, servicio y fecha.</summary>
     public async Task<ActionResult<List<SlotDto>>> GetDisponibilidad(
         [FromQuery] int barberoId,
         [FromQuery] int servicioId,
@@ -43,6 +46,7 @@ public class DisponibilidadController : ControllerBase
         var diaFin = new DateTime(fechaParsed.Year, fechaParsed.Month, fechaParsed.Day, 18, 0, 0, DateTimeKind.Utc);
 
         // Citas activas de ese barbero en ese día
+        // Carga solo reservas que puedan cruzarse con la jornada solicitada.
         var citasDelDia = await _context.Citas
             .Where(c => c.BarberoId == barberoId
                         && c.Estado != "Cancelada"

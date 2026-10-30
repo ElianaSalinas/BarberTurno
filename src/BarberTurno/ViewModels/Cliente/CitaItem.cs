@@ -3,6 +3,7 @@ using BarberTurno.Models;
 
 namespace BarberTurno.ViewModels;
 
+/// <summary>Representación de una cita lista para mostrarse y filtrarse en pantalla.</summary>
 public sealed class CitaItem
 {
     public Cita Cita { get; }

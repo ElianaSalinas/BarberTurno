@@ -10,6 +10,7 @@ namespace BarberTurno.Models;
 /// mediante el índice único compuesto IX_BarberoServicio_Unico sobre (BarberoId, ServicioId).
 /// </summary>
 [Table("barbero_servicios")]
+/// <summary>Relaciona un barbero con un servicio que puede ofrecer.</summary>
 public class BarberoServicio
 {
     /// <summary>Clave primaria autoincremental local generada por SQLite.</summary>

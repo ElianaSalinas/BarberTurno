@@ -11,11 +11,13 @@ namespace BarberTurno.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+/// <summary>Expone el inicio de sesión y registro que crean la sesión JWT de la aplicación.</summary>
 public class AuthController : ControllerBase
 {
     private readonly ApiDbContext _context;
     private readonly IConfiguration _configuration;
 
+    /// <summary>Recibe el contexto de datos y la configuración usada para firmar los tokens.</summary>
     public AuthController(ApiDbContext context, IConfiguration configuration)
     {
         _context = context;
@@ -23,6 +25,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    /// <summary>Valida credenciales y devuelve un token JWT junto con el perfil del usuario.</summary>
     public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
     {
         if (request == null || string.IsNullOrWhiteSpace(request.Usuario) || string.IsNullOrWhiteSpace(request.Password))
@@ -30,6 +33,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { mensaje = "Usuario y contraseña requeridos." });
         }
 
+        // Busca el usuario persistido antes de verificar su hash BCrypt.
         var usuario = await _context.Usuarios
             .FirstOrDefaultAsync(u => u.Usuario.ToLower() == request.Usuario.Trim().ToLower());
 
@@ -61,6 +65,7 @@ public class AuthController : ControllerBase
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(jwtKey);
 
+        // El token conecta las peticiones posteriores con el usuario y su rol.
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
@@ -98,6 +103,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    /// <summary>Crea un usuario y devuelve la sesión JWT que la aplicación guarda localmente.</summary>
     public async Task<ActionResult<LoginResponseDto>> Register([FromBody] RegistroRequestDto request)
     {
         if (request == null || string.IsNullOrWhiteSpace(request.Usuario) || string.IsNullOrWhiteSpace(request.Password) || string.IsNullOrWhiteSpace(request.Nombre))
@@ -130,6 +136,7 @@ public class AuthController : ControllerBase
         int? barberoId = null;
         if (rol == "Barbero")
         {
+            // Un registro de barbero necesita además el perfil que usan citas y disponibilidad.
             var barbero = new BarberTurno.Api.Domain.BarberoEntity
             {
                 Nombre = nuevoUsuario.Nombre,

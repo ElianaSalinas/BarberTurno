@@ -6,8 +6,10 @@ using Microsoft.Maui.Controls;
 
 namespace BarberTurno.Services.Dialogs;
 
+/// <summary>Muestra alertas y confirmaciones MAUI desde servicios o ViewModels de forma segura.</summary>
 public class DialogService : IDialogService
 {
+    /// <summary>Muestra una alerta en la página activa del hilo principal.</summary>
     public async Task ShowAlertAsync(string titulo, string mensaje)
     {
         try
@@ -27,6 +29,7 @@ public class DialogService : IDialogService
         }
     }
 
+    /// <summary>Pide confirmación en la página activa y devuelve la opción elegida.</summary>
     public async Task<bool> ConfirmAsync(string titulo, string mensaje, string aceptar = "Aceptar", string cancelar = "Cancelar")
     {
         try

@@ -15,6 +15,7 @@ using EstadoDeCita = BarberTurno.Models.EstadoCita;
 namespace BarberTurno.ViewModels;
 
 /// <summary>Una visita anterior del cliente, lista para mostrar.</summary>
+/// <summary>Entrada de historial que muestra una visita anterior de un cliente.</summary>
 public sealed class VisitaClienteItem
 {
     public string Fecha { get; init; } = string.Empty;
@@ -23,6 +24,7 @@ public sealed class VisitaClienteItem
     public string Estado { get; init; } = string.Empty;
 }
 
+/// <summary>Obtiene el detalle de una cita y el historial del cliente que la reservó.</summary>
 public partial class DetalleCitaViewModel : BaseViewModel, IQueryAttributable
 {
     private static readonly CultureInfo CulturaEs = CultureInfo.GetCultureInfo("es");
@@ -88,6 +90,7 @@ public partial class DetalleCitaViewModel : BaseViewModel, IQueryAttributable
 
     public ObservableCollection<VisitaClienteItem> Historial { get; } = new();
 
+    /// <summary>Recibe la cita elegida y solicita su detalle e historial asociado.</summary>
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (!query.TryGetValue("citaId", out var valor))

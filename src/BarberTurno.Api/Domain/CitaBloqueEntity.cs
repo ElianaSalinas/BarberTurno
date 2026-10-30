@@ -1,5 +1,6 @@
 namespace BarberTurno.Api.Domain;
 
+/// <summary>Bloque de cinco minutos que protege una cita frente a reservas simultáneas.</summary>
 public class CitaBloqueEntity
 {
     public int Id { get; set; }

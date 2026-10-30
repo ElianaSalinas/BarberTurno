@@ -8,6 +8,7 @@ using BarberTurno.Services.Navigation;
 
 namespace BarberTurno.ViewModels;
 
+/// <summary>Carga el catálogo local de servicios para su consulta desde la aplicación.</summary>
 public partial class CatalogoViewModel : BaseViewModel
 {
     private readonly IServicioRepository _servicios;

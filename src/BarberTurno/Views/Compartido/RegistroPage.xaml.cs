@@ -5,10 +5,12 @@ using BarberTurno.ViewModels;
 
 namespace BarberTurno.Views;
 
+/// <summary>Vista de registro conectada a RegistroViewModel.</summary>
 public partial class RegistroPage : ContentPage
 {
     private readonly RegistroViewModel _viewModel;
 
+    /// <summary>Asigna el ViewModel y configura el flujo de foco del formulario.</summary>
     public RegistroPage(RegistroViewModel viewModel)
     {
         InitializeComponent();

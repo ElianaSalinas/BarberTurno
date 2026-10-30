@@ -18,11 +18,13 @@ namespace BarberTurno.Mappers;
 /// </list>
 /// </para>
 /// </summary>
+/// <summary>Convierte DTOs de la API en modelos locales y prepara solicitudes de reserva.</summary>
 public static class DtoMapper
 {
     // ── Cliente ───────────────────────────────────────────────────────────────
 
     /// <summary>Convierte un ClienteDto en entidad local conservando el Id del servidor.</summary>
+    /// <summary>Convierte un cliente remoto en su entidad SQLite.</summary>
     public static Cliente ToEntidad(this ClienteDto dto) => new()
     {
         Id       = dto.Id, // Se conserva el Id exacto del servidor
@@ -44,6 +46,7 @@ public static class DtoMapper
     /// Convierte un BarberoDto (respuesta de la API) en entidad local conservando el Id
     /// del servidor y su horario laboral (HoraEntrada, HoraSalida y DiasTrabajo).
     /// </summary>
+    /// <summary>Convierte un barbero remoto en el modelo usado por la aplicación.</summary>
     public static Barbero ToEntidad(this BarberoDto dto) => new()
     {
         Id          = dto.Id, // Se conserva el Id exacto del servidor
@@ -95,6 +98,7 @@ public static class DtoMapper
     /// Las fechas UTC del DTO se convierten a hora local para la entidad.
     /// El estado string se convierte a <see cref="EstadoCita"/>.
     /// </summary>
+    /// <summary>Convierte fechas UTC de la API a una cita local para la agenda.</summary>
     public static Cita ToEntidad(this CitaDto dto) => new()
     {
         Id                   = dto.Id,
@@ -164,6 +168,7 @@ public static class DtoMapper
     /// Construye el cuerpo de la petición de creación de cita para la API.
     /// Usa el Id de la entidad como clave de idempotencia.
     /// </summary>
+    /// <summary>Convierte una cita local pendiente en la solicitud que consume la API.</summary>
     public static CrearCitaRequestDto ToCrearRequest(this Cita entidad) => new()
     {
         Id         = entidad.Id,

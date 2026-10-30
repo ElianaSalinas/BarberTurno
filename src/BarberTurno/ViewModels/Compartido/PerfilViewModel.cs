@@ -19,6 +19,7 @@ using BarberTurno.Services.Sync;
 
 namespace BarberTurno.ViewModels;
 
+/// <summary>Servicio seleccionable al configurar los servicios ofrecidos por un barbero.</summary>
 public partial class ServicioSeleccionableItem : ObservableObject
 {
     public int Id { get; set; }
@@ -32,6 +33,7 @@ public partial class ServicioSeleccionableItem : ObservableObject
     public string Detalle => $"{FormatoCliente.Precio(Precio)} · {DuracionMin} min";
 }
 
+/// <summary>Gestiona el perfil y, para barberos, la foto y los servicios publicados en la API.</summary>
 public partial class PerfilViewModel : BaseViewModel
 {
     public const string PrefTemaOscuro = "tema_oscuro";

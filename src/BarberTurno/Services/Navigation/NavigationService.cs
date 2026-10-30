@@ -9,11 +9,13 @@ using Microsoft.Maui.Controls;
 // 3. Evita excepciones en GoBackAsync verificando que la pila no esté en la raíz de la pestaña.
 namespace BarberTurno.Services.Navigation;
 
+/// <summary>Centraliza la navegación Shell para que los ViewModels no dependan directamente de las páginas.</summary>
 public class NavigationService : INavigationService
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private static readonly TimeSpan NavigationTimeout = TimeSpan.FromSeconds(5);
 
+    /// <summary>Navega a una ruta Shell y entrega sus parámetros al ViewModel destino.</summary>
     public Task GoToAsync(string route, IDictionary<string, object>? parameters = null)
     {
         return EjecutarAsync($"GoToAsync: {route}", async shell =>
@@ -40,6 +42,7 @@ public class NavigationService : INavigationService
         });
     }
 
+    /// <summary>Regresa una pantalla mediante la ruta relativa de Shell.</summary>
     public Task GoBackAsync()
     {
         return EjecutarAsync("GoBackAsync", async shell =>

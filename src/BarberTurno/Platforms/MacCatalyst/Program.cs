@@ -3,13 +3,13 @@ using UIKit;
 
 namespace BarberTurno;
 
+/// <summary>Punto de entrada Mac Catalyst que delega el inicio nativo a <see cref="AppDelegate"/>.</summary>
 public class Program
 {
-	// This is the main entry point of the application.
+	/// <summary>Arranca UIKit y enlaza el ciclo de vida de Mac Catalyst con MAUI.</summary>
 	static void Main(string[] args)
 	{
-		// if you want to use a different Application Delegate class from "AppDelegate"
-		// you can specify it here.
+		// AppDelegate conecta UIKit con el contenedor definido en MauiProgram.
 		UIApplication.Main(args, null, typeof(AppDelegate));
 	}
 }

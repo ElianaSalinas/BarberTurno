@@ -1,10 +1,12 @@
 namespace BarberTurno.Helpers;
 
+/// <summary>Centraliza valores de configuración usados por la aplicación, incluida la URL de la API.</summary>
 public static class AppConstants
 {
     // URL de la API desplegada en Render (debe terminar en /api/)
     private const string UrlProduccion = "https://barberturno.onrender.com/api/";
 
+    /// <summary>Devuelve la API remota o la dirección local para un emulador Android.</summary>
     public static string ApiBaseUrl
     {
         get

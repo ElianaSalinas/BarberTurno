@@ -2,6 +2,7 @@ using System.Globalization;
 
 namespace BarberTurno.Helpers;
 
+/// <summary>Da formato consistente a datos mostrados en las pantallas del cliente.</summary>
 public static class FormatoCliente
 {
     private static readonly CultureInfo CulturaEs = new("es-ES");
@@ -27,6 +28,7 @@ public static class FormatoCliente
     public static string Hora(DateTime fecha) => fecha.ToString("HH:mm");
 }
 
+/// <summary>Define las claves de objetos que viajan entre pantallas mediante Shell.</summary>
 public static class ParametrosNavegacion
 {
     public const string Barbero = "barbero";
@@ -35,12 +37,14 @@ public static class ParametrosNavegacion
     public const string Origen = "origen";
 }
 
+/// <summary>Define las claves de identificadores pasados por navegación.</summary>
 public static class NavParams
 {
     public const string BarberoId = "barberoId";
     public const string ServicioId = "servicioId";
 }
 
+/// <summary>Identifica la pantalla desde la que se inició una reserva.</summary>
 public static class OrigenReserva
 {
     public const string Barberos = "barberos";
@@ -48,12 +52,14 @@ public static class OrigenReserva
     public const string MisCitas = "miscitas";
 }
 
+/// <summary>Reúne rutas Shell específicas del flujo de cliente.</summary>
 public static class RutasCliente
 {
     public const string MisCitas = "//cliente/miscitas";
     public static string Atras(int niveles) => string.Join("/", Enumerable.Repeat("..", niveles));
 }
 
+/// <summary>Centraliza los mensajes mostrados durante el flujo de reserva del cliente.</summary>
 public static class MensajesCliente
 {
     public const string FaltanDatosReserva = "Faltan datos para realizar la reserva.";

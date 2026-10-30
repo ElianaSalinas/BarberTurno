@@ -14,6 +14,7 @@ using BarberTurno.Services.Sync;
 
 namespace BarberTurno.ViewModels;
 
+/// <summary>Construye y actualiza la agenda diaria del barbero desde la base local sincronizada.</summary>
 public partial class AgendaDiaViewModel : BaseViewModel
 {
     private static readonly CultureInfo CulturaEs = CultureInfo.GetCultureInfo("es-DO");
@@ -131,6 +132,7 @@ public partial class AgendaDiaViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    /// <summary>Mueve la agenda un día atrás y recarga sus citas.</summary>
     public async Task DiaAnteriorAsync()
     {
         FechaSeleccionada = FechaSeleccionada.AddDays(-1);
@@ -140,6 +142,7 @@ public partial class AgendaDiaViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    /// <summary>Mueve la agenda un día adelante y recarga sus citas.</summary>
     public async Task DiaSiguienteAsync()
     {
         FechaSeleccionada = FechaSeleccionada.AddDays(1);
@@ -149,6 +152,7 @@ public partial class AgendaDiaViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    /// <summary>Vuelve a la fecha actual y actualiza la agenda.</summary>
     public async Task HoyAsync()
     {
         if (FechaSeleccionada.Date == DateTime.Today) return;
@@ -178,6 +182,7 @@ public partial class AgendaDiaViewModel : BaseViewModel
         }
     }
 
+    /// <summary>Obtiene y ordena las citas del día para mostrarlas en la agenda.</summary>
     public async Task CargarAgendaAsync(bool mostrarCargando = true)
     {
         int versionActual = Interlocked.Increment(ref _versionCarga);
@@ -292,6 +297,7 @@ public partial class AgendaDiaViewModel : BaseViewModel
     }
 }
 
+/// <summary>Elemento visual de la agenda diaria asociado a una cita almacenada.</summary>
 public partial class CitaAgendaItem : ObservableObject
 {
     /// <summary>Id de la cita (para abrir su detalle e historial).</summary>

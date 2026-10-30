@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm.Input;
 // Fecha + horas libres según duración. La autoridad de las horas libres es el servidor (ADR-0008).
 namespace BarberTurno.ViewModels;
 
+/// <summary>Consulta la disponibilidad del barbero y prepara los datos para confirmar una reserva.</summary>
 public partial class SeleccionHoraViewModel : BaseViewModel, IQueryAttributable
 {
     /// <summary>Hasta cuántos días adelante puede reservar el cliente.</summary>
@@ -75,6 +76,7 @@ public partial class SeleccionHoraViewModel : BaseViewModel, IQueryAttributable
 
     public ObservableCollection<SlotItem> Horas { get; } = new();
 
+    /// <summary>Recibe el barbero y servicio de la pantalla anterior, por objeto o identificador.</summary>
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         // Soporta tanto objetos completos (ParametrosNavegacion.Barbero/Servicio) como IDs enteros (NavParams.BarberoId/ServicioId)
@@ -137,6 +139,7 @@ public partial class SeleccionHoraViewModel : BaseViewModel, IQueryAttributable
     }
 
     [RelayCommand]
+    // IAvailabilityService consulta la API cuando hay red y aplica su resultado a la lista visual.
     private async Task CargarHorasAsync()
     {
         if (Barbero is null || Servicio is null)
@@ -197,6 +200,7 @@ public partial class SeleccionHoraViewModel : BaseViewModel, IQueryAttributable
     }
 
     [RelayCommand(CanExecute = nameof(HayHoraSeleccionada))]
+    // Envía la selección completa a la pantalla que confirma la reserva.
     private async Task ContinuarAsync()
     {
         if (Barbero is null || Servicio is null || HoraSeleccionada is null)

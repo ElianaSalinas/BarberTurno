@@ -1,5 +1,6 @@
 namespace BarberTurno.Api.Domain;
 
+/// <summary>Entidad puente que relaciona los servicios ofrecidos por cada barbero.</summary>
 public class BarberoServicioEntity
 {
     public int BarberoId { get; set; }

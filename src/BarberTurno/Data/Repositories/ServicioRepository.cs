@@ -4,6 +4,7 @@ using BarberTurno.Models;
 // Implementa IServicioRepository sobre SQLite (sqlite-net-pcl).
 namespace BarberTurno.Data.Repositories;
 
+/// <summary>Administra el catálogo de servicios y las consultas por barbero en SQLite.</summary>
 public sealed class ServicioRepository : IServicioRepository
 {
     private readonly IAppDatabase _db;
@@ -52,6 +53,7 @@ public sealed class ServicioRepository : IServicioRepository
     }
 
 
+    /// <summary>Reemplaza el catálogo local con la versión descargada desde la API.</summary>
     public async Task ReplaceAllAsync(IEnumerable<Servicio> servicios)
     {
         var lista = (servicios ?? []).GroupBy(s => s.Id).Select(g => g.Last()).ToList();

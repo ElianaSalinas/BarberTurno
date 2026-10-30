@@ -3,13 +3,13 @@ using UIKit;
 
 namespace BarberTurno;
 
+/// <summary>Punto de entrada nativo que entrega el control de iOS a <see cref="AppDelegate"/>.</summary>
 public class Program
 {
-	// This is the main entry point of the application.
+	/// <summary>Inicia UIKit con el delegado que construye la aplicación MAUI.</summary>
 	static void Main(string[] args)
 	{
-		// if you want to use a different Application Delegate class from "AppDelegate"
-		// you can specify it here.
+		// UIKit crea AppDelegate, que enlaza el ciclo de vida iOS con MauiProgram.
 		UIApplication.Main(args, null, typeof(AppDelegate));
 	}
 }

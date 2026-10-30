@@ -11,10 +11,12 @@ namespace BarberTurno.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+/// <summary>Gestiona consultas, creación y cancelación de las reservas autenticadas.</summary>
 public class CitasController : ControllerBase
 {
     private readonly ApiDbContext _context;
 
+    /// <summary>Recibe el contexto EF Core que coordina citas y bloques de agenda.</summary>
     public CitasController(ApiDbContext context)
     {
         _context = context;
@@ -22,6 +24,7 @@ public class CitasController : ControllerBase
 
     [HttpGet]
     [Authorize]
+    /// <summary>Devuelve las citas del cliente actual o las del barbero autenticado.</summary>
     public async Task<ActionResult<List<CitaDto>>> GetMisCitas()
     {
         var rol = User.FindFirstValue(ClaimTypes.Role) ?? "";
@@ -32,6 +35,7 @@ public class CitasController : ControllerBase
             return Unauthorized();
         }
 
+        // El rol del JWT define qué subconjunto de la agenda puede consultar el usuario.
         IQueryable<CitaEntity> query = _context.Citas;
 
         if (rol.Equals("Barbero", StringComparison.OrdinalIgnoreCase))
@@ -71,6 +75,7 @@ public class CitasController : ControllerBase
 
     [HttpPost]
     [Authorize]
+    /// <summary>Crea una reserva idempotente y bloquea su horario frente a concurrencia.</summary>
     public async Task<ActionResult<CitaDto>> CrearCita([FromBody] CrearCitaRequestDto request)
     {
         if (request == null || request.Id == Guid.Empty || request.BarberoId <= 0 || request.ServicioId <= 0)
@@ -184,6 +189,7 @@ public class CitasController : ControllerBase
 
     [HttpPost("{id}/cancelar")]
     [Authorize]
+    /// <summary>Cancela una cita y libera los bloques que ocupaba en la agenda.</summary>
     public async Task<ActionResult<CitaDto>> CancelarCita(Guid id)
     {
         var cita = await _context.Citas.FindAsync(id);
@@ -232,6 +238,7 @@ public class CitasController : ControllerBase
         }
     }
 
+    /// <summary>Identifica conflictos de índices únicos de PostgreSQL o SQLite.</summary>
     private static bool EsViolacionUnica(DbUpdateException ex)
         => ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation }
            || (ex.InnerException?.Message.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase) ?? false);
