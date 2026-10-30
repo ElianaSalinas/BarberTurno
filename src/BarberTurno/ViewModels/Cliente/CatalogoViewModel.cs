@@ -44,5 +44,5 @@ public partial class CatalogoViewModel : BaseViewModel
     }
 
     // Para reservar primero se elige barbero.
-    [RelayCommand] private Task ReservarAsync() => _nav.GoToAsync("//cliente/barberos");
+    [RelayCommand] private Task ReservarAsync() => _nav.GoToAsync("//barberos");
 }

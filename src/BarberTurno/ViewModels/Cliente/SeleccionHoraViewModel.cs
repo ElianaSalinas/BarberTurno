@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using BarberTurno.Data.Repositories;
 using BarberTurno.Helpers;
 using BarberTurno.Models;
 using BarberTurno.Services.Availability;
@@ -20,17 +21,23 @@ public partial class SeleccionHoraViewModel : BaseViewModel, IQueryAttributable
     private readonly IAvailabilityService _disponibilidad;
     private readonly INetworkService _red;
     private readonly INavigationService _navegacion;
+    private readonly IBarberoRepository _barberoRepo;
+    private readonly IServicioRepository _servicioRepo;
     private string _origen = OrigenReserva.Barberos;
     private int _versionCarga;   // descarta respuestas viejas si el usuario cambia de fecha rápido
 
     public SeleccionHoraViewModel(
         IAvailabilityService disponibilidad,
         INetworkService red,
-        INavigationService navegacion)
+        INavigationService navegacion,
+        IBarberoRepository barberoRepo,
+        IServicioRepository servicioRepo)
     {
         _disponibilidad = disponibilidad;
         _red = red;
         _navegacion = navegacion;
+        _barberoRepo = barberoRepo;
+        _servicioRepo = servicioRepo;
     }
 
     [ObservableProperty]
@@ -70,12 +77,50 @@ public partial class SeleccionHoraViewModel : BaseViewModel, IQueryAttributable
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
+        // Soporta tanto objetos completos (ParametrosNavegacion.Barbero/Servicio) como IDs enteros (NavParams.BarberoId/ServicioId)
         if (query.TryGetValue(ParametrosNavegacion.Barbero, out var b) && b is Barbero barberoRecibido)
             Barbero = barberoRecibido;
         if (query.TryGetValue(ParametrosNavegacion.Servicio, out var s) && s is Servicio servicioRecibido)
             Servicio = servicioRecibido;
         if (query.TryGetValue(ParametrosNavegacion.Origen, out var o) && o is string origen)
             _origen = origen;
+
+        // Si recibimos IDs en vez de objetos, resolverlos desde el repositorio
+        if (Barbero is null && query.TryGetValue(NavParams.BarberoId, out var bId)
+            && int.TryParse(bId?.ToString(), out var barberoId))
+        {
+            _ = ResolverBarberoAsync(barberoId);
+        }
+
+        if (Servicio is null && query.TryGetValue(NavParams.ServicioId, out var sId)
+            && int.TryParse(sId?.ToString(), out var servicioId))
+        {
+            _ = ResolverServicioAsync(servicioId);
+        }
+    }
+
+    private async Task ResolverBarberoAsync(int id)
+    {
+        try
+        {
+            Barbero = await _barberoRepo.GetByIdAsync(id);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SeleccionHora] No se pudo resolver barbero {id}: {ex.Message}");
+        }
+    }
+
+    private async Task ResolverServicioAsync(int id)
+    {
+        try
+        {
+            Servicio = await _servicioRepo.GetByIdAsync(id);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SeleccionHora] No se pudo resolver servicio {id}: {ex.Message}");
+        }
     }
 
     /// <summary>
