@@ -12,7 +12,7 @@
 
     <controls:StateView State="{Binding State}" ErrorText="{Binding MensajeError}" RetryCommand="{Binding CargarCommand}">
         <ScrollView>
-            <VerticalStackLayout motion:Motion.Enter="True" Padding="24,28,24,32" Spacing="18">
+            <VerticalStackLayout  Padding="24,28,24,32" Spacing="18">
 
                 <VerticalStackLayout Spacing="4">
                     <Label Text="TU CUENTA" FontSize="10" CharacterSpacing="1.3" Style="{StaticResource BtGold}" />
@@ -54,8 +54,8 @@
                         <VerticalStackLayout Spacing="10">
                             <Label Text="Selecciona los servicios que realizas:" FontSize="13" Style="{StaticResource BtMuted}" />
                             
-                            <CollectionView ItemsSource="{Binding MisServicios}">
-                                <CollectionView.ItemTemplate>
+                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding MisServicios}" Spacing="6">
+                                <BindableLayout.ItemTemplate>
                                     <DataTemplate x:DataType="vm:ServicioSeleccionableItem">
                                         <Grid ColumnDefinitions="*,Auto" Padding="0,6">
                                             <VerticalStackLayout Spacing="2">
@@ -65,8 +65,8 @@
                                             <CheckBox Grid.Column="1" IsChecked="{Binding Asignado}" Color="{StaticResource M10LightGold}" />
                                         </Grid>
                                     </DataTemplate>
-                                </CollectionView.ItemTemplate>
-                            </CollectionView>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
 
                             <Button Text="Guardar servicios activos" Command="{Binding GuardarServiciosAsignadosCommand}"
                                     Style="{StaticResource BtGoldButton}" HeightRequest="44" Margin="0,8,0,0" />
@@ -94,7 +94,7 @@
                                     <Label Text="Duración (minutos)" FontSize="12" FontAttributes="Bold" Style="{StaticResource BtText}" />
                                     <Picker ItemsSource="{Binding DuracionesDisponibles}"
                                             SelectedItem="{Binding DuracionSeleccionada}"
-                                            Title="Seleccionar minutos" />
+                                            Title="Seleccionar minutos" ItemDisplayBinding="{Binding .}" />
                                 </VerticalStackLayout>
                             </Grid>
 

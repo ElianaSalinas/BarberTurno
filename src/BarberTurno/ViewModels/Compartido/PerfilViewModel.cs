@@ -127,40 +127,49 @@ public partial class PerfilViewModel : BaseViewModel
     [RelayCommand]
     private async Task CargarAsync()
     {
-        var sesion = _auth.SesionActual;
-        if (sesion is null)
-        {
-            MensajeError = "No hay una sesión activa. Inicia sesión de nuevo.";
-            State = ViewState.Error;
-            return;
-        }
-
-        Nombre = sesion.Nombre;
-        EsBarbero = sesion.Rol == RolUsuario.Barbero;
-        RolTexto = EsBarbero ? "Barbero" : "Cliente";
-        Inicial = string.IsNullOrWhiteSpace(sesion.Nombre) ? "?" : sesion.Nombre.Trim()[..1].ToUpperInvariant();
-
-        _cargandoTema = true;
         try
         {
-            var app = Application.Current;
-            var tema = app?.UserAppTheme ?? AppTheme.Unspecified;
-            if (tema == AppTheme.Unspecified)
-                tema = app?.RequestedTheme ?? AppTheme.Unspecified;
-            TemaOscuro = tema == AppTheme.Dark;
-        }
-        finally
-        {
-            _cargandoTema = false;
-        }
+            var sesion = _auth.SesionActual;
+            if (sesion is null)
+            {
+                MensajeError = "No hay una sesión activa. Inicia sesión de nuevo.";
+                State = ViewState.Error;
+                return;
+            }
 
-        if (EsBarbero)
-        {
-            await CargarDatosBarberoAsync(sesion.BarberoId);
-        }
+            Nombre = sesion.Nombre;
+            EsBarbero = sesion.Rol == RolUsuario.Barbero;
+            RolTexto = EsBarbero ? "Barbero" : "Cliente";
+            Inicial = string.IsNullOrWhiteSpace(sesion.Nombre) ? "?" : sesion.Nombre.Trim()[..1].ToUpperInvariant();
 
-        MensajeError = null;
-        State = ViewState.ConDatos;
+            _cargandoTema = true;
+            try
+            {
+                var app = Application.Current;
+                var tema = app?.UserAppTheme ?? AppTheme.Unspecified;
+                if (tema == AppTheme.Unspecified)
+                    tema = app?.RequestedTheme ?? AppTheme.Unspecified;
+                TemaOscuro = tema == AppTheme.Dark;
+            }
+            finally
+            {
+                _cargandoTema = false;
+            }
+
+            if (EsBarbero)
+            {
+                await CargarDatosBarberoAsync(sesion.BarberoId);
+            }
+
+            MensajeError = null;
+            State = ViewState.ConDatos;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[PerfilViewModel] Error general al cargar perfil: {ex}");
+            MensajeError = "Ocurrió un error al cargar el perfil.";
+            State = ViewState.Error;
+        }
     }
 
     private async Task CargarDatosBarberoAsync(int? barberoId)
@@ -186,17 +195,31 @@ public partial class PerfilViewModel : BaseViewModel
                 var serviciosDelBarbero = await _servicios.GetByBarberoAsync(barbero.Id);
                 var idsAsignados = serviciosDelBarbero.Select(s => s.Id).ToHashSet();
 
-                MisServicios.Clear();
-                foreach (var serv in todosServicios)
+                var itemsNuevos = todosServicios.Select(serv => new ServicioSeleccionableItem
                 {
-                    MisServicios.Add(new ServicioSeleccionableItem
+                    Id = serv.Id,
+                    Nombre = serv.Nombre,
+                    Precio = serv.Precio,
+                    DuracionMin = serv.DuracionMin,
+                    Asignado = idsAsignados.Contains(serv.Id)
+                }).ToList();
+
+                void ActualizarUI()
+                {
+                    MisServicios.Clear();
+                    foreach (var item in itemsNuevos)
                     {
-                        Id = serv.Id,
-                        Nombre = serv.Nombre,
-                        Precio = serv.Precio,
-                        DuracionMin = serv.DuracionMin,
-                        Asignado = idsAsignados.Contains(serv.Id)
-                    });
+                        MisServicios.Add(item);
+                    }
+                }
+
+                if (MainThread.IsMainThread)
+                {
+                    ActualizarUI();
+                }
+                else
+                {
+                    MainThread.BeginInvokeOnMainThread(ActualizarUI);
                 }
             }
         }
