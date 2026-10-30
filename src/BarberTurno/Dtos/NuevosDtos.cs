@@ -18,4 +18,7 @@ public class CrearServicioDto
 
     [JsonPropertyName("precio")]
     public decimal Precio { get; set; }
+
+    [JsonPropertyName("fotoUrl")]
+    public string? FotoUrl { get; set; }
 }

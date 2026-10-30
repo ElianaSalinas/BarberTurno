@@ -6,9 +6,10 @@
              x:Class="BarberTurno.Views.SeleccionHoraPage"
              x:DataType="vm:SeleccionHoraViewModel"
              Style="{StaticResource M10Page}"
-             Title="Escoge la hora">
+             Title="Escoge la hora"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
 
-    <Grid RowDefinitions="Auto,*,Auto" Padding="24,20,24,24" RowSpacing="16">
+    <Grid motion:Motion.Enter="True" RowDefinitions="Auto,*,Auto" Padding="24,20,24,24" RowSpacing="16">
 
         <VerticalStackLayout Grid.Row="0" Spacing="14">
             <VerticalStackLayout Spacing="4">

@@ -104,6 +104,9 @@ public class ServicioDto
 
     [JsonPropertyName("precio")]
     public decimal Precio { get; set; }
+
+    [JsonPropertyName("fotoUrl")]
+    public string? FotoUrl { get; set; }
 }
 
 /// <summary>DTO de cita reservada con fechas en UTC y estado en texto.</summary>

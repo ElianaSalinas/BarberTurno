@@ -6,11 +6,12 @@
              x:Class="BarberTurno.Views.ConfirmarReservaPage"
              x:DataType="vm:ConfirmarReservaViewModel"
              Style="{StaticResource M10Page}"
-             Title="Confirmar reserva">
+             Title="Confirmar reserva"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
 
     <controls:StateView State="{Binding State}" ErrorText="{Binding MensajeError}" RetryCommand="{Binding VolverCommand}">
         <ScrollView>
-            <VerticalStackLayout Padding="24,20,24,32" Spacing="16">
+            <VerticalStackLayout motion:Motion.Enter="True" Padding="24,20,24,32" Spacing="16">
 
                 <Border IsVisible="{Binding SinConexion}" StrokeThickness="0" Padding="12,8" StrokeShape="RoundRectangle 12"
                         BackgroundColor="{AppThemeBinding Light=#FEF3C7, Dark=#78350F}">
