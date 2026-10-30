@@ -1,350 +1,352 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
     Responsable: M10.
-
-    Pantalla de Agenda del barbero.
-    Esta vista NO crea datos: solo muestra propiedades recibidas desde
-    AgendaDiaViewModel mediante Binding.
+    Pantalla: Agenda del Barbero.
+    
+    COMPORTAMIENTO:
+    - Cero datos simulados.
+    - Si no hay citas, oculta la tarjeta Hero y muestra el estado vacío elegante.
+    - ScrollView nativo fluido para Windows, Android e iOS.
 -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
              x:Class="BarberTurno.Views.AgendaDiaPage"
              x:DataType="vm:AgendaDiaViewModel"
-             Style="{StaticResource M10Page}"
+             BackgroundColor="{AppThemeBinding Light=#FAF8F4, Dark=#141412}"
              Shell.NavBarIsVisible="False">
 
-    <!--
-        Grid raíz:
-        permite centrar la agenda y limitar su ancho en Windows,
-        mientras que en un teléfono ocupará el espacio disponible.
-    -->
-    <Grid>
+    <!-- Grid principal con 1 fila y 1 columna para asegurar que el ScrollView reciba dimensiones finitas -->
+    <Grid RowDefinitions="*"
+          ColumnDefinitions="*"
+          HorizontalOptions="Fill"
+          VerticalOptions="Fill">
 
-        <!--
-            CollectionView es la lista principal de citas.
+        <ScrollView Grid.Row="0"
+                    VerticalScrollBarVisibility="Default"
+                    HorizontalOptions="Center"
+                    MaximumWidthRequest="430">
 
-            MaximumWidthRequest:
-            evita que la interfaz móvil se estire en toda una ventana de Windows.
-            En teléfono no genera espacios extra; en escritorio conserva una
-            proporción similar a la maqueta de Figma.
+            <VerticalStackLayout Padding="22,24,22,32"
+                                 Spacing="18">
 
-            No usamos ScrollView: CollectionView ya administra el desplazamiento.
-        -->
-        <CollectionView ItemsSource="{Binding CitasDelDia}"
-                        SelectionMode="None"
-                        BackgroundColor="Transparent"
-                        HorizontalOptions="Center"
-                        MaximumWidthRequest="430">
+                <!-- ═══════════════════════════════════════════════════════
+                     1. ENCABEZADO Y SALUDO DEL BARBERO
+                     ═══════════════════════════════════════════════════════ -->
+                <VerticalStackLayout Spacing="2">
 
-            <!-- 
-                 CABECERA: se muestra una sola vez antes de la lista.
-                 Usa AgendaDiaViewModel como contexto de datos.
-                 -->
-            <CollectionView.Header>
-                <VerticalStackLayout Padding="24,18,24,20"
-                                     Spacing="20">
+                    <Label Text="PANEL DEL BARBERO"
+                           FontFamily="OpenSansSemibold"
+                           FontSize="11"
+                           CharacterSpacing="1.2"
+                           TextColor="{AppThemeBinding Light=#A37E2C, Dark=#D8AD4A}" />
 
-                    <!-- Marca y acción de notificaciones. -->
-                    <Grid ColumnDefinitions="Auto,*,Auto"
-                          ColumnSpacing="12">
+                    <Label Text="Buen día,"
+                           FontFamily="OpenSansSemibold"
+                           FontSize="32"
+                           LineHeight="1.1"
+                           TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}" />
 
-                        <!--
-                            Marcador temporal de la marca.
-                            No se usa emoji porque cambia de apariencia entre
-                            Windows, Android e iOS.
-                            Se sustituirá por el SVG oficial cuando exista.
-                        -->
-                        <Border Background="{AppThemeBinding Light={StaticResource M10LightDarkCard},
-                                                             Dark={StaticResource M10DarkDarkCard}}"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 20"
-                                HeightRequest="40"
-                                WidthRequest="40">
+                    <Label Text="{Binding NombreBarbero, StringFormat='{0}.'}"
+                           FontFamily="OpenSansSemibold"
+                           FontSize="32"
+                           LineHeight="1.1"
+                           TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}" />
 
-                            <Label Text="BT"
+                    <!-- Subtítulo con cantidad real de citas -->
+                    <Label Text="{Binding SaludoSubtitulo}"
+                           FontFamily="OpenSansRegular"
+                           FontSize="12"
+                           Margin="0,4,0,0"
+                           TextColor="{AppThemeBinding Light=#7D786F, Dark=#A8A49A}" />
+                </VerticalStackLayout>
+
+                <!-- ═══════════════════════════════════════════════════════
+                     2. TARJETA HERO: PRÓXIMA CITA
+                     (Solo se muestra si realmente existe una cita activa)
+                     ═══════════════════════════════════════════════════════ -->
+                <Border StrokeThickness="0"
+                        StrokeShape="RoundRectangle 24"
+                        Background="{AppThemeBinding Light=#25231F, Dark=#1E1D19}"
+                        Padding="22,20"
+                        IsVisible="{Binding TieneProximaCita}">
+
+                    <Grid>
+                        <!-- Aros dorados decorativos de fondo -->
+                        <Ellipse WidthRequest="180"
+                                 HeightRequest="180"
+                                 StrokeThickness="1"
+                                 Stroke="{AppThemeBinding Light=#38342A, Dark=#2E2A22}"
+                                 HorizontalOptions="End"
+                                 VerticalOptions="Center"
+                                 TranslationX="40" />
+
+                        <Ellipse WidthRequest="110"
+                                 HeightRequest="110"
+                                 StrokeThickness="1"
+                                 Stroke="{AppThemeBinding Light=#443E30, Dark=#383226}"
+                                 HorizontalOptions="End"
+                                 VerticalOptions="Center"
+                                 TranslationX="20" />
+
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="PRÓXIMA CITA"
                                    FontFamily="OpenSansSemibold"
-                                   FontSize="11"
-                                   TextColor="{AppThemeBinding Light={StaticResource M10LightGold},
-                                                                   Dark={StaticResource M10DarkGold}}"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center"
-                                   HorizontalTextAlignment="Center" />
-                        </Border>
+                                   FontSize="10"
+                                   CharacterSpacing="1.2"
+                                   TextColor="{AppThemeBinding Light=#D8AD4A, Dark=#E5C168}" />
 
-                        <Label Grid.Column="1"
-                               Text="BarberTurno"
-                               Style="{StaticResource M10BrandTitle}"
-                               VerticalOptions="Center" />
+                            <Label Text="{Binding ProximaCita.Hora, StringFormat='{0} AM'}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="32"
+                                   TextColor="#FFFFFF" />
 
-                        <!--
-                            Contenedor reservado para el icono oficial
-                            de notificaciones. No tiene acción todavía.
-                        -->
-                        <Border Grid.Column="2"
-                                Background="{AppThemeBinding Light={StaticResource M10LightSurface},
-                                                             Dark={StaticResource M10DarkSurface}}"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 22"
-                                HeightRequest="44"
-                                WidthRequest="44">
+                            <Label Text="{Binding ProximaCita.Resumen}"
+                                   FontFamily="OpenSansRegular"
+                                   FontSize="12"
+                                   TextColor="#C7C1B4" />
 
-                            <Label Text="•"
-                                   FontSize="20"
-                                   TextColor="{AppThemeBinding Light={StaticResource M10LightText},
-                                                                   Dark={StaticResource M10DarkText}}"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center"
-                                   HorizontalTextAlignment="Center" />
-                        </Border>
+                            <Button Text="✓  Marcar llegada"
+                                    Command="{Binding VerDetalleCitaCommand}"
+                                    CommandParameter="{Binding ProximaCita}"
+                                    BackgroundColor="{AppThemeBinding Light=#E0B853, Dark=#D8AD4A}"
+                                    TextColor="#1C1B18"
+                                    FontFamily="OpenSansSemibold"
+                                    FontSize="12"
+                                    CornerRadius="12"
+                                    Padding="16,8"
+                                    HeightRequest="42"
+                                    HorizontalOptions="Start"
+                                    Margin="0,8,0,0" />
+                        </VerticalStackLayout>
                     </Grid>
+                </Border>
 
-                    <!-- Saludo del barbero: NombreBarbero vendrá de M06. -->
-                    <VerticalStackLayout Spacing="3">
+                <!-- ═══════════════════════════════════════════════════════
+                     3. TARJETAS DE MÉTRICAS REALES
+                     ═══════════════════════════════════════════════════════ -->
+                <Grid ColumnDefinitions="*,*"
+                      ColumnSpacing="12">
 
-                        <Label Text="PANEL DEL BARBERO"
-                               Style="{StaticResource M10Eyebrow}" />
+                    <!-- Tarjeta 1: Turnos hoy -->
+                    <Border Grid.Column="0"
+                            StrokeShape="RoundRectangle 18"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light=#ECE6DC, Dark=#2C2B26}"
+                            Background="{AppThemeBinding Light=#FFFFFF, Dark=#1F1E1A}"
+                            Padding="16,14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Turnos hoy"
+                                   FontFamily="OpenSansRegular"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light=#8A857C, Dark=#9C988F}" />
 
-                        <!-- Separamos las líneas para respetar el diseño móvil. -->
-                        <Label Text="Buen día,"
-                               Style="{StaticResource M10Greeting}" />
+                            <Label Text="{Binding CantidadCitas}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="26"
+                                   TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}" />
 
-                        <!-- Binding: nombre real de la sesión del barbero. -->
-                        <Label Text="{Binding NombreBarbero}"
-                               Style="{StaticResource M10Greeting}" />
+                            <Label Text="{Binding TurnosPendientesTexto}"
+                                   FontFamily="OpenSansRegular"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light=#8A857C, Dark=#9C988F}" />
+                        </VerticalStackLayout>
+                    </Border>
 
-                        <!-- Binding: texto preparado en el ViewModel. -->
-                        <Label Text="{Binding FechaResumen}"
-                               Style="{StaticResource M10Subtitle}" />
+                    <!-- Tarjeta 2: Ingresos acumulados -->
+                    <Border Grid.Column="1"
+                            StrokeShape="RoundRectangle 18"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light=#ECE6DC, Dark=#2C2B26}"
+                            Background="{AppThemeBinding Light=#FFFFFF, Dark=#1F1E1A}"
+                            Padding="16,14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Ingresos"
+                                   FontFamily="OpenSansRegular"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light=#8A857C, Dark=#9C988F}" />
+
+                            <Label Text="{Binding IngresosDelDia}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="26"
+                                   TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}" />
+
+                            <Label Text="{Binding MetaIngresos}"
+                                   FontFamily="OpenSansRegular"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light=#8A857C, Dark=#9C988F}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- ═══════════════════════════════════════════════════════
+                     4. SECCIÓN: AGENDA DE HOY
+                     ═══════════════════════════════════════════════════════ -->
+                <Grid ColumnDefinitions="*,Auto"
+                      Margin="0,6,0,0">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="AGENDA DE HOY"
+                               FontFamily="OpenSansSemibold"
+                               FontSize="10"
+                               CharacterSpacing="1.2"
+                               TextColor="{AppThemeBinding Light=#A37E2C, Dark=#D8AD4A}" />
+
+                        <Label Text="Tu día, de un vistazo"
+                               FontFamily="OpenSansSemibold"
+                               FontSize="20"
+                               TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}" />
                     </VerticalStackLayout>
 
-                    <!--
-                        Próxima cita.
-                        ProximaCita se llena posteriormente desde ICitaRepository.
-                        Mientras el repositorio no esté listo, sus campos estarán vacíos;
-                        no se inventan horas, clientes ni servicios aquí.
-                    -->
-                    <Border Style="{StaticResource M10HeroCard}"
-                            IsVisible="{Binding TieneProximaCita}">
+                    <HorizontalStackLayout Grid.Column="1"
+                                           Spacing="6"
+                                           VerticalOptions="End">
+                        <Label Text="🗓"
+                               FontSize="14"
+                               VerticalOptions="Center" />
+                        <Label Text="Ver calendario"
+                               FontFamily="OpenSansSemibold"
+                               FontSize="11"
+                               TextColor="{AppThemeBinding Light=#A37E2C, Dark=#D8AD4A}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Grid>
 
-                        <Grid RowDefinitions="Auto,Auto,Auto,Auto"
-                                    RowSpacing="8">
+                <!-- ═══════════════════════════════════════════════════════
+                     5. CONTENEDOR DE CITAS O ESTADO VACÍO
+                     ═══════════════════════════════════════════════════════ -->
+                <Border StrokeShape="RoundRectangle 22"
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light=#ECE6DC, Dark=#2C2B26}"
+                        Background="{AppThemeBinding Light=#FFFFFF, Dark=#1E1D19}"
+                        Padding="0">
 
-                            <Label Text="PRÓXIMA CITA"
-                                Style="{StaticResource M10Eyebrow}" />
+                    <VerticalStackLayout>
 
-                            <Label Grid.Row="1"
-                                      Text="{Binding ProximaCita.Hora}"
-                                     Style="{StaticResource M10HeroTitle}" />
-
-                            <Label Grid.Row="2"
-                               Text="{Binding ProximaCita.Resumen}"
-                               Style="{StaticResource M10HeroSubtitle}" />
-
-                                    <Button Grid.Row="3"
-                                Text="Marcar llegada"
-                                Style="{StaticResource M10PrimaryButton}"
-                                HorizontalOptions="Start"
-                                Margin="0,6,0,0"
-                                IsEnabled="False"
-                                Opacity="1" />      
-                        </Grid>         
-                    </Border>
-
-                    <!-- Métricas reales de la agenda. -->
-                    <Grid ColumnDefinitions="*,*"
-                          ColumnSpacing="12">
-
-                        <Border Style="{StaticResource M10MetricCard}">
-
-                            <VerticalStackLayout Spacing="4">
-
-                                <Label Text="Turnos hoy"
-                                       Style="{StaticResource M10Subtitle}" />
-
-                                <!-- Cantidad calculada desde las citas reales. -->
-                                <Label Text="{Binding CantidadCitas}"
-                                       Style="{StaticResource M10MetricValue}" />
-
-                                <!--
-                                    Este texto será reemplazado por un Binding
-                                    cuando se acuerde la regla de “pendientes”.
-                                -->
-                                <Label Text="Pendientes"
-                                       Style="{StaticResource M10Subtitle}" />
-                            </VerticalStackLayout>
-                        </Border>
-
-                        <Border Grid.Column="1"
-                                Style="{StaticResource M10MetricCard}">
-
-                            <VerticalStackLayout Spacing="4">
-
-                                <Label Text="Ingresos"
-                                       Style="{StaticResource M10Subtitle}" />
-
-                                <!-- Ingresos calculados desde Servicio.Precio. -->
-                                <Label Text="{Binding IngresosDelDia}"
-                                       Style="{StaticResource M10MetricValue}" />
-
-                                <!-- Meta de negocio: se conectará cuando se defina. -->
-                                <Label Text="{Binding MetaIngresos}"
-                                       Style="{StaticResource M10Subtitle}" />
-                            </VerticalStackLayout>
-                        </Border>
-                    </Grid>
-
-                    <!-- Encabezado de la agenda cronológica. -->
-                    <Grid ColumnDefinitions="*,Auto">
-
-                        <VerticalStackLayout Spacing="3">
-
-                            <Label Text="AGENDA DE HOY"
-                                   Style="{StaticResource M10Eyebrow}" />
-
-                            <Label Text="Tu día, de un vistazo"
-                                   Style="{StaticResource M10SectionTitle}" />
+                        <!-- ESTADO VACÍO PROFESIONAL (Se muestra si no hay citas registradas) -->
+                        <VerticalStackLayout IsVisible="{Binding EstaAgendaVacia}"
+                                             Padding="28,32"
+                                             Spacing="8"
+                                             HorizontalOptions="Center">
+                            <Label Text="📅"
+                                   FontSize="32"
+                                   HorizontalTextAlignment="Center" />
+                            <Label Text="Tu agenda está libre"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="16"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}" />
+                            <Label Text="No hay turnos registrados para hoy. Las reservas confirmadas aparecerán aquí."
+                                   FontFamily="OpenSansRegular"
+                                   FontSize="12"
+                                   HorizontalTextAlignment="Center"
+                                   TextColor="{AppThemeBinding Light=#8A857C, Dark=#9C988F}" />
                         </VerticalStackLayout>
 
-                        <!-- Sin acción hasta que M01 defina la ruta Calendario. -->
-                        <Label Grid.Column="1"
-                               Text="Ver calendario"
-                               Style="{StaticResource M10TextAction}"
-                               VerticalOptions="End" />
-                    </Grid>
-                    <!--
-                    Estado vacío propio de M10.
+                        <!-- LISTA DE FILAS DE CITAS REALES -->
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding CitasDelDia}"
+                                             IsVisible="{Binding EstaAgendaVacia, Converter={StaticResource BoolInvertido}}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:CitaAgendaItem">
+                                    <Grid Padding="16,14"
+                                          ColumnDefinitions="52,24,*,18"
+                                          RowDefinitions="Auto">
 
-                        Se muestra solo cuando CitasDelDia no tiene elementos reales.
-                        Reemplaza el espacio vacío por un mensaje claro para el barbero.
-                    -->
-                      <Border Style="{StaticResource M10MetricCard}"
-                         IsVisible="{Binding EstaAgendaVacia}"
-                            Padding="20"
-                            Margin="0,2,0,0">
+                                        <Grid.GestureRecognizers>
+                                            <TapGestureRecognizer 
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AgendaDiaViewModel}}, Path=VerDetalleCitaCommand}"
+                                                CommandParameter="{Binding .}" />
+                                        </Grid.GestureRecognizers>
 
-                           <VerticalStackLayout Spacing="6"
-                                 HorizontalOptions="Center">
+                                        <Grid.Triggers>
+                                            <DataTrigger TargetType="Grid" Binding="{Binding EsDestacada}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#FBF4E9, Dark=#2B2820}" />
+                                            </DataTrigger>
+                                        </Grid.Triggers>
 
-                                     <Label Text="Tu agenda está libre"
-                                   Style="{StaticResource M10SectionTitle}"
-                                   HorizontalTextAlignment="Center" />
+                                        <!-- Columna 0: Horario -->
+                                        <VerticalStackLayout Grid.Column="0"
+                                                             Spacing="0"
+                                                             VerticalOptions="Center">
+                                            <Label Text="{Binding Hora}"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="15"
+                                                   TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}" />
+                                            <Label Text="{Binding Periodo}"
+                                                   FontFamily="OpenSansRegular"
+                                                   FontSize="10"
+                                                   TextColor="{AppThemeBinding Light=#8A857C, Dark=#9C988F}" />
+                                        </VerticalStackLayout>
 
-                             <Label Text="Las reservas confirmadas aparecerán aquí."
-                                   Style="{StaticResource M10Subtitle}"
-                              HorizontalTextAlignment="Center" />
-                          </VerticalStackLayout>
-                       </Border>
+                                        <!-- Columna 1: Línea continua con anillo dorado -->
+                                        <Grid Grid.Column="1"
+                                              HorizontalOptions="Center"
+                                              VerticalOptions="Fill">
+                                            <BoxView WidthRequest="1"
+                                                     Color="{AppThemeBinding Light=#EAE4D8, Dark=#33312B}"
+                                                     HorizontalOptions="Center"
+                                                     VerticalOptions="Fill" />
 
-                </VerticalStackLayout>
-            </CollectionView.Header>
+                                            <Ellipse WidthRequest="8"
+                                                     HeightRequest="8"
+                                                     StrokeThickness="2"
+                                                     Stroke="{AppThemeBinding Light=#C9A24D, Dark=#D8AD4A}"
+                                                     Fill="{AppThemeBinding Light=#FFFFFF, Dark=#1E1D19}"
+                                                     HorizontalOptions="Center"
+                                                     VerticalOptions="Center" />
+                                        </Grid>
 
+                                        <!-- Columna 2: Avatar + Cliente + Servicio -->
+                                        <Grid Grid.Column="2"
+                                              ColumnDefinitions="42,*"
+                                              ColumnSpacing="12"
+                                              VerticalOptions="Center"
+                                              Margin="6,0,0,0">
 
-            <!-- 
-                 PLANTILLA DE UNA CITA
+                                            <Border Grid.Column="0"
+                                                    StrokeThickness="0"
+                                                    StrokeShape="RoundRectangle 14"
+                                                    Background="{AppThemeBinding Light=#ECE6DC, Dark=#33312B}"
+                                                    HeightRequest="42"
+                                                    WidthRequest="42"
+                                                    VerticalOptions="Center">
+                                                <Label Text="{Binding InicialesCliente}"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="12"
+                                                       TextColor="{AppThemeBinding Light=#5C574F, Dark=#BDB7AA}"
+                                                       HorizontalOptions="Center"
+                                                       VerticalOptions="Center" />
+                                            </Border>
 
-                 IMPORTANTE:
-                 x:DataType cambia el contexto de Binding de
-                 AgendaDiaViewModel a CitaAgendaItem.
+                                            <VerticalStackLayout Grid.Column="1"
+                                                                 Spacing="2"
+                                                                 VerticalOptions="Center">
+                                                <Label Text="{Binding NombreCliente}"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="14"
+                                                       TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}" />
 
-                 Esta línea corrige los errores MAUIG1001.
-              -->
-            <CollectionView.ItemTemplate>
+                                                <Label Text="{Binding ServicioConDuracion}"
+                                                       FontFamily="OpenSansRegular"
+                                                       FontSize="11"
+                                                       TextColor="{AppThemeBinding Light=#8A857C, Dark=#9C988F}" />
+                                            </VerticalStackLayout>
+                                        </Grid>
 
-                <DataTemplate x:DataType="vm:CitaAgendaItem">
+                                        <!-- Columna 3: Chevron > -->
+                                        <Label Grid.Column="3"
+                                               Text="›"
+                                               FontSize="22"
+                                               TextColor="{AppThemeBinding Light=#A8A49A, Dark=#66635C}"
+                                               HorizontalOptions="Center"
+                                               VerticalOptions="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
 
-                    <Border Style="{StaticResource M10AgendaRow}"
-                            Margin="24,0,24,10">
-
-                        <!--
-                            Estructura:
-                            hora | línea de tiempo | cliente/servicio | flecha
-                        -->
-                        <Grid ColumnDefinitions="58,1,*,18"
-                              ColumnSpacing="10">
-
-                            <!-- Hora de la cita. -->
-                            <VerticalStackLayout Spacing="0">
-
-                                <Label Text="{Binding Hora}"
-                                       FontFamily="OpenSansSemibold"
-                                       FontSize="14"
-                                       TextColor="{AppThemeBinding Light={StaticResource M10LightText},
-                                                                       Dark={StaticResource M10DarkText}}" />
-
-                                <Label Text="{Binding Periodo}"
-                                       Style="{StaticResource M10Subtitle}" />
-                            </VerticalStackLayout>
-
-                            <!-- Línea vertical y punto dorado de la agenda. -->
-                            <Grid Grid.Column="1">
-
-                                <BoxView Color="{AppThemeBinding Light={StaticResource M10LightBorder},
-                                                                     Dark={StaticResource M10DarkBorder}}"
-                                         WidthRequest="1"
-                                         HorizontalOptions="Center"
-                                         VerticalOptions="Fill" />
-
-                                <Border Background="{AppThemeBinding Light={StaticResource M10LightGold},
-                                                                         Dark={StaticResource M10DarkGold}}"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 4"
-                                        HeightRequest="7"
-                                        WidthRequest="7"
-                                        HorizontalOptions="Center"
-                                        VerticalOptions="Start"
-                                        Margin="0,7,0,0" />
-                            </Grid>
-
-                            <!-- Avatar textual y datos del cliente. -->
-                            <Grid Grid.Column="2"
-                                  ColumnDefinitions="38,*"
-                                  ColumnSpacing="10">
-
-                                <!-- Iniciales calculadas en ViewModel, no en XAML. -->
-                                <Border Background="{AppThemeBinding Light=#F0ECE3,
-                                                                         Dark=#39392F}"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 13"
-                                        HeightRequest="36"
-                                        WidthRequest="36">
-
-                                    <Label Text="{Binding InicialesCliente}"
-                                           FontFamily="OpenSansSemibold"
-                                           FontSize="10"
-                                           TextColor="{AppThemeBinding Light={StaticResource M10LightMutedText},
-                                                                           Dark={StaticResource M10DarkMutedText}}"
-                                           HorizontalOptions="Center"
-                                           VerticalOptions="Center"
-                                           HorizontalTextAlignment="Center" />
-                                </Border>
-
-                                <VerticalStackLayout Grid.Column="1"
-                                                     Spacing="2"
-                                                     VerticalOptions="Center">
-
-                                    <Label Text="{Binding NombreCliente}"
-                                           FontFamily="OpenSansSemibold"
-                                           FontSize="12"
-                                           TextColor="{AppThemeBinding Light={StaticResource M10LightText},
-                                                                           Dark={StaticResource M10DarkText}}" />
-
-                                    <Label Text="{Binding Servicio}"
-                                           Style="{StaticResource M10Subtitle}" />
-                                </VerticalStackLayout>
-                            </Grid>
-
-                            <!-- Indicador visual; navegación se agrega con M01. -->
-                            <Label Grid.Column="3"
-                                   Text="›"
-                                   FontSize="26"
-                                   TextColor="{AppThemeBinding Light={StaticResource M10LightMutedText},
-                                                                   Dark={StaticResource M10DarkMutedText}}"
-                                   VerticalOptions="Center" />
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
     </Grid>
 </ContentPage>
