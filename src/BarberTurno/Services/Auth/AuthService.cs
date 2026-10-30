@@ -132,6 +132,14 @@ public class AuthService : IAuthService
             return false;
         }
 
+        // Sesiones guardadas antes de existir BarberoId: sin ese dato la agenda quedaría vacía; se pide un nuevo login.
+        if (sesion.Rol == RolUsuario.Barbero && sesion.BarberoId is not > 0)
+        {
+            _sessionStorage.Clear();
+            SesionActual = null;
+            return false;
+        }
+
         if (expira.Value <= DateTime.UtcNow.AddMinutes(1))
         {
             _sessionStorage.Clear();
@@ -160,6 +168,7 @@ public class AuthService : IAuthService
         {
             UsuarioId = dto.UsuarioId,
             Nombre    = dto.Nombre,
-            Rol       = rol
+            Rol       = rol,
+            BarberoId = dto.BarberoId
         };
 }

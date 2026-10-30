@@ -1,4 +1,4 @@
-// Responsable: M5
+// Responsable: M5 / M04
 // Valida campos, llama a IAuthService, traduce el resultado en un mensaje
 // y navega según el rol. Sin lógica de negocio: eso es responsabilidad de AuthService.
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,45 +7,35 @@ using BarberTurno.Helpers;
 using BarberTurno.Models;
 using BarberTurno.Services.Auth;
 using BarberTurno.Services.Navigation;
+using BarberTurno.Services.Sync;
 
 namespace BarberTurno.ViewModels;
 
 public partial class LoginViewModel : BaseViewModel
 {
     // ── Constante de ruta ─────────────────────────────────────────────────────
-    // TODO(M5): cambiar por Routes.Registro cuando M1 agregue esa constante.
     private const string RutaRegistro = "registro";
 
     // ── Dependencias ─────────────────────────────────────────────────────────
-    // Solo IAuthService e INavigationService: IDialogService no está implementado
-    // ni registrado en DI todavía, inyectarlo haría que la app se cierre al abrir.
-    private readonly IAuthService      _authService;
+    private readonly IAuthService _authService;
     private readonly INavigationService _nav;
+    private readonly ISyncService? _sync;
+    private bool _inicializado;
 
     // ── Propiedades observables ───────────────────────────────────────────────
-    // [ObservableProperty] genera la propiedad pública con NotifyPropertyChanged.
-    // El campo privado se llama con guion bajo + minúscula; la propiedad pública,
-    // en PascalCase (usuario → Usuario, password → Password, etc.).
-
+    // MensajeError e IsBusy se heredan directamente de BaseViewModel para evitar advertencias CS0108.
     [ObservableProperty]
     private string _usuario = string.Empty;
 
     [ObservableProperty]
     private string _password = string.Empty;
 
-    [ObservableProperty]
-    private string _mensajeError = string.Empty;
-
-    // TODO(M5): borrar IsBusy cuando M1 lo agregue en BaseViewModel.
-    // Se declara aquí porque BaseViewModel todavía tiene ese TODO pendiente.
-    [ObservableProperty]
-    private bool _isBusy;
-
     // ── Constructor ───────────────────────────────────────────────────────────
-    public LoginViewModel(IAuthService authService, INavigationService nav)
+    public LoginViewModel(IAuthService authService, INavigationService nav, ISyncService? sync = null)
     {
         _authService = authService;
         _nav         = nav;
+        _sync        = sync;
     }
 
     // ═════════════════════════════════════════════════════════════════════════
@@ -53,13 +43,20 @@ public partial class LoginViewModel : BaseViewModel
     // ═════════════════════════════════════════════════════════════════════════
     public async Task InicializarAsync()
     {
+        // Ejecutar una sola vez para no repetir navegaciones al volver a aparecer la página
+        if (_inicializado) return;
+        _inicializado = true;
+
         try
         {
             // Intenta restaurar sesión desde SecureStorage sin llamar a la API.
             // Si el token es válido, navega directo a la pantalla del rol.
             bool sesionActiva = await _authService.RestaurarSesionAsync();
             if (sesionActiva)
+            {
+                DispararSincronizacionSegundoPlano();
                 await NavegarSegunRolAsync();
+            }
         }
         catch
         {
@@ -71,9 +68,6 @@ public partial class LoginViewModel : BaseViewModel
     // ═════════════════════════════════════════════════════════════════════════
     // COMANDO: LOGIN
     // ═════════════════════════════════════════════════════════════════════════
-    // [RelayCommand] genera LoginCommand (IAsyncRelayCommand) que:
-    //   - Expone CanExecute automáticamente vinculado al parámetro canExecute.
-    //   - Se puede enlazar con Command="{Binding LoginCommand}" en XAML.
     [RelayCommand]
     private async Task LoginAsync()
     {
@@ -102,6 +96,7 @@ public partial class LoginViewModel : BaseViewModel
             switch (resultado)
             {
                 case ResultadoLogin.Exito:
+                    DispararSincronizacionSegundoPlano();
                     await NavegarSegunRolAsync();
                     break;
 
@@ -136,29 +131,37 @@ public partial class LoginViewModel : BaseViewModel
     [RelayCommand]
     private async Task IrARegistroAsync()
     {
-        // Ruta relativa (sin "//") → se apila sobre el login. M1 debe registrar
-        // la ruta "registro" en AppShell.xaml.cs con Routing.RegisterRoute.
         await _nav.GoToAsync(RutaRegistro);
     }
 
     // ═════════════════════════════════════════════════════════════════════════
     // HELPER PRIVADO: navegación según rol
     // ═════════════════════════════════════════════════════════════════════════
-    // Centralizado para evitar duplicar el switch en LoginAsync e InicializarAsync.
     private async Task NavegarSegunRolAsync()
     {
-        // Si la sesión es null (no debería ocurrir, pero por seguridad),
-        // no navegamos: la pantalla de login sigue visible.
         if (_authService.SesionActual is null) return;
 
-        // El rol viene SIEMPRE de SesionActual, que AuthService llenó con
-        // el valor que devolvió el servidor. La UI nunca decide el rol.
         var ruta = _authService.SesionActual.Rol == RolUsuario.Barbero
             ? Routes.Barbero   // "//barbero"
             : Routes.Cliente;  // "//cliente"
 
-        // "//" = ruta absoluta en Shell: reemplaza toda la pila de navegación.
-        // El botón Atrás de Android no puede regresar al login.
         await _nav.GoToAsync(ruta);
+    }
+
+    private void DispararSincronizacionSegundoPlano()
+    {
+        if (_sync is null) return;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _sync.SincronizarCatalogosAsync();
+                await _sync.SincronizarCitasAsync();
+            }
+            catch
+            {
+                // Silencioso: la sincronización de fondo no interrumpe el flujo del usuario
+            }
+        });
     }
 }

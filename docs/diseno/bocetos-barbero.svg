@@ -1,0 +1,218 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1030" height="1330" viewBox="0 0 1030 1330" font-family="Segoe UI, Arial, sans-serif">
+<rect width="1030" height="1330" fill="#EFEBE2"/>
+<text x="70" y="52" font-size="26" font-weight="700" fill="#1B1B17">BarberTurno · Bocetos del perfil BARBERO</text>
+<text x="195.0" y="136" text-anchor="middle" font-size="15" font-weight="700" fill="#1B1B17">1. Mi agenda</text>
+<clipPath id="clip16"><rect x="70" y="150" width="250" height="500" rx="26"/></clipPath>
+<rect x="70" y="150" width="250" height="500" rx="26" fill="#F8F7F3"/>
+<g clip-path="url(#clip16)">
+<circle cx="100" cy="188" r="13" fill="#1B1B17"/>
+<g stroke="#D6B362" stroke-width="1.6" stroke-linecap="round"><line x1="94.15" y1="193.85" x2="105.85" y2="182.15"/><line x1="105.85" y1="193.85" x2="94.15" y2="182.15"/></g>
+<text x="122" y="193" font-size="14" font-weight="600" fill="#1B1B17" text-anchor="start">Barber</text>
+<text x="168" y="193" font-size="14" font-weight="600" fill="#9C7429" text-anchor="start">Turno</text>
+<circle cx="292" cy="188" r="13" fill="#FFFFFF"/>
+<text x="90" y="234" font-size="9" font-weight="700" fill="#9C7429" text-anchor="start">PANEL DEL BARBERO</text>
+<text x="90" y="260" font-size="20" font-weight="700" fill="#1B1B17" text-anchor="start">Buen día, Juan</text>
+<text x="90" y="278" font-size="10" font-weight="400" fill="#8C877E" text-anchor="start">Hoy · viernes, 30 de octubre</text>
+<rect x="90" y="290" width="102" height="70" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="102" y="312" font-size="10" font-weight="400" fill="#8C877E" text-anchor="start">Turnos hoy</text>
+<text x="102" y="344" font-size="22" font-weight="700" fill="#1B1B17" text-anchor="start">3</text>
+<rect x="198" y="290" width="102" height="70" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="210" y="312" font-size="10" font-weight="400" fill="#8C877E" text-anchor="start">Ingresos</text>
+<text x="210" y="344" font-size="18" font-weight="700" fill="#1B1B17" text-anchor="start">$1,050</text>
+<text x="90" y="388" font-size="9" font-weight="700" fill="#9C7429" text-anchor="start">AGENDA DE HOY</text>
+<text x="284" y="388" font-size="10" font-weight="600" fill="#9C7429" text-anchor="end">Ver calendario</text>
+<rect x="90" y="402" width="210" height="56" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="102" y="426" font-size="13" font-weight="600" fill="#1B1B17" text-anchor="start">09:00</text>
+<text x="102" y="444" font-size="9" font-weight="400" fill="#8C877E" text-anchor="start">AM</text>
+<circle cx="156" cy="430" r="15" fill="#39392F"/>
+<text x="156" y="434" font-size="11" font-weight="600" fill="#D6B362" text-anchor="middle">C</text>
+<text x="180" y="426" font-size="11" font-weight="600" fill="#1B1B17" text-anchor="start">Carlos Santana</text>
+<text x="180" y="444" font-size="9" font-weight="400" fill="#8C877E" text-anchor="start">Corte clásico</text>
+<text x="286" y="434" font-size="18" font-weight="700" fill="#9C7429" text-anchor="end">›</text>
+<rect x="90" y="466" width="210" height="56" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="102" y="490" font-size="13" font-weight="600" fill="#1B1B17" text-anchor="start">11:30</text>
+<text x="102" y="508" font-size="9" font-weight="400" fill="#8C877E" text-anchor="start">AM</text>
+<circle cx="156" cy="494" r="15" fill="#39392F"/>
+<text x="156" y="498" font-size="11" font-weight="600" fill="#D6B362" text-anchor="middle">R</text>
+<text x="180" y="490" font-size="11" font-weight="600" fill="#1B1B17" text-anchor="start">Roberto Gómez</text>
+<text x="180" y="508" font-size="9" font-weight="400" fill="#8C877E" text-anchor="start">Corte y barba</text>
+<text x="286" y="498" font-size="18" font-weight="700" fill="#9C7429" text-anchor="end">›</text>
+<rect x="90" y="530" width="210" height="56" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="102" y="554" font-size="13" font-weight="600" fill="#1B1B17" text-anchor="start">15:00</text>
+<text x="102" y="572" font-size="9" font-weight="400" fill="#8C877E" text-anchor="start">PM</text>
+<circle cx="156" cy="558" r="15" fill="#39392F"/>
+<text x="156" y="562" font-size="11" font-weight="600" fill="#D6B362" text-anchor="middle">L</text>
+<text x="180" y="554" font-size="11" font-weight="600" fill="#1B1B17" text-anchor="start">Luis Peña</text>
+<text x="180" y="572" font-size="9" font-weight="400" fill="#8C877E" text-anchor="start">Perfilado</text>
+<text x="286" y="562" font-size="18" font-weight="700" fill="#9C7429" text-anchor="end">›</text>
+<rect x="70" y="602" width="250" height="48" rx="0" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<circle cx="95.0" cy="618" r="5" fill="#9C7429"/>
+<text x="95.0" y="640" font-size="9" font-weight="600" fill="#9C7429" text-anchor="middle">Agenda</text>
+<circle cx="145.0" cy="618" r="5" fill="#8C877E"/>
+<text x="145.0" y="640" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Calendario</text>
+<circle cx="195.0" cy="618" r="5" fill="#8C877E"/>
+<text x="195.0" y="640" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Servicios</text>
+<circle cx="245.0" cy="618" r="5" fill="#8C877E"/>
+<text x="245.0" y="640" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Clientes</text>
+<circle cx="295.0" cy="618" r="5" fill="#8C877E"/>
+<text x="295.0" y="640" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Perfil</text>
+</g>
+<rect x="165" y="158" width="60" height="6" rx="3" fill="#1B1B17" opacity=".85"/>
+<rect x="70" y="150" width="250" height="500" rx="26" fill="none" stroke="#1B1B17" stroke-width="2.5"/>
+<text x="515.0" y="136" text-anchor="middle" font-size="15" font-weight="700" fill="#1B1B17">2. Calendario</text>
+<clipPath id="clip18"><rect x="390" y="150" width="250" height="500" rx="26"/></clipPath>
+<rect x="390" y="150" width="250" height="500" rx="26" fill="#F8F7F3"/>
+<g clip-path="url(#clip18)">
+<circle cx="420" cy="188" r="13" fill="#1B1B17"/>
+<g stroke="#D6B362" stroke-width="1.6" stroke-linecap="round"><line x1="414.15" y1="193.85" x2="425.85" y2="182.15"/><line x1="425.85" y1="193.85" x2="414.15" y2="182.15"/></g>
+<text x="442" y="193" font-size="14" font-weight="600" fill="#1B1B17" text-anchor="start">Barber</text>
+<text x="488" y="193" font-size="14" font-weight="600" fill="#9C7429" text-anchor="start">Turno</text>
+<circle cx="612" cy="188" r="13" fill="#FFFFFF"/>
+<text x="410" y="234" font-size="9" font-weight="700" fill="#9C7429" text-anchor="start">GESTIÓN DE TIEMPO</text>
+<text x="410" y="260" font-size="18" font-weight="700" fill="#1B1B17" text-anchor="start">Calendario de citas</text>
+<rect x="410" y="276" width="210" height="70" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="422" y="300" font-size="12" font-weight="600" fill="#1B1B17" text-anchor="start">Seleccionar fecha</text>
+<rect x="422" y="310" width="186" height="28" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="434" y="329" font-size="10" font-weight="400" fill="#8C877E" text-anchor="start">sábado, 31 de octubre de 2026</text>
+<rect x="410" y="358" width="210" height="54" rx="12" fill="#1B1B17" stroke="#1B1B17" stroke-width="1.2"/>
+<text x="422" y="380" font-size="9" font-weight="700" fill="#D6B362" text-anchor="start">TURNOS DEL DÍA</text>
+<text x="422" y="400" font-size="14" font-weight="600" fill="#FFFFFF" text-anchor="start">2 turnos · $850</text>
+<rect x="410" y="426" width="210" height="60" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="422" y="452" font-size="13" font-weight="600" fill="#1B1B17" text-anchor="start">10:00 AM</text>
+<text x="510" y="450" font-size="11" font-weight="600" fill="#1B1B17" text-anchor="start">Carlos Santana</text>
+<text x="510" y="468" font-size="9" font-weight="400" fill="#8C877E" text-anchor="start">Corte y barba</text>
+<rect x="410" y="496" width="210" height="60" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="422" y="522" font-size="13" font-weight="600" fill="#1B1B17" text-anchor="start">03:00 PM</text>
+<text x="510" y="520" font-size="11" font-weight="600" fill="#1B1B17" text-anchor="start">Luis Peña</text>
+<text x="510" y="538" font-size="9" font-weight="400" fill="#8C877E" text-anchor="start">Corte clásico</text>
+<rect x="390" y="602" width="250" height="48" rx="0" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<circle cx="415.0" cy="618" r="5" fill="#8C877E"/>
+<text x="415.0" y="640" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Agenda</text>
+<circle cx="465.0" cy="618" r="5" fill="#9C7429"/>
+<text x="465.0" y="640" font-size="9" font-weight="600" fill="#9C7429" text-anchor="middle">Calendario</text>
+<circle cx="515.0" cy="618" r="5" fill="#8C877E"/>
+<text x="515.0" y="640" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Servicios</text>
+<circle cx="565.0" cy="618" r="5" fill="#8C877E"/>
+<text x="565.0" y="640" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Clientes</text>
+<circle cx="615.0" cy="618" r="5" fill="#8C877E"/>
+<text x="615.0" y="640" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Perfil</text>
+</g>
+<rect x="485" y="158" width="60" height="6" rx="3" fill="#1B1B17" opacity=".85"/>
+<rect x="390" y="150" width="250" height="500" rx="26" fill="none" stroke="#1B1B17" stroke-width="2.5"/>
+<text x="835.0" y="136" text-anchor="middle" font-size="15" font-weight="700" fill="#1B1B17">3. Detalle e historial del cliente</text>
+<clipPath id="clip20"><rect x="710" y="150" width="250" height="500" rx="26"/></clipPath>
+<rect x="710" y="150" width="250" height="500" rx="26" fill="#F8F7F3"/>
+<g clip-path="url(#clip20)">
+<text x="730" y="208" font-size="11" font-weight="600" fill="#9C7429" text-anchor="start">‹ Volver</text>
+<text x="730" y="236" font-size="9" font-weight="700" fill="#9C7429" text-anchor="start">DETALLE</text>
+<text x="730" y="260" font-size="18" font-weight="700" fill="#1B1B17" text-anchor="start">Detalle de cita</text>
+<rect x="730" y="274" width="210" height="92" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<circle cx="762" cy="310" r="20" fill="#39392F"/>
+<text x="762" y="315" font-size="12" font-weight="700" fill="#D6B362" text-anchor="middle">CS</text>
+<text x="792" y="302" font-size="13" font-weight="600" fill="#1B1B17" text-anchor="start">Carlos Santana</text>
+<text x="792" y="320" font-size="10" font-weight="400" fill="#8C877E" text-anchor="start">809 555 1234</text>
+<text x="792" y="340" font-size="9" font-weight="400" fill="#8C877E" text-anchor="start">Sáb 31 oct · 10:00 AM</text>
+<text x="792" y="356" font-size="9" font-weight="600" fill="#15803D" text-anchor="start">Confirmada</text>
+<rect x="730" y="376" width="210" height="48" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="742" y="398" font-size="11" font-weight="600" fill="#1B1B17" text-anchor="start">Corte y barba · 45 min</text>
+<text x="926" y="398" font-size="13" font-weight="700" fill="#9C7429" text-anchor="end">$500</text>
+<text x="730" y="448" font-size="9" font-weight="700" fill="#9C7429" text-anchor="start">HISTORIAL DEL CLIENTE</text>
+<rect x="730" y="460" width="210" height="50" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="742" y="482" font-size="11" font-weight="600" fill="#1B1B17" text-anchor="start">Corte clásico</text>
+<text x="926" y="482" font-size="11" font-weight="700" fill="#9C7429" text-anchor="end">$350</text>
+<text x="742" y="500" font-size="9" font-weight="400" fill="#8C877E" text-anchor="start">Mar 20 oct · 3:00 PM</text>
+<rect x="730" y="518" width="210" height="50" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="742" y="540" font-size="11" font-weight="600" fill="#1B1B17" text-anchor="start">Perfilado</text>
+<text x="926" y="540" font-size="11" font-weight="700" fill="#9C7429" text-anchor="end">$200</text>
+<text x="742" y="558" font-size="9" font-weight="400" fill="#8C877E" text-anchor="start">Vie 2 oct · 10:30 AM</text>
+<rect x="730" y="576" width="210" height="50" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="742" y="598" font-size="11" font-weight="600" fill="#1B1B17" text-anchor="start">Corte y barba</text>
+<text x="926" y="598" font-size="11" font-weight="700" fill="#9C7429" text-anchor="end">$500</text>
+<text x="742" y="616" font-size="9" font-weight="400" fill="#8C877E" text-anchor="start">Lun 14 sep · 9:00 AM</text>
+</g>
+<rect x="805" y="158" width="60" height="6" rx="3" fill="#1B1B17" opacity=".85"/>
+<rect x="710" y="150" width="250" height="500" rx="26" fill="none" stroke="#1B1B17" stroke-width="2.5"/>
+<text x="195.0" y="746" text-anchor="middle" font-size="15" font-weight="700" fill="#1B1B17">4. Mis servicios</text>
+<clipPath id="clip22"><rect x="70" y="760" width="250" height="500" rx="26"/></clipPath>
+<rect x="70" y="760" width="250" height="500" rx="26" fill="#F8F7F3"/>
+<g clip-path="url(#clip22)">
+<circle cx="100" cy="798" r="13" fill="#1B1B17"/>
+<g stroke="#D6B362" stroke-width="1.6" stroke-linecap="round"><line x1="94.15" y1="803.85" x2="105.85" y2="792.15"/><line x1="105.85" y1="803.85" x2="94.15" y2="792.15"/></g>
+<text x="122" y="803" font-size="14" font-weight="600" fill="#1B1B17" text-anchor="start">Barber</text>
+<text x="168" y="803" font-size="14" font-weight="600" fill="#9C7429" text-anchor="start">Turno</text>
+<circle cx="292" cy="798" r="13" fill="#FFFFFF"/>
+<text x="90" y="844" font-size="9" font-weight="700" fill="#9C7429" text-anchor="start">TU CATÁLOGO</text>
+<text x="90" y="870" font-size="18" font-weight="700" fill="#1B1B17" text-anchor="start">Mis servicios</text>
+<text x="90" y="888" font-size="10" font-weight="400" fill="#8C877E" text-anchor="start">Así los ven tus clientes</text>
+<rect x="90" y="900" width="210" height="140" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<rect x="100" y="910" width="190" height="66" rx="10" fill="#1B1B17" stroke="#1B1B17" stroke-width="1.2"/>
+<text x="195" y="948" font-size="10" font-weight="400" fill="#C4C0B8" text-anchor="middle">foto del servicio</text>
+<text x="102" y="1000" font-size="13" font-weight="600" fill="#1B1B17" text-anchor="start">Corte clásico</text>
+<text x="102" y="1018" font-size="10" font-weight="400" fill="#8C877E" text-anchor="start">30 min</text>
+<text x="284" y="1000" font-size="13" font-weight="700" fill="#9C7429" text-anchor="end">$350</text>
+<rect x="90" y="1050" width="210" height="140" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<rect x="100" y="1060" width="190" height="66" rx="10" fill="#1B1B17" stroke="#1B1B17" stroke-width="1.2"/>
+<text x="195" y="1098" font-size="10" font-weight="400" fill="#C4C0B8" text-anchor="middle">foto del servicio</text>
+<text x="102" y="1150" font-size="13" font-weight="600" fill="#1B1B17" text-anchor="start">Corte y barba</text>
+<text x="102" y="1168" font-size="10" font-weight="400" fill="#8C877E" text-anchor="start">45 min</text>
+<text x="284" y="1150" font-size="13" font-weight="700" fill="#9C7429" text-anchor="end">$500</text>
+<rect x="70" y="1212" width="250" height="48" rx="0" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<circle cx="95.0" cy="1228" r="5" fill="#8C877E"/>
+<text x="95.0" y="1250" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Agenda</text>
+<circle cx="145.0" cy="1228" r="5" fill="#8C877E"/>
+<text x="145.0" y="1250" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Calendario</text>
+<circle cx="195.0" cy="1228" r="5" fill="#9C7429"/>
+<text x="195.0" y="1250" font-size="9" font-weight="600" fill="#9C7429" text-anchor="middle">Servicios</text>
+<circle cx="245.0" cy="1228" r="5" fill="#8C877E"/>
+<text x="245.0" y="1250" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Clientes</text>
+<circle cx="295.0" cy="1228" r="5" fill="#8C877E"/>
+<text x="295.0" y="1250" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Perfil</text>
+</g>
+<rect x="165" y="768" width="60" height="6" rx="3" fill="#1B1B17" opacity=".85"/>
+<rect x="70" y="760" width="250" height="500" rx="26" fill="none" stroke="#1B1B17" stroke-width="2.5"/>
+<text x="515.0" y="746" text-anchor="middle" font-size="15" font-weight="700" fill="#1B1B17">5. Perfil y servicios</text>
+<clipPath id="clip24"><rect x="390" y="760" width="250" height="500" rx="26"/></clipPath>
+<rect x="390" y="760" width="250" height="500" rx="26" fill="#F8F7F3"/>
+<g clip-path="url(#clip24)">
+<circle cx="420" cy="798" r="13" fill="#1B1B17"/>
+<g stroke="#D6B362" stroke-width="1.6" stroke-linecap="round"><line x1="414.15" y1="803.85" x2="425.85" y2="792.15"/><line x1="425.85" y1="803.85" x2="414.15" y2="792.15"/></g>
+<text x="442" y="803" font-size="14" font-weight="600" fill="#1B1B17" text-anchor="start">Barber</text>
+<text x="488" y="803" font-size="14" font-weight="600" fill="#9C7429" text-anchor="start">Turno</text>
+<circle cx="612" cy="798" r="13" fill="#FFFFFF"/>
+<text x="410" y="844" font-size="9" font-weight="700" fill="#9C7429" text-anchor="start">TU CUENTA</text>
+<text x="410" y="870" font-size="20" font-weight="700" fill="#1B1B17" text-anchor="start">Perfil</text>
+<rect x="410" y="884" width="210" height="76" rx="12" fill="#1B1B17" stroke="#1B1B17" stroke-width="1.2"/>
+<circle cx="446" cy="922" r="24" fill="#D6B362"/>
+<text x="446" y="930" font-size="20" font-weight="700" fill="#1B1B17" text-anchor="middle">J</text>
+<text x="478" y="918" font-size="12" font-weight="600" fill="#FFFFFF" text-anchor="start">Juan Barber</text>
+<text x="482" y="938" font-size="9" font-weight="700" fill="#D6B362" text-anchor="start">BARBERO</text>
+<rect x="562" y="908" width="50" height="28" rx="12" fill="#D6B362" stroke="#D6B362" stroke-width="1.2"/>
+<text x="587.0" y="926.0" font-size="12" font-weight="600" fill="#1B1B17" text-anchor="middle">Foto</text>
+<text x="410" y="986" font-size="9" font-weight="700" fill="#9C7429" text-anchor="start">MIS SERVICIOS OFRECIDOS</text>
+<rect x="410" y="998" width="210" height="100" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="422" y="1022" font-size="11" font-weight="600" fill="#1B1B17" text-anchor="start">Corte clásico</text>
+<rect x="588" y="1008" width="18" height="18" rx="4" fill="#D6B362" stroke="#D6B362" stroke-width="1.2"/>
+<text x="422" y="1050" font-size="11" font-weight="600" fill="#1B1B17" text-anchor="start">Corte y barba</text>
+<rect x="588" y="1036" width="18" height="18" rx="4" fill="#D6B362" stroke="#D6B362" stroke-width="1.2"/>
+<text x="422" y="1078" font-size="11" font-weight="600" fill="#1B1B17" text-anchor="start">Fade</text>
+<rect x="588" y="1064" width="18" height="18" rx="4" fill="#FFFFFF" stroke="#D6B362" stroke-width="1.2"/>
+<rect x="410" y="1110" width="210" height="46" rx="12" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<text x="422" y="1138" font-size="12" font-weight="600" fill="#1B1B17" text-anchor="start">Tema oscuro</text>
+<rect x="574" y="1124" width="34" height="18" rx="9" fill="#D6B362" stroke="#D6B362" stroke-width="1.2"/>
+<rect x="410" y="1170" width="210" height="36" rx="12" fill="transparent" stroke="transparent" stroke-width="1.2"/>
+<text x="515.0" y="1192.0" font-size="12" font-weight="600" fill="#B91C1C" text-anchor="middle">Cerrar sesión</text>
+<rect x="390" y="1212" width="250" height="48" rx="0" fill="#FFFFFF" stroke="#E4DFD3" stroke-width="1.2"/>
+<circle cx="415.0" cy="1228" r="5" fill="#8C877E"/>
+<text x="415.0" y="1250" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Agenda</text>
+<circle cx="465.0" cy="1228" r="5" fill="#8C877E"/>
+<text x="465.0" y="1250" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Calendario</text>
+<circle cx="515.0" cy="1228" r="5" fill="#8C877E"/>
+<text x="515.0" y="1250" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Servicios</text>
+<circle cx="565.0" cy="1228" r="5" fill="#8C877E"/>
+<text x="565.0" y="1250" font-size="9" font-weight="400" fill="#8C877E" text-anchor="middle">Clientes</text>
+<circle cx="615.0" cy="1228" r="5" fill="#9C7429"/>
+<text x="615.0" y="1250" font-size="9" font-weight="600" fill="#9C7429" text-anchor="middle">Perfil</text>
+</g>
+<rect x="485" y="768" width="60" height="6" rx="3" fill="#1B1B17" opacity=".85"/>
+<rect x="390" y="760" width="250" height="500" rx="26" fill="none" stroke="#1B1B17" stroke-width="2.5"/>
+</svg>

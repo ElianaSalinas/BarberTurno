@@ -20,6 +20,7 @@ public partial class InicioViewModel : BaseViewModel
     private readonly IBarberoRepository _barberos;
     private readonly IServicioRepository _servicios;
     private readonly ICitaRepository _citas;
+    private bool _cargando;
 
     public InicioViewModel(IAuthService auth, INavigationService nav, IBarberoRepository barberos,
                            IServicioRepository servicios, ICitaRepository citas)
@@ -51,16 +52,32 @@ public partial class InicioViewModel : BaseViewModel
         _ = CargarAsync(sesion);
     }
 
+    [RelayCommand]
+    private Task ReintentarAsync() => CargarAsync(_auth.SesionActual);
+
     private async Task CargarAsync(SesionUsuario? sesion)
     {
+        if (_cargando) return;
+        _cargando = true;
+        var fallo = false;
+        State = ViewState.Cargando;
+        MensajeError = null;
+
         try
         {
             var lista = (await _barberos.GetAllAsync()).OrderBy(b => b.Nombre).Take(6).ToList();
-            Barberos.Clear();
+            var nuevosBarberos = new List<BarberoItem>();
+
             foreach (var b in lista)
             {
                 var servs = await _servicios.GetByBarberoAsync(b.Id);
-                Barberos.Add(new BarberoItem(b.Id, b.Nombre, b.FotoUrl, string.Join(" · ", servs.Select(s => s.Nombre))));
+                nuevosBarberos.Add(new BarberoItem(b.Id, b.Nombre, b.FotoUrl, string.Join(" · ", servs.Select(s => s.Nombre))));
+            }
+
+            Barberos.Clear();
+            foreach (var item in nuevosBarberos)
+            {
+                Barberos.Add(item);
             }
 
             TieneProxima = false;
@@ -86,6 +103,15 @@ public partial class InicioViewModel : BaseViewModel
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
+            fallo = true;
+            MensajeError = "No se pudieron cargar tus datos. Revisa tu conexión e inténtalo de nuevo.";
+            State = ViewState.Error;
+        }
+        finally
+        {
+            _cargando = false;
+            if (!fallo)
+                State = ViewState.ConDatos;
         }
     }
 

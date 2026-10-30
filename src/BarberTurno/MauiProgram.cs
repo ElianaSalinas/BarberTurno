@@ -6,7 +6,6 @@ using BarberTurno.Services.Availability;
 using BarberTurno.Services.Booking;
 using BarberTurno.Services.Dialogs;
 using BarberTurno.Services.Navigation;
-using BarberTurno.Services.Notifications;
 using BarberTurno.Services.Sync;
 using BarberTurno.ViewModels;
 using BarberTurno.Views;
@@ -29,7 +28,7 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // Servicios fundamentales de navegación, diálogos y recordatorios (M10)
+        // Servicios fundamentales de navegación y diálogos
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddSingleton<IDialogService, DialogService>();
         builder.Services.AddSingleton<IReminderService, ReminderService>();
@@ -39,6 +38,7 @@ public static class MauiProgram
             .AddApiLayer()           // M05
             .AddAuthLayer()          // M06
             .AddSyncLayer()          // M07
+            .AddNotificationLayer()  // M06 (recordatorios locales)
             .AddBookingLayer()       // M08
             .AddPresentationLayer(); // M01 (ViewModels y páginas)
 
@@ -66,9 +66,13 @@ public static class MauiProgram
         services.AddTransient<MisCitasViewModel>();
         services.AddTransient<MisCitasPage>();
         services.AddTransient<PerfilViewModel>();
+        services.AddTransient<MisServiciosViewModel>();
+        services.AddTransient<MisServiciosPage>();
         services.AddTransient<PerfilPage>();
         services.AddTransient<AgendaDiaViewModel>();
+        services.AddTransient<CalendarioViewModel>();
         services.AddTransient<AgendaDiaPage>();
+        services.AddTransient<CalendarioPage>();
         services.AddTransient<HistorialClienteViewModel>();
         services.AddTransient<HistorialClientePage>();
         services.AddTransient<DetalleCitaViewModel>();

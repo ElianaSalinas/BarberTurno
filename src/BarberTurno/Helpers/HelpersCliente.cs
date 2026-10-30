@@ -16,7 +16,7 @@ public static class FormatoCliente
 
     public static string Duracion(int minutos) => $"{minutos} min";
 
-    public static string Precio(decimal precio) => $"${precio:N2}";
+    public static string Precio(decimal precio) => precio % 1 == 0 ? $"RD$ {precio:N0}" : $"RD$ {precio:N2}";
 
     public static string FechaLarga(DateTime fecha) =>
         fecha.ToString("dddd, d 'de' MMMM", CulturaEs);

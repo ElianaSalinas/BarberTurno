@@ -92,8 +92,8 @@ public sealed class CitaRepository : ICitaRepository
 
         return await query
             .OrderByDescending(c => c.Inicio)
-            .Skip(skip)     // OFFSET
-            .Take(take)     // LIMIT
+            .Skip(skip)     
+            .Take(take)     
             .ToListAsync();
     }
 
@@ -111,13 +111,13 @@ public sealed class CitaRepository : ICitaRepository
         var conn = await _db.GetConnectionAsync();
         var query = conn.Table<Cita>().Where(c =>
             c.BarberoId == barberoId
-            && !Liberan.Contains(c.Estado)          // solo las que ocupan hora
-            && c.Inicio < fin && c.Fin > inicio);   // regla de solapamiento del plan
+            && !Liberan.Contains(c.Estado)          
+            && c.Inicio < fin && c.Fin > inicio);   
 
         if (excluirId is Guid excluir)
             query = query.Where(c => c.Id != excluir);
 
-        return await query.FirstOrDefaultAsync() is not null;   // LIMIT 1
+        return await query.FirstOrDefaultAsync() is not null;   
     }
 
 

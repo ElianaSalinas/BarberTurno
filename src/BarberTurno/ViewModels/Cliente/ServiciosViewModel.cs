@@ -48,7 +48,7 @@ public partial class ServiciosViewModel : ClienteViewModelBase, IQueryAttributab
             _barberoId = barberoId;
             _ = CargarInternoAsync();
         }
-        else
+        else if (_barberoId <= 0)
         {
             MensajeError = "No se indicó qué barbero elegiste. Vuelve atrás e inténtalo de nuevo.";
             State = ViewState.Error;
@@ -64,14 +64,13 @@ public partial class ServiciosViewModel : ClienteViewModelBase, IQueryAttributab
         try
         {
             if (HayConexion)
-            {
                 await _sync.SincronizarCatalogosAsync();
-                await CargarInternoAsync(mostrarCargando: false);
-            }
+
+            await CargarInternoAsync(mostrarCargando: false);
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);   // se conservan los datos locales
+            Debug.WriteLine(ex);
         }
         finally
         {
@@ -116,7 +115,7 @@ public partial class ServiciosViewModel : ClienteViewModelBase, IQueryAttributab
 
             var lista = await _servicios.GetByBarberoAsync(_barberoId);
 
-            if (lista.Count == 0 && HayConexion)
+            if (HayConexion)
             {
                 await _sync.SincronizarCatalogosAsync();
                 lista = await _servicios.GetByBarberoAsync(_barberoId);

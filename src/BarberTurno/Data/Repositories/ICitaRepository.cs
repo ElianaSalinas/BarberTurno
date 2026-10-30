@@ -3,7 +3,7 @@ using BarberTurno.Models;
 
 // Responsable: M04 (Repositorios)
 // Contrato del repositorio de citas.
-//
+
 // Reglas:
 //  - Solo acceso a datos. Las decisiones (si se puede reservar, qué hacer ante un rechazo) son de
 //    BookingService (M07) y SyncService (M08).

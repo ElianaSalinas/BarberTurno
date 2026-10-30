@@ -7,10 +7,11 @@
              Style="{StaticResource M10Page}"
              Title="Iniciar sesión"
              Shell.NavBarIsVisible="False"
-             Shell.TabBarIsVisible="False">
+             Shell.TabBarIsVisible="False"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
 
     <ScrollView>
-        <VerticalStackLayout Padding="28,56,28,32" Spacing="14" MaximumWidthRequest="460">
+        <VerticalStackLayout motion:Motion.Enter="True" Padding="28,56,28,32" Spacing="14" MaximumWidthRequest="460">
 
             <!-- Marca -->
             <HorizontalStackLayout Spacing="10">

@@ -1,12 +1,9 @@
+// Responsable: M10 / M04
+// Agenda diaria del barbero: citas programadas, métricas e historial por fecha con navegación de días.
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using BarberTurno.Data.Repositories;
-using BarberTurno.Helpers;
-using BarberTurno.Models;
-using BarberTurno.Services.Auth;
-using BarberTurno.Services.Navigation;
 
 namespace BarberTurno.ViewModels;
 
@@ -20,256 +17,145 @@ namespace BarberTurno.ViewModels;
 /// </summary>
 public partial class AgendaDiaViewModel : BaseViewModel
 {
-    private readonly IAuthService _authService;
-    private readonly ICitaRepository _citaRepository;
-    private readonly IClienteRepository _clienteRepository;
-    private readonly IServicioRepository _servicioRepository;
-    private readonly INavigationService _navigationService;
+   
+    // Nombre real del barbero. M06 lo proveerá desde SesionUsuario.Nombre.
+    [ObservableProperty]
+    public partial string NombreBarbero { get; set; } = string.Empty;
+
+    
+    [ObservableProperty]
+    public partial string FechaResumen { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private DateTime fechaSeleccionada = DateTime.Today;
+    public partial int CantidadCitas { get; set; }
 
     [ObservableProperty]
-    private string nombreBarbero = string.Empty;
+    public partial string IngresosDelDia { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string saludoSubtitulo = string.Empty;
+    public partial string MetaIngresos { get; set; } = string.Empty;
 
+ 
     [ObservableProperty]
-    private int cantidadCitas;
+    public partial CitaAgendaItem ProximaCita { get; set; } = new();
 
-    [ObservableProperty]
-    private string turnosPendientesTexto = "0 pendientes";
+    /*
+    Estado que controla la visibilidad de la tarjeta “Próxima cita”.
 
-    [ObservableProperty]
-    private string ingresosDelDia = "$0";
+    Usamos SetProperty, heredado de ObservableObject mediante BaseViewModel.
+    SetProperty notifica a XAML cuando el valor cambia, por eso
+    IsVisible="{Binding TieneProximaCita}" se actualiza automáticamente.
 
-    [ObservableProperty]
-    private string metaIngresos = "Meta diaria";
-
-    [ObservableProperty]
-    private CitaAgendaItem proximaCita = new();
-
-    [ObservableProperty]
+    No usamos partial aquí para evitar el error del generador.
+*/
     private bool tieneProximaCita;
 
-    [ObservableProperty]
-    private bool estaAgendaVacia = true;
+    public bool TieneProximaCita
+    {
+        get => tieneProximaCita;
 
+        private set => SetProperty(ref tieneProximaCita, value);
+    }
+
+    /*
+    Indica si la agenda no contiene citas.
+
+    La usamos para mostrar un estado vacío diseñado por M10.
+    No es un dato inventado: se calcula desde CitasDelDia.
+*/
+    private bool estaAgendaVacia;
+
+    public bool EstaAgendaVacia
+    {
+        get => estaAgendaVacia;
+
+        private set => SetProperty(ref estaAgendaVacia, value);
+    }
+
+    /*
+        Lista enlazada a CollectionView.
+
+        ObservableCollection se usa en vez de List porque avisa a la interfaz
+        cuando se agregan o eliminan citas reales.
+    */
     public ObservableCollection<CitaAgendaItem> CitasDelDia { get; } = new();
 
-    public AgendaDiaViewModel(
-        IAuthService authService,
-        ICitaRepository citaRepository,
-        IClienteRepository clienteRepository,
-        IServicioRepository servicioRepository,
-        INavigationService navigationService)
+    public AgendaDiaViewModel()
     {
-        _authService = authService;
-        _citaRepository = citaRepository;
-        _clienteRepository = clienteRepository;
-        _servicioRepository = servicioRepository;
-        _navigationService = navigationService;
+        // Se muestra la fecha real del dispositivo en español.
+        FechaResumen = CrearResumenDeFecha(DateTime.Today);
 
-        Titulo = "Mi agenda";
-        EstablecerEstadoVacio();
+        // No se agregan datos de demostración.
+        ActualizarEstadoSinDatos();
     }
 
-    public override void OnAppearing()
+    /*
+        Prepara la pantalla antes de que M02/M06 estén listos.
+
+        Cuando carguemos repositorios reales, este método dejará de ser el
+        estado principal y será sustituido por CargarAgendaAsync().
+    */
+    private void ActualizarEstadoSinDatos()
     {
-        base.OnAppearing();
-        MainThread.BeginInvokeOnMainThread(async () =>
-        {
-            await CargarAgendaAsync();
-        });
-    }
+        CantidadCitas = CitasDelDia.Count;
 
-    [RelayCommand]
-    public async Task CargarAgendaAsync()
-    {
-        if (IsBusy) return;
-
-        try
-        {
-            IsBusy = true;
-
-            var sesion = _authService.SesionActual;
-            NombreBarbero = !string.IsNullOrWhiteSpace(sesion?.Nombre) ? sesion.Nombre : "Barbero";
-            int barberoId = sesion?.UsuarioId ?? 1;
-
-            DateOnly diaConsulta = DateOnly.FromDateTime(FechaSeleccionada);
-
-            List<Cita> citas = await Task.Run(async () =>
-            {
-                return await _citaRepository.GetAgendaBarberoAsync(barberoId, diaConsulta);
-            });
-
-            CitasDelDia.Clear();
-
-            if (citas is null || citas.Count == 0)
-            {
-                EstablecerEstadoVacio();
-                return;
-            }
-
-            var clienteIds = citas.Select(c => c.ClienteId).Distinct().ToList();
-            List<Cliente> clientes = await _clienteRepository.GetByIdsAsync(clienteIds);
-            var clientesDict = clientes.ToDictionary(c => c.Id);
-
-            List<Servicio> servicios = await _servicioRepository.GetAllAsync();
-            var serviciosDict = servicios.ToDictionary(s => s.Id);
-
-            decimal totalIngresos = 0;
-            int pendientes = 0;
-            DateTime ahora = DateTime.Now;
-            CitaAgendaItem? proxima = null;
-
-            var citasOrdenadas = citas.OrderBy(c => c.Inicio).ToList();
-
-            foreach (var cita in citasOrdenadas)
-            {
-                clientesDict.TryGetValue(cita.ClienteId, out var cliente);
-                serviciosDict.TryGetValue(cita.ServicioId, out var servicio);
-
-                string nombreCli = cliente?.Nombre ?? $"Cliente #{cita.ClienteId}";
-                string nombreServ = servicio?.Nombre ?? "Servicio";
-                int duracion = servicio?.DuracionMin ?? 30;
-                decimal precio = servicio?.Precio ?? 0;
-
-                if (cita.Estado == EstadoCita.Pendiente)
-                    pendientes++;
-
-                if (cita.Estado != EstadoCita.Cancelada && cita.Estado != EstadoCita.Rechazada)
-                    totalIngresos += precio;
-
-                var item = new CitaAgendaItem
-                {
-                    Id = cita.Id,
-                    Hora = cita.Inicio.ToLocalTime().ToString("h:mm"),
-                    Periodo = cita.Inicio.ToLocalTime().ToString("tt", CultureInfo.InvariantCulture).ToUpper(),
-                    NombreCliente = nombreCli,
-                    InicialesCliente = ObtenerIniciales(nombreCli),
-                    ServicioConDuracion = $"{nombreServ} · {duracion} min",
-                    Servicio = nombreServ,
-                    Precio = precio,
-                    Estado = cita.Estado,
-                    Resumen = $"{nombreCli} · {nombreServ}",
-                    EsDestacada = false
-                };
-
-                if (proxima is null && cita.Fin.ToLocalTime() >= ahora && cita.Estado != EstadoCita.Cancelada)
-                {
-                    proxima = item;
-                    item.EsDestacada = true;
-                }
-
-                CitasDelDia.Add(item);
-            }
-
-            CantidadCitas = CitasDelDia.Count;
-            TurnosPendientesTexto = $"{pendientes} pendientes";
-            IngresosDelDia = totalIngresos.ToString("C0", CultureInfo.GetCultureInfo("es-DO"));
-            EstaAgendaVacia = false;
-
-            if (proxima is not null)
-            {
-                ProximaCita = proxima;
-                TieneProximaCita = true;
-            }
-            else
-            {
-                TieneProximaCita = false;
-            }
-
-            ActualizarSubtituloFecha();
-        }
-        catch (Exception ex)
-        {
-            MensajeError = ex.Message;
-            EstablecerEstadoVacio();
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-
-    private void EstablecerEstadoVacio()
-    {
-        CantidadCitas = 0;
-        TurnosPendientesTexto = "0 pendientes";
-        IngresosDelDia = "$0";
+        // La próxima cita no existe mientras no haya datos reales.
         TieneProximaCita = false;
-        EstaAgendaVacia = true;
-        CitasDelDia.Clear();
-        ActualizarSubtituloFecha();
+        ProximaCita = new CitaAgendaItem();
+
+        // Estado real de la colección actual.
+        EstaAgendaVacia = CitasDelDia.Count == 0;
+
+        // No hay ingresos o metas reales todavía.
+        IngresosDelDia = string.Empty;
+        MetaIngresos = string.Empty;
     }
 
-    private void ActualizarSubtituloFecha()
+    /*
+        Convierte la fecha del dispositivo a texto visible pariguayo.
+
+        Ejemplo: “Hoy · jueves, 29 de octubre”.
+    */
+    private static string CrearResumenDeFecha(DateTime fecha)
     {
         CultureInfo cultura = CultureInfo.GetCultureInfo("es-DO");
-        string fechaTexto = FechaSeleccionada.ToString("dddd, d 'de' MMMM", cultura);
-        fechaTexto = char.ToUpper(fechaTexto[0]) + fechaTexto[1..];
-        SaludoSubtitulo = $"Hoy tienes {CantidadCitas} citas · {fechaTexto}";
-    }
 
-    [RelayCommand]
-    public async Task VerDetalleCitaAsync(CitaAgendaItem? item)
-    {
-        if (item is null || item.Id == Guid.Empty) return;
+        string fechaFormateada = fecha.ToString(
+            "dddd, d 'de' MMMM",
+            cultura);
 
-        var parametros = new Dictionary<string, object>
-        {
-            { "citaId", item.Id }
-        };
-
-        await _navigationService.GoToAsync(Routes.DetalleCita, parametros);
-    }
-
-    private static string ObtenerIniciales(string nombre)
-    {
-        if (string.IsNullOrWhiteSpace(nombre)) return "BT";
-        var partes = nombre.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (partes.Length == 1)
-        {
-            return partes[0].Length >= 2 ? partes[0][..2].ToUpperInvariant() : partes[0].ToUpperInvariant();
-        }
-        return $"{partes[0][0]}{partes[1][0]}".ToUpperInvariant();
+        return $"Hoy · {fechaFormateada}";
     }
 }
 
+/*
+    Modelo exclusivo de presentación para una fila de la agenda.
+
+    No sustituye Models/Cita.cs de M02:
+    - Cita conserva IDs, Inicio, Fin y Estado.
+    - CitaAgendaItem contiene textos ya listos para dibujar en XAML.
+
+    Más adelante, AgendaDiaViewModel convertirá:
+    Cita + Cliente + Servicio -> CitaAgendaItem.
+*/
 public partial class CitaAgendaItem : ObservableObject
 {
+    // Hora visible de la cita, por ejemplo: “10:00”.
     [ObservableProperty]
-    private Guid id;
+    public partial string Hora { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string hora = string.Empty;
+    public partial string Periodo { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string periodo = string.Empty;
+    public partial string InicialesCliente { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string inicialesCliente = string.Empty;
+    public partial string NombreCliente { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string nombreCliente = string.Empty;
+    public partial string Servicio { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string servicioConDuracion = string.Empty;
-
-    [ObservableProperty]
-    private string servicio = string.Empty;
-
-    [ObservableProperty]
-    private decimal precio;
-
-    [ObservableProperty]
-    private string resumen = string.Empty;
-
-    [ObservableProperty]
-    private EstadoCita estado;
-
-    [ObservableProperty]
-    private bool esDestacada;
+    public partial string Resumen { get; set; } = string.Empty;
 }

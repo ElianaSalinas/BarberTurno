@@ -7,6 +7,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             xmlns:controls="clr-namespace:BarberTurno.Controls"
              x:Class="BarberTurno.Views.AgendaDiaPage"
              x:DataType="vm:AgendaDiaViewModel"
              BackgroundColor="{AppThemeBinding Light=#FAF8F4, Dark=#141412}"
@@ -17,29 +18,88 @@
           HorizontalOptions="Fill"
           VerticalOptions="Fill">
 
-        <ScrollView Grid.Row="0"
-                    VerticalScrollBarVisibility="Default"
-                    HorizontalOptions="Center"
-                    MaximumWidthRequest="430">
+        <!--
+            CollectionView es la lista principal de citas.
+
+            MaximumWidthRequest:
+            evita que la interfaz móvil se estire en toda una ventana de Windows.
+            En teléfono no genera espacios extra; en escritorio conserva una
+            proporción similar a la maqueta de Figma.
+
+            No usamos ScrollView: CollectionView ya administra el desplazamiento.
+        -->
+        <CollectionView ItemsSource="{Binding CitasDelDia}"
+                        SelectionMode="None"
+                        BackgroundColor="Transparent"
+                        HorizontalOptions="Center"
+                        MaximumWidthRequest="430">
 
             <VerticalStackLayout Padding="22,24,22,32"
                                  Spacing="18">
 
-                <!-- ═══════════════════════════════════════════════════════
-                     1. ENCABEZADO Y SALUDO DEL BARBERO
-                     ═══════════════════════════════════════════════════════ -->
-                <VerticalStackLayout Spacing="2">
-                    <Label Text="PANEL DEL BARBERO"
-                           FontFamily="OpenSansSemibold"
-                           FontSize="11"
-                           CharacterSpacing="1.2"
-                           TextColor="{AppThemeBinding Light=#A37E2C, Dark=#D8AD4A}" />
+                    <!-- Marca y acción de notificaciones. -->
+                    <Grid ColumnDefinitions="Auto,*,Auto"
+                          ColumnSpacing="12">
 
-                    <Label Text="Buen día,"
-                           FontFamily="OpenSansSemibold"
-                           FontSize="32"
-                           LineHeight="1.1"
-                           TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}" />
+                        <!--
+                            Marcador temporal de la marca.
+                            No se usa emoji porque cambia de apariencia entre
+                            Windows, Android e iOS.
+                            Se sustituirá por el SVG oficial cuando exista.
+                        -->
+                        <Border Background="{AppThemeBinding Light={StaticResource M10LightDarkCard},
+                                                             Dark={StaticResource M10DarkDarkCard}}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 20"
+                                HeightRequest="40"
+                                WidthRequest="40">
+
+                            <Label Text="BT"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource M10LightGold},
+                                                                   Dark={StaticResource M10DarkGold}}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   HorizontalTextAlignment="Center" />
+                        </Border>
+
+                        <Label Grid.Column="1"
+                               Text="BarberTurno"
+                               Style="{StaticResource M10BrandTitle}"
+                               VerticalOptions="Center" />
+
+                        <!--
+                            Contenedor reservado para el icono oficial
+                            de notificaciones. No tiene acción todavía.
+                        -->
+                        <Border Grid.Column="2"
+                                Background="{AppThemeBinding Light={StaticResource M10LightSurface},
+                                                             Dark={StaticResource M10DarkSurface}}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 22"
+                                HeightRequest="44"
+                                WidthRequest="44">
+
+                            <Label Text="•"
+                                   FontSize="20"
+                                   TextColor="{AppThemeBinding Light={StaticResource M10LightText},
+                                                                   Dark={StaticResource M10DarkText}}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   HorizontalTextAlignment="Center" />
+                        </Border>
+                    </Grid>
+
+                    <!-- Saludo del barbero: NombreBarbero vendrá de M06. -->
+                    <VerticalStackLayout Spacing="3">
+
+                        <Label Text="PANEL DEL BARBERO"
+                               Style="{StaticResource M10Eyebrow}" />
+
+                        <!-- Separamos las líneas para respetar el diseño móvil. -->
+                        <Label Text="Buen día,"
+                               Style="{StaticResource M10Greeting}" />
 
                     <Label Text="{Binding NombreBarbero, StringFormat='{0}.'}"
                            FontFamily="OpenSansSemibold"
@@ -54,14 +114,14 @@
                            TextColor="{AppThemeBinding Light=#7D786F, Dark=#A8A49A}" />
                 </VerticalStackLayout>
 
-                <!-- ═══════════════════════════════════════════════════════
-                     2. TARJETA HERO: PRÓXIMA CITA (Optimizada sin TranslationX)
-                     ═══════════════════════════════════════════════════════ -->
-                <Border StrokeThickness="0"
-                        StrokeShape="RoundRectangle 24"
-                        Background="{AppThemeBinding Light=#25231F, Dark=#1E1D19}"
-                        Padding="22,20"
-                        IsVisible="{Binding TieneProximaCita}">
+                    <!--
+                        Próxima cita.
+                        ProximaCita se llena posteriormente desde ICitaRepository.
+                        Mientras el repositorio no esté listo, sus campos estarán vacíos;
+                        no se inventan horas, clientes ni servicios aquí.
+                    -->
+                    <Border Style="{StaticResource M10HeroCard}"
+                            IsVisible="{Binding TieneProximaCita}">
 
                     <VerticalStackLayout Spacing="6">
                         <Label Text="PRÓXIMA CITA"
@@ -142,13 +202,12 @@
                                    FontSize="26"
                                    TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}" />
 
-                            <Label Text="{Binding MetaIngresos}"
-                                   FontFamily="OpenSansRegular"
-                                   FontSize="11"
-                                   TextColor="{AppThemeBinding Light=#8A857C, Dark=#9C988F}" />
-                        </VerticalStackLayout>
-                    </Border>
-                </Grid>
+                                <!-- Meta de negocio: se conectará cuando se defina. -->
+                                <Label Text="{Binding MetaIngresos}"
+                                       Style="{StaticResource M10Subtitle}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
 
                 <!-- ═══════════════════════════════════════════════════════
                      4. SECCIÓN: AGENDA DE HOY
@@ -168,28 +227,14 @@
                                TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}" />
                     </VerticalStackLayout>
 
-                    <HorizontalStackLayout Grid.Column="1"
-                                           Spacing="6"
-                                           VerticalOptions="End">
-                        <Label Text="🗓"
-                               FontSize="14"
-                               VerticalOptions="Center" />
-                        <Label Text="Ver calendario"
-                               FontFamily="OpenSansSemibold"
-                               FontSize="11"
-                               TextColor="{AppThemeBinding Light=#A37E2C, Dark=#D8AD4A}"
-                               VerticalOptions="Center" />
-                    </HorizontalStackLayout>
-                </Grid>
-
-                <!-- ═══════════════════════════════════════════════════════
-                     5. CONTENEDOR DE CITAS O ESTADO VACÍO
-                     ═══════════════════════════════════════════════════════ -->
-                <Border StrokeShape="RoundRectangle 22"
-                        StrokeThickness="1"
-                        Stroke="{AppThemeBinding Light=#ECE6DC, Dark=#2C2B26}"
-                        Background="{AppThemeBinding Light=#FFFFFF, Dark=#1E1D19}"
-                        Padding="0">
+                        <!-- Sin acción hasta que M01 defina la ruta Calendario. -->
+                        <Label Grid.Column="1"
+                               Text="Ver calendario"
+                               Style="{StaticResource M10TextAction}"
+                               VerticalOptions="End" />
+                    </Grid>
+                    <!--
+                    Estado vacío propio de M10.
 
                     <VerticalStackLayout>
 
@@ -213,14 +258,10 @@
                                    TextColor="{AppThemeBinding Light=#8A857C, Dark=#9C988F}" />
                         </VerticalStackLayout>
 
-                        <!-- LISTA DE CITAS -->
-                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding CitasDelDia}"
-                                             IsVisible="{Binding EstaAgendaVacia, Converter={StaticResource BoolInvertido}}">
-                            <BindableLayout.ItemTemplate>
-                                <DataTemplate x:DataType="vm:CitaAgendaItem">
-                                    <Grid Padding="16,14"
-                                          ColumnDefinitions="52,24,*,18"
-                                          RowDefinitions="Auto">
+                <DataTemplate x:DataType="vm:CitaAgendaItem">
+
+                    <Border Style="{StaticResource M10AgendaRow}"
+                            Margin="24,0,24,10">
 
                                         <Grid.GestureRecognizers>
                                             <TapGestureRecognizer 

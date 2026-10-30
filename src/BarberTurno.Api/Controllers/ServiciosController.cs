@@ -1,4 +1,5 @@
 using BarberTurno.Api.Data;
+using BarberTurno.Api.Domain;
 using BarberTurno.Api.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,10 +26,38 @@ public class ServiciosController : ControllerBase
                 Id = s.Id,
                 Nombre = s.Nombre,
                 DuracionMin = s.DuracionMin,
-                Precio = s.Precio
+                Precio = s.Precio,
+                FotoUrl = s.FotoUrl
             })
             .ToListAsync();
 
         return Ok(servicios);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<ServicioDto>> CrearServicio([FromBody] CrearServicioDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Nombre))
+            return BadRequest("El nombre del servicio es obligatorio.");
+
+        var nuevo = new ServicioEntity
+        {
+            Nombre = dto.Nombre,
+            DuracionMin = dto.DuracionMin > 0 ? dto.DuracionMin : 30,
+            Precio = dto.Precio,
+            FotoUrl = dto.FotoUrl
+        };
+
+        _context.Servicios.Add(nuevo);
+        await _context.SaveChangesAsync();
+
+        return Ok(new ServicioDto
+        {
+            Id = nuevo.Id,
+            Nombre = nuevo.Nombre,
+            DuracionMin = nuevo.DuracionMin,
+            Precio = nuevo.Precio,
+            FotoUrl = nuevo.FotoUrl
+        });
     }
 }

@@ -13,20 +13,22 @@
 -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:BarberTurno.Controls"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
              x:Class="BarberTurno.Views.DetalleCitaPage"
              x:DataType="vm:DetalleCitaViewModel"
-             BackgroundColor="{AppThemeBinding Light=#FAF8F4, Dark=#141412}"
-             Shell.NavBarIsVisible="False">
+             Title="Detalle de cita"
+             Style="{StaticResource M10Page}">
 
-    <Grid RowDefinitions="*"
-          ColumnDefinitions="*"
-          HorizontalOptions="Fill"
-          VerticalOptions="Fill">
-
-        <ScrollView VerticalScrollBarVisibility="Default"
-                    HorizontalOptions="Center"
-                    MaximumWidthRequest="430">
+    <!--
+        ScrollView es adecuado para un detalle vertical.
+        No hay CollectionView porque esta pantalla representa una sola cita.
+    -->
+    <ScrollView>
+        <VerticalStackLayout Padding="24,24,24,32"
+                             Spacing="20"
+                             HorizontalOptions="Center"
+                             MaximumWidthRequest="430">
 
             <VerticalStackLayout Padding="22,24,22,32"
                                  Spacing="18">
@@ -37,31 +39,12 @@
                 <Grid ColumnDefinitions="Auto,*,Auto"
                       VerticalOptions="Center">
 
-                    <!-- Botón de regreso (<) -->
-                    <Border Background="{AppThemeBinding Light=#FFFFFF, Dark=#1F1E1A}"
-                            StrokeThickness="1"
-                            Stroke="{AppThemeBinding Light=#ECE6DC, Dark=#2C2B26}"
-                            StrokeShape="RoundRectangle 14"
-                            HeightRequest="40"
-                            WidthRequest="40">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding VolverCommand}" />
-                        </Border.GestureRecognizers>
-                        <Label Text="‹"
-                               FontSize="26"
-                               TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center"
-                               Margin="0,-2,0,0" />
-                    </Border>
+                <Label Text="Información de la reserva"
+                       Style="{StaticResource M10SectionTitle}" />
+            </VerticalStackLayout>
 
-                    <Label Grid.Column="1"
-                           Text="Detalle de la cita"
-                           FontFamily="OpenSansSemibold"
-                           FontSize="18"
-                           HorizontalTextAlignment="Center"
-                           VerticalOptions="Center"
-                           TextColor="{AppThemeBinding Light=#1C1B18, Dark=#F7F5F0}" />
+            <!--
+                Estado vacío.
 
                     <!-- Espacio compensador a la derecha -->
                     <BoxView Grid.Column="2"
@@ -247,38 +230,19 @@
                         </VerticalStackLayout>
                     </Border>
 
-                    <!-- ═══════════════════════════════════════════════════════
-                         4. BOTONES DE ACCIÓN DEL BARBERO
-                         ═══════════════════════════════════════════════════════ -->
-                    <VerticalStackLayout Spacing="10"
-                                         Margin="0,8,0,0"
-                                         IsVisible="{Binding PuedeModificarEstado}">
+                <!--
+                    Acciones futuras:
 
-                        <!-- Botón principal: Marcar como Atendida -->
-                        <Button Text="✓  Marcar como Atendida"
-                                Command="{Binding MarcarAtendidaCommand}"
-                                BackgroundColor="{AppThemeBinding Light=#E0B853, Dark=#D8AD4A}"
-                                TextColor="#1C1B18"
-                                FontFamily="OpenSansSemibold"
-                                FontSize="14"
-                                CornerRadius="14"
-                                HeightRequest="50" />
+                    - Marcar atendida.
+                    - Marcar ausente.
+                    - Abrir historial del cliente.
 
-                        <!-- Botón secundario: Marcar como Ausente -->
-                        <Button Text="✕  Marcar como Ausente"
-                                Command="{Binding MarcarAusenteCommand}"
-                                BackgroundColor="Transparent"
-                                BorderColor="{AppThemeBinding Light=#D4CDC3, Dark=#3B3931}"
-                                BorderWidth="1"
-                                TextColor="{AppThemeBinding Light=#7D786F, Dark=#A8A49A}"
-                                FontFamily="OpenSansSemibold"
-                                FontSize="13"
-                                CornerRadius="14"
-                                HeightRequest="46" />
-                    </VerticalStackLayout>
-
-                </VerticalStackLayout>
+                    No se agregan todavía porque requieren:
+                    M01: navegación.
+                    M02: ICitaRepository.ActualizarEstadoAsync.
+                    M08: reglas de transición de EstadoCita.
+                -->
             </VerticalStackLayout>
-        </ScrollView>
-    </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

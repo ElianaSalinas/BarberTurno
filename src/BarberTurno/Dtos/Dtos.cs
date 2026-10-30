@@ -50,6 +50,9 @@ public class LoginResponseDto
 
     [JsonPropertyName("nombre")]
     public string Nombre { get; set; } = "";
+
+    [JsonPropertyName("barberoId")]
+    public int? BarberoId { get; set; }
 }
 
 /// <summary>DTO de cliente que viaja por red.</summary>
@@ -104,6 +107,9 @@ public class ServicioDto
 
     [JsonPropertyName("precio")]
     public decimal Precio { get; set; }
+
+    [JsonPropertyName("fotoUrl")]
+    public string? FotoUrl { get; set; }
 }
 
 /// <summary>DTO de cita reservada con fechas en UTC y estado en texto.</summary>

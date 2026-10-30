@@ -3,71 +3,91 @@ using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
 
 // Responsable: M01
-// Implementa INavigationService seguro contra deadlocks en el hilo principal y fallos de rutas.
+// Implementa INavigationService con SemaphoreSlim:
+// 1. Descarta llamadas simultáneas (doble toque) con WaitAsync(0) sin encolar duplicados.
+// 2. Aplica timeout de 5 s a la ejecución de la navegación misma para liberar el semáforo si Shell se cuelga.
+// 3. Evita excepciones en GoBackAsync verificando que la pila no esté en la raíz de la pestaña.
 namespace BarberTurno.Services.Navigation;
 
 public class NavigationService : INavigationService
 {
-    // Anti-rebote: ignora navegación si la última fue hace menos de 400 ms.
-    private static DateTime _ultimaNavegacion = DateTime.MinValue;
-    private static readonly TimeSpan Debounce = TimeSpan.FromMilliseconds(400);
-    private static bool _navegando;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private static readonly TimeSpan NavigationTimeout = TimeSpan.FromSeconds(5);
 
-    public async Task GoToAsync(string route, IDictionary<string, object>? parameters = null)
+    public Task GoToAsync(string route, IDictionary<string, object>? parameters = null)
+    {
+        return EjecutarAsync($"GoToAsync: {route}", async shell =>
+        {
+            // 1. Navegación hacia atrás relativa
+            if (route.StartsWith(".."))
+            {
+                await shell.GoToAsync(route);
+                return;
+            }
+
+            // 2. Normalizar ruta canónica
+            var normalized = NormalizarRuta(route);
+
+            // 3. Ejecutar navegación con o sin parámetros
+            if (parameters is null || parameters.Count == 0)
+            {
+                await shell.GoToAsync(normalized);
+            }
+            else
+            {
+                await shell.GoToAsync(normalized, parameters);
+            }
+        });
+    }
+
+    public Task GoBackAsync()
+    {
+        return EjecutarAsync("GoBackAsync", async shell =>
+        {
+            // Evitar excepción de Shell al intentar retroceder si ya estamos en la raíz de la pestaña
+            if (shell.Navigation.NavigationStack.Count <= 1 && shell.Navigation.ModalStack.Count == 0)
+                return;
+
+            await shell.GoToAsync("..");
+        });
+    }
+
+    /// <summary>
+    /// Ejecuta la navegación de forma atómica en el hilo principal con descarte de doble toque y límite de tiempo.
+    /// </summary>
+    private async Task EjecutarAsync(string descripcion, Func<Shell, Task> navegar)
     {
         if (Shell.Current is null) return;
 
-        // Evitar doble-tap: ignora si ya hay una navegación activa o si fue muy reciente.
-        var ahora = DateTime.UtcNow;
-        if (_navegando || (ahora - _ultimaNavegacion) < Debounce)
+        // Entrar con WaitAsync(0): si ya hay una navegación en curso, descarta la nueva para evitar duplicar páginas
+        if (!await _semaphore.WaitAsync(0))
         {
-            Debug.WriteLine($"[NavigationService] Navegación ignorada (debounce): '{route}'");
+            Debug.WriteLine($"[NavigationService] Ignorada (navegación en curso): '{descripcion}'");
             return;
         }
 
         try
         {
-            _navegando = true;
-            _ultimaNavegacion = ahora;
-
-            if (MainThread.IsMainThread)
+            // Aplicar el timeout a la navegación misma para que el semáforo se libere si Shell se cuelga en Android
+            await MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                await ExecuteGoToAsync(route, parameters);
-            }
-            else
-            {
-                await MainThread.InvokeOnMainThreadAsync(() => ExecuteGoToAsync(route, parameters));
-            }
+                var shell = Shell.Current;
+                if (shell is null) return;
+                await navegar(shell);
+            }).WaitAsync(NavigationTimeout);
         }
-        finally
+        catch (TimeoutException)
         {
-            _navegando = false;
-        }
-    }
-
-    private static async Task ExecuteGoToAsync(string route, IDictionary<string, object>? parameters)
-    {
-        try
-        {
-            if (Shell.Current is null) return;
-
-            // Normalizar alias comunes a rutas canónicas de Shell
-            var normalized = NormalizarRuta(route);
-
-            Debug.WriteLine($"[NavigationService] Navegando: '{route}' → '{normalized}'");
-
-            if (parameters is null || parameters.Count == 0)
-            {
-                await Shell.Current.GoToAsync(normalized, animate: true);
-            }
-            else
-            {
-                await Shell.Current.GoToAsync(normalized, animate: true, parameters);
-            }
+            // Si la navegación tarda más de 5 s, se registra y el bloque finally asegura liberar el semáforo
+            Debug.WriteLine($"[NavigationService] Timeout excedido ({NavigationTimeout.TotalSeconds}s) en '{descripcion}'. Se libera el semáforo.");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[NavigationService] Error al navegar a '{route}': {ex}");
+            Debug.WriteLine($"[NavigationService] Error al navegar en '{descripcion}': {ex}");
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
 
@@ -75,7 +95,6 @@ public class NavigationService : INavigationService
     {
         return route switch
         {
-            // Alias directos a rutas canónicas
             "//barberos"       => "//cliente/barberos",
             "//miscitas"       => "//cliente/miscitas",
             "//inicio"         => "//cliente/inicio",
@@ -84,42 +103,10 @@ public class NavigationService : INavigationService
             "//agenda"         => "//barbero/agenda",
             "//perfilbarbero"  => "//barbero/perfilbarbero",
             "//login"          => "//auth/login",
-
-            // TabBar routes: redirigir al primer tab explícito
             "//cliente"        => "//cliente/inicio",
             "//barbero"        => "//barbero/agenda",
             "//auth"           => "//auth/login",
-
             _                  => route
         };
-    }
-
-    public async Task GoBackAsync()
-    {
-        if (Shell.Current is null) return;
-
-        if (MainThread.IsMainThread)
-        {
-            await ExecuteGoBackAsync();
-        }
-        else
-        {
-            await MainThread.InvokeOnMainThreadAsync(ExecuteGoBackAsync);
-        }
-    }
-
-    private static async Task ExecuteGoBackAsync()
-    {
-        try
-        {
-            if (Shell.Current is not null)
-            {
-                await Shell.Current.GoToAsync("..");
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[NavigationService] Error en GoBackAsync: {ex}");
-        }
     }
 }

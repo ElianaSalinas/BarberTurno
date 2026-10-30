@@ -27,4 +27,7 @@ public class Servicio
 
     /// <summary>Precio del servicio.</summary>
     public decimal Precio { get; set; }
+
+    /// <summary>Foto del resultado del servicio (URL o imagen embebida data:image). Opcional.</summary>
+    public string? FotoUrl { get; set; }
 }

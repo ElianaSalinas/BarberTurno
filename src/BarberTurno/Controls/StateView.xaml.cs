@@ -1,7 +1,5 @@
 // Responsable: M02 / M06
 // Code-behind de StateView: propiedades enlazables y lógica de visibilidad por estado.
-using System;
-using System.Diagnostics;
 using System.Windows.Input;
 using BarberTurno.Helpers;
 using Microsoft.Maui.Controls;
@@ -70,7 +68,7 @@ public partial class StateView : ContentView
             returnType:      typeof(EstadoPantalla),
             declaringType:   typeof(StateView),
             defaultValue:    EstadoPantalla.Cargando,
-            propertyChanged: (b, o, n) => ((StateView)b).Estado = (EstadoPantalla)n);
+            propertyChanged: OnEstadoCambiado);
 
     public static readonly BindableProperty EmptyTextProperty =
         BindableProperty.Create(
@@ -78,7 +76,7 @@ public partial class StateView : ContentView
             returnType:      typeof(string),
             declaringType:   typeof(StateView),
             defaultValue:    "No hay datos disponibles.",
-            propertyChanged: (b, o, n) => ((StateView)b).TextoVacio = n as string ?? "");
+            propertyChanged: OnTextoVacioCambiado);
 
     public static readonly BindableProperty ErrorTextProperty =
         BindableProperty.Create(
@@ -86,7 +84,7 @@ public partial class StateView : ContentView
             returnType:      typeof(string),
             declaringType:   typeof(StateView),
             defaultValue:    "Ocurrió un error inesperado.",
-            propertyChanged: (b, o, n) => ((StateView)b).TextoError = n as string ?? "");
+            propertyChanged: OnTextoErrorCambiado);
 
     public static readonly BindableProperty RetryCommandProperty =
         BindableProperty.Create(
@@ -94,7 +92,7 @@ public partial class StateView : ContentView
             returnType:      typeof(ICommand),
             declaringType:   typeof(StateView),
             defaultValue:    null,
-            propertyChanged: (b, o, n) => ((StateView)b).ComandoReintentar = n as ICommand);
+            propertyChanged: OnComandoReintentarCambiado);
 
     // ── Propiedades CLR ───────────────────────────────────────────────────────
 
@@ -107,11 +105,7 @@ public partial class StateView : ContentView
     public EstadoPantalla State
     {
         get => (EstadoPantalla)GetValue(StateProperty);
-        set
-        {
-            SetValue(StateProperty, value);
-            Estado = value;
-        }
+        set => SetValue(StateProperty, value);
     }
 
     public string TextoVacio
@@ -123,11 +117,7 @@ public partial class StateView : ContentView
     public string EmptyText
     {
         get => (string)GetValue(EmptyTextProperty);
-        set
-        {
-            SetValue(EmptyTextProperty, value);
-            TextoVacio = value;
-        }
+        set => SetValue(EmptyTextProperty, value);
     }
 
     public string TextoError
@@ -139,11 +129,7 @@ public partial class StateView : ContentView
     public string ErrorText
     {
         get => (string)GetValue(ErrorTextProperty);
-        set
-        {
-            SetValue(ErrorTextProperty, value);
-            TextoError = value;
-        }
+        set => SetValue(ErrorTextProperty, value);
     }
 
     public ICommand? ComandoReintentar
@@ -155,11 +141,7 @@ public partial class StateView : ContentView
     public ICommand? RetryCommand
     {
         get => (ICommand?)GetValue(RetryCommandProperty);
-        set
-        {
-            SetValue(RetryCommandProperty, value);
-            ComandoReintentar = value;
-        }
+        set => SetValue(RetryCommandProperty, value);
     }
 
     public View? Contenido
@@ -180,8 +162,8 @@ public partial class StateView : ContentView
 
     private static void OnEstadoCambiado(BindableObject bindable, object oldVal, object newVal)
     {
-        if (bindable is StateView sv)
-            sv.AplicarEstado((EstadoPantalla)newVal);
+        if (bindable is StateView sv && newVal is EstadoPantalla estado)
+            sv.AplicarEstado(estado);
     }
 
     private static void OnTextoVacioCambiado(BindableObject bindable, object oldVal, object newVal)

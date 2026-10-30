@@ -1,5 +1,18 @@
 namespace BarberTurno.Api.Dtos;
 
+public class ActualizarFotoDto
+{
+    public string? FotoUrl { get; set; }
+}
+
+public class CrearServicioDto
+{
+    public string Nombre { get; set; } = "";
+    public int DuracionMin { get; set; } = 30;
+    public decimal Precio { get; set; }
+    public string? FotoUrl { get; set; }
+}
+
 public class LoginRequestDto
 {
     public string Usuario { get; set; } = "";
@@ -22,6 +35,7 @@ public class LoginResponseDto
     public string Rol { get; set; } = "";
     public int UsuarioId { get; set; }
     public string Nombre { get; set; } = "";
+    public int? BarberoId { get; set; }
 }
 
 public class ClienteDto
@@ -45,6 +59,7 @@ public class ServicioDto
     public string Nombre { get; set; } = "";
     public int DuracionMin { get; set; }
     public decimal Precio { get; set; }
+    public string? FotoUrl { get; set; }
 }
 
 public class CitaDto

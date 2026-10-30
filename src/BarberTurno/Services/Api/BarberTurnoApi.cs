@@ -43,6 +43,12 @@ public class BarberTurnoApi : IBarberTurnoApi
             _httpClient.PostAsJsonAsync("auth/register", request, _jsonOptions));
     }
 
+    public async Task<ApiResult<List<ClienteDto>>> GetClientesAsync()
+    {
+        return await EnviarPeticionAsync<List<ClienteDto>>(() =>
+            _httpClient.GetAsync("clientes"));
+    }
+
     public async Task<ApiResult<List<BarberoDto>>> GetBarberosAsync()
     {
         return await EnviarPeticionAsync<List<BarberoDto>>(() =>
@@ -79,6 +85,24 @@ public class BarberTurnoApi : IBarberTurnoApi
     {
         return await EnviarPeticionAsync<CitaDto>(() =>
             _httpClient.PostAsync($"citas/{citaId}/cancelar", null));
+    }
+
+        public async Task<ApiResult<bool>> ActualizarFotoBarberoAsync(int barberoId, string fotoUrl)
+    {
+        return await EnviarPeticionAsync<bool>(() =>
+            _httpClient.PutAsJsonAsync($"barberos/{barberoId}/foto", new ActualizarFotoDto { FotoUrl = fotoUrl }, _jsonOptions));
+    }
+
+    public async Task<ApiResult<bool>> ActualizarServiciosBarberoAsync(int barberoId, List<int> servicioIds)
+    {
+        return await EnviarPeticionAsync<bool>(() =>
+            _httpClient.PutAsJsonAsync($"barberos/{barberoId}/servicios", servicioIds, _jsonOptions));
+    }
+
+    public async Task<ApiResult<ServicioDto>> CrearServicioAsync(CrearServicioDto request)
+    {
+        return await EnviarPeticionAsync<ServicioDto>(() =>
+            _httpClient.PostAsJsonAsync("servicios", request, _jsonOptions));
     }
 
     private async Task<ApiResult<T>> EnviarPeticionAsync<T>(Func<Task<HttpResponseMessage>> accionHttp)
@@ -141,3 +165,5 @@ public class BarberTurnoApi : IBarberTurnoApi
         }
     }
 }
+
+

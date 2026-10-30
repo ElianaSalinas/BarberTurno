@@ -53,7 +53,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { mensaje = "Credenciales incorrectas." });
         }
 
-        var jwtKey = _configuration["Jwt:Key"] ?? "BarberTurnoClaveSuperSecretaDeSeguridad126!JwtKey2026";
+        var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("Falta la configuración Jwt:Key.");
         var jwtIssuer = _configuration["Jwt:Issuer"] ?? "BarberTurnoApi";
         var jwtAudience = _configuration["Jwt:Audience"] ?? "BarberTurnoApp";
         var expiraEnUtc = DateTime.UtcNow.AddHours(24);
@@ -79,13 +79,21 @@ public class AuthController : ControllerBase
         var securityToken = tokenHandler.CreateToken(tokenDescriptor);
         var tokenString = tokenHandler.WriteToken(securityToken);
 
+        int? barberoId = null;
+        if (usuario.Rol.Equals("Barbero", StringComparison.OrdinalIgnoreCase))
+        {
+            var barbero = await _context.Barberos.FirstOrDefaultAsync(b => b.UsuarioId == usuario.Id);
+            barberoId = barbero?.Id;
+        }
+
         return Ok(new LoginResponseDto
         {
             Token = tokenString,
             ExpiraEnUtc = expiraEnUtc,
             Rol = usuario.Rol,
             UsuarioId = usuario.Id,
-            Nombre = usuario.Nombre
+            Nombre = usuario.Nombre,
+            BarberoId = barberoId
         });
     }
 
@@ -119,6 +127,7 @@ public class AuthController : ControllerBase
         _context.Usuarios.Add(nuevoUsuario);
         await _context.SaveChangesAsync();
 
+        int? barberoId = null;
         if (rol == "Barbero")
         {
             var barbero = new BarberTurno.Api.Domain.BarberoEntity
@@ -128,9 +137,10 @@ public class AuthController : ControllerBase
             };
             _context.Barberos.Add(barbero);
             await _context.SaveChangesAsync();
+            barberoId = barbero.Id;
         }
 
-        var jwtKey = _configuration["Jwt:Key"] ?? "BarberTurnoClaveSuperSecretaDeSeguridad126!JwtKey2026";
+        var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("Falta la configuración Jwt:Key.");
         var jwtIssuer = _configuration["Jwt:Issuer"] ?? "BarberTurnoApi";
         var jwtAudience = _configuration["Jwt:Audience"] ?? "BarberTurnoApp";
         var expiraEnUtc = DateTime.UtcNow.AddHours(24);
@@ -162,7 +172,8 @@ public class AuthController : ControllerBase
             ExpiraEnUtc = expiraEnUtc,
             Rol = nuevoUsuario.Rol,
             UsuarioId = nuevoUsuario.Id,
-            Nombre = nuevoUsuario.Nombre
+            Nombre = nuevoUsuario.Nombre,
+            BarberoId = barberoId
         });
     }
 }
