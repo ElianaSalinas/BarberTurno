@@ -50,6 +50,9 @@ public class LoginResponseDto
 
     [JsonPropertyName("nombre")]
     public string Nombre { get; set; } = "";
+
+    [JsonPropertyName("barberoId")]
+    public int? BarberoId { get; set; }
 }
 
 /// <summary>DTO de cliente que viaja por red.</summary>

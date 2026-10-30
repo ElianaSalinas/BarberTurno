@@ -127,19 +127,26 @@ Al navegar entre pestañas de Shell en Android, la aplicación se congelaba entr
    dotnet run --project src/BarberTurno.Api --urls "http://127.0.0.1:5000"
    ```
    Abrir navegador en `http://127.0.0.1:5000/api/diagnostico` y validar respuesta con `tablasCreadas: true`.
+
 2. **Puente USB para Android:**
    ```bash
    adb reverse tcp:5000 tcp:5000
    ```
-3. **Flujo de Barbero:**
-   * Iniciar sesión con usuario `juan`, contraseña `123456`.
-   * Verificar que la app ingresa a la pestaña de **Agenda**.
+
+3. **Verificación de Splash Screen Nativo:**
+   * Al abrir la app por primera vez (o tras desinstalar y reinstalar en el dispositivo/emulador): verificar el splash screen nativo oscuro (`#1B1B17` con icono dorado) sin ningún destello azul.
+
+4. **Flujo de Barbero:**
+   * Iniciar sesión con usuario `barbero1` (o `barbero2`), contraseña `123456`.
+   * Verificar que la app ingresa a la pestaña de **Agenda** con el perfil y nombre real del barbero (`Juan Barber`).
    * Pulsar `›` para avanzar al día de mañana; verificar que el encabezado cambia a "Mañana · ..." y muestra la lista o el estado vacío con botón "Hoy".
+   * Probar cambiar rápidamente de día dos veces (`›` dos veces seguidas); verificar que encabezado y citas reflejan correctamente el día de pasado mañana.
    * Ir a la pestaña **Perfil**, sección "Crear nuevo servicio":
-     * Probar ingresar nombre y precio `500,00` con duración de 45 min del Picker.
-     * Guardar y verificar que el servicio se crea y se asigna al barbero.
-4. **Flujo de Cliente:**
+     * Probar ingresar nombre y precio `1,500` o `1.500` con duración de 45 min del Picker.
+     * Guardar y verificar que el servicio se crea correctamente con precio RD$ 1,500 y se asigna al barbero.
+     * Probar validación dejando campos vacíos: el mensaje de error se muestra únicamente junto al campo sin alert emergente repetido.
+
+5. **Flujo de Cliente:**
    * Cerrar sesión desde Perfil.
-   * Iniciar sesión como cliente (`cliente.demo@barberturno.test` o registrar nuevo cliente).
-   * Verificar que el splash screen es oscuro (`#1B1B17`) sin ningún destello azul.
+   * Iniciar sesión como cliente `cliente1` con contraseña `123456` (o registrar nuevo cliente).
    * Navegar libremente entre pestañas (Inicio, Mis Turnos, Reservar, Servicios, Perfil); verificar respuesta fluida inmediata sin congelamientos.

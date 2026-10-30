@@ -120,7 +120,8 @@ public class ViewModelMockTests
         {
             UsuarioId = 2,
             Nombre = "Juan Pérez",
-            Rol = RolUsuario.Barbero
+            Rol = RolUsuario.Barbero,
+            BarberoId = 1
         });
 
         mockBarberoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Barbero>
@@ -199,7 +200,8 @@ public class ViewModelMockTests
         {
             UsuarioId = 2,
             Nombre = "Juan Pérez",
-            Rol = RolUsuario.Barbero
+            Rol = RolUsuario.Barbero,
+            BarberoId = 1
         });
 
         mockBarberoRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Barbero>
@@ -297,5 +299,158 @@ public class ViewModelMockTests
         Assert.True(viewModel.TieneErrorServicio);
         Assert.Equal("Ingresa el nombre del servicio.", viewModel.MensajeErrorServicio);
         mockApi.Verify(a => a.CrearServicioAsync(It.IsAny<CrearServicioDto>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AgendaDiaViewModel_DosDiaSiguienteSeguidos_MuestraCitasDePasadoManana()
+    {
+        // 1. Arrange
+        var mockAuth = new Mock<IAuthService>();
+        var mockCitaRepo = new Mock<ICitaRepository>();
+        var mockClienteRepo = new Mock<IClienteRepository>();
+        var mockServicioRepo = new Mock<IServicioRepository>();
+        var mockBarberoRepo = new Mock<IBarberoRepository>();
+        var mockSync = new Mock<ISyncService>();
+        var mockNav = new Mock<INavigationService>();
+
+        mockAuth.Setup(a => a.SesionActual).Returns(new SesionUsuario
+        {
+            UsuarioId = 2,
+            Nombre = "Juan Pérez",
+            Rol = RolUsuario.Barbero,
+            BarberoId = 1
+        });
+
+        var manana = DateTime.Today.AddDays(1);
+        var pasadoManana = DateTime.Today.AddDays(2);
+        var diaManana = DateOnly.FromDateTime(manana);
+        var diaPasadoManana = DateOnly.FromDateTime(pasadoManana);
+
+        var citaPasadoManana = new Cita
+        {
+            Id = Guid.NewGuid(),
+            BarberoId = 1,
+            ClienteId = 20,
+            ServicioId = 8,
+            Inicio = pasadoManana.Date.AddHours(14),
+            Fin = pasadoManana.Date.AddHours(14).AddMinutes(30),
+            Estado = EstadoCita.Confirmada
+        };
+
+        // Simular que la primera llamada tarda más para provocar que termine después de la segunda
+        mockCitaRepo.Setup(r => r.GetAgendaBarberoAsync(1, diaManana))
+            .Returns(async () =>
+            {
+                await Task.Delay(40);
+                return new List<Cita>();
+            });
+
+        mockCitaRepo.Setup(r => r.GetAgendaBarberoAsync(1, diaPasadoManana))
+            .ReturnsAsync(new List<Cita> { citaPasadoManana });
+
+        mockClienteRepo.Setup(r => r.GetByIdAsync(20)).ReturnsAsync(new Cliente
+        {
+            Id = 20,
+            Nombre = "Roberto Gómez",
+            Telefono = "8095559999"
+        });
+
+        mockServicioRepo.Setup(r => r.GetByIdAsync(8)).ReturnsAsync(new Servicio
+        {
+            Id = 8,
+            Nombre = "Corte Clásico",
+            DuracionMin = 30,
+            Precio = 500m
+        });
+
+        var viewModel = new AgendaDiaViewModel(
+            mockAuth.Object,
+            mockCitaRepo.Object,
+            mockClienteRepo.Object,
+            mockServicioRepo.Object,
+            mockBarberoRepo.Object,
+            mockSync.Object,
+            mockNav.Object
+        );
+
+        // 2. Act: dos DiaSiguiente seguidos rápidos
+        var t1 = viewModel.DiaSiguienteCommand.ExecuteAsync(null);
+        var t2 = viewModel.DiaSiguienteCommand.ExecuteAsync(null);
+        await Task.WhenAll(t1, t2);
+
+        // 3. Assert: debe mostrar la fecha y citas de pasado mañana
+        Assert.Equal(pasadoManana.Date, viewModel.FechaSeleccionada.Date);
+        Assert.Single(viewModel.CitasDelDia);
+        Assert.Equal("Roberto Gómez", viewModel.CitasDelDia[0].NombreCliente);
+        Assert.Equal("Corte Clásico · 30 min", viewModel.CitasDelDia[0].Servicio);
+        Assert.Equal(1, viewModel.CantidadCitas);
+        Assert.False(viewModel.EstaAgendaVacia);
+        Assert.Equal(AppViewState.ConDatos, viewModel.State);
+    }
+
+    [Fact]
+    public async Task AgendaDiaViewModel_SinBarberoIdEnSesion_MuestraEstadoError()
+    {
+        // 1. Arrange
+        var mockAuth = new Mock<IAuthService>();
+        var mockCitaRepo = new Mock<ICitaRepository>();
+        var mockClienteRepo = new Mock<IClienteRepository>();
+        var mockServicioRepo = new Mock<IServicioRepository>();
+        var mockBarberoRepo = new Mock<IBarberoRepository>();
+        var mockSync = new Mock<ISyncService>();
+        var mockNav = new Mock<INavigationService>();
+
+        mockAuth.Setup(a => a.SesionActual).Returns(new SesionUsuario
+        {
+            UsuarioId = 2,
+            Nombre = "Usuario Sin Perfil",
+            Rol = RolUsuario.Barbero,
+            BarberoId = null
+        });
+
+        var viewModel = new AgendaDiaViewModel(
+            mockAuth.Object,
+            mockCitaRepo.Object,
+            mockClienteRepo.Object,
+            mockServicioRepo.Object,
+            mockBarberoRepo.Object,
+            mockSync.Object,
+            mockNav.Object
+        );
+
+        // 2. Act
+        await viewModel.CargarAgendaAsync();
+
+        // 3. Assert
+        Assert.Equal(AppViewState.Error, viewModel.State);
+        Assert.Equal("No se encontró tu perfil de barbero.", viewModel.MensajeError);
+        mockCitaRepo.Verify(r => r.GetAgendaBarberoAsync(It.IsAny<int>(), It.IsAny<DateOnly>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("1,500", 1500)]
+    [InlineData("1.500", 1500)]
+    [InlineData("1,500.50", 1500.50)]
+    [InlineData("1.500,50", 1500.50)]
+    [InlineData("500", 500)]
+    [InlineData("500.25", 500.25)]
+    [InlineData("500,25", 500.25)]
+    public void PerfilViewModel_TryParsePrecio_FormatosValidos(string entrada, decimal esperado)
+    {
+        bool exito = PerfilViewModel.TryParsePrecio(entrada, out decimal precio);
+        Assert.True(exito);
+        Assert.Equal(esperado, precio);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("-10")]
+    [InlineData("cero")]
+    [InlineData("0")]
+    public void PerfilViewModel_TryParsePrecio_FormatosInvalidos(string entrada)
+    {
+        bool exito = PerfilViewModel.TryParsePrecio(entrada, out _);
+        Assert.False(exito);
     }
 }

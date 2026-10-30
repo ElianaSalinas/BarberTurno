@@ -245,8 +245,9 @@
                                 <Label Text="{Binding IngresosDelDia}"
                                        Style="{StaticResource M10MetricValue}" />
 
-                                <!-- Meta de negocio: se conectará cuando se defina. -->
+                                <!-- Meta de negocio: oculta si no hay meta real configurada. -->
                                 <Label Text="{Binding MetaIngresos}"
+                                       IsVisible="{Binding TieneMetaIngresos}"
                                        Style="{StaticResource M10Subtitle}" />
                             </VerticalStackLayout>
                         </Border>

@@ -140,6 +140,6 @@ Cuentas sembradas en la base de datos de Supabase:
 
 | Rol | Usuario / Teléfono | Contraseña | Nombre |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin` | `123456` | Administrador Sistema |
-| **Barbero** | `juan` | `123456` | Juan Pérez |
-| **Barbero** | `pedro` | `123456` | Pedro Gómez |
+| **Cliente** | `cliente1` | `123456` | Carlos Pérez |
+| **Barbero** | `barbero1` | `123456` | Juan Barber |
+| **Barbero** | `barbero2` | `123456` | Pedro Estilos |

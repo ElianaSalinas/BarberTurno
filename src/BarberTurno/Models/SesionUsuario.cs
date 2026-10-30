@@ -11,6 +11,9 @@ public class SesionUsuario
     /// <summary>Id del Cliente o del Barbero según el rol activo.</summary>
     public int UsuarioId { get; set; }
 
+    /// <summary>Id del Barbero asociado al usuario cuando Rol == Barbero; null si es Cliente o no existe.</summary>
+    public int? BarberoId { get; set; }
+
     /// <summary>Nombre para mostrar en la UI.</summary>
     public string Nombre { get; set; } = "";
 
