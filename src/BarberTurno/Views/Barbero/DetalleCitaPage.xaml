@@ -8,6 +8,7 @@
 -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:BarberTurno.Controls"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
              x:Class="BarberTurno.Views.DetalleCitaPage"
              x:DataType="vm:DetalleCitaViewModel"
@@ -34,6 +35,8 @@
                 <Label Text="Información de la reserva"
                        Style="{StaticResource M10SectionTitle}" />
             </VerticalStackLayout>
+            <controls:EstadoBanner State="{Binding State}" ErrorText="{Binding MensajeError}" />
+
 
             <!--
                 Estado vacío.
@@ -195,18 +198,34 @@
                     </Grid>
                 </Border>
 
-                <!--
-                    Acciones futuras:
+                <!-- Historial del cliente: sus visitas anteriores (con este barbero), de la más reciente a la más antigua. -->
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="HISTORIAL DEL CLIENTE" Style="{StaticResource M10Eyebrow}" />
 
-                    - Marcar atendida.
-                    - Marcar ausente.
-                    - Abrir historial del cliente.
+                    <Border Style="{StaticResource M10MetricCard}" Padding="20" IsVisible="{Binding SinHistorial}">
+                        <Label Text="Es su primera visita: aún no hay citas anteriores."
+                               Style="{StaticResource M10Subtitle}" HorizontalTextAlignment="Center" />
+                    </Border>
 
-                    No se agregan todavía porque requieren:
-                    M01: navegación.
-                    M02: ICitaRepository.ActualizarEstadoAsync.
-                    M08: reglas de transición de EstadoCita.
-                -->
+                    <VerticalStackLayout Spacing="8" IsVisible="{Binding HayHistorial}"
+                                         BindableLayout.ItemsSource="{Binding Historial}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:VisitaClienteItem">
+                                <Border Style="{StaticResource M10MetricCard}" Padding="16">
+                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="2">
+                                        <Label Text="{Binding Servicio}" FontFamily="OpenSansSemibold" FontSize="15"
+                                               TextColor="{AppThemeBinding Light={StaticResource M10LightText}, Dark={StaticResource M10DarkText}}" />
+                                        <Label Grid.Column="1" Text="{Binding Precio}" Style="{StaticResource M10MetricValue}"
+                                               FontSize="15" HorizontalTextAlignment="End" />
+                                        <Label Grid.Row="1" Text="{Binding Fecha}" Style="{StaticResource M10Subtitle}" />
+                                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding Estado}" Style="{StaticResource M10Subtitle}"
+                                               HorizontalTextAlignment="End" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
             </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>

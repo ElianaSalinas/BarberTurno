@@ -8,6 +8,12 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Render (y otros hosts) indican el puerto en la variable PORT.
+var puerto = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(puerto))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{puerto}");
+
+
 // 1. Base de datos (PostgreSQL en Supabase mediante User Secrets / variables de entorno)
 var rawConn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(rawConn))
@@ -83,7 +89,16 @@ builder.Services.AddCors(options =>
 });
 
 // 4. Autenticación y Autorización con JWT Bearer
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "BarberTurnoClaveSuperSecretaDeSeguridad126!JwtKey2026";
+// La clave de firma NUNCA va en el repositorio ni como valor por defecto (ver ADR-0012):
+// se configura con User Secrets en desarrollo y con la variable de entorno Jwt__Key en el servidor.
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+{
+    throw new InvalidOperationException(
+        "CRÍTICO: falta la clave de firma JWT (Jwt:Key) o es demasiado corta (mínimo 32 caracteres).\n" +
+        "Desarrollo: dotnet user-secrets set \"Jwt:Key\" \"<cadena aleatoria de 32 o más caracteres>\" (en src/BarberTurno.Api).\n" +
+        "Servidor: defina la variable de entorno Jwt__Key.");
+}
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "BarberTurnoApi";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "BarberTurnoApp";
 
@@ -187,7 +202,7 @@ app.UseSwaggerUI(c =>
 
 app.UseCors("AllowAll");
 
-if (!app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment() && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PORT")))
 {
     app.UseHttpsRedirection();
 }

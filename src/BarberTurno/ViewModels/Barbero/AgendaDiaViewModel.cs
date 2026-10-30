@@ -118,6 +118,19 @@ public partial class AgendaDiaViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    private Task ReintentarAsync() => CargarAgendaAsync();
+
+    // Tocar una cita abre su detalle con el historial del cliente.
+    [RelayCommand]
+    private async Task AbrirCitaAsync(CitaAgendaItem? item)
+    {
+        if (item is null || item.CitaId == Guid.Empty || _nav is null)
+            return;
+
+        await _nav.GoToAsync(Routes.DetalleCita, new Dictionary<string, object> { ["citaId"] = item.CitaId });
+    }
+
+    [RelayCommand]
     public async Task DiaAnteriorAsync()
     {
         FechaSeleccionada = FechaSeleccionada.AddDays(-1);
@@ -181,8 +194,8 @@ public partial class AgendaDiaViewModel : BaseViewModel
             NombreBarbero = sesion?.Nombre ?? "Barbero";
 
             // Obtener el BarberoId real directamente de la sesión activa en cada carga (no se cachea en campo privado).
-            int? barberoId = sesion?.BarberoId;
-            if (barberoId == null || barberoId <= 0)
+            int? barberoId = AgendaLoader.ObtenerBarberoId(sesion);
+            if (barberoId is null)
             {
                 if (versionActual != _versionCarga) return;
                 ActualizarEstadoSinDatos();
@@ -191,7 +204,7 @@ public partial class AgendaDiaViewModel : BaseViewModel
                 return;
             }
 
-            if (_citaRepo == null)
+            if (_citaRepo == null || _clienteRepo == null || _servicioRepo == null)
             {
                 if (versionActual != _versionCarga) return;
                 ActualizarEstadoSinDatos();
@@ -199,58 +212,17 @@ public partial class AgendaDiaViewModel : BaseViewModel
                 return;
             }
 
-            // Consultar citas del día seleccionado para el BarberoId específico
-            var dia = DateOnly.FromDateTime(FechaSeleccionada);
-            var citas = await _citaRepo.GetAgendaBarberoAsync(barberoId.Value, dia);
+            // Lógica compartida con Calendario: BarberoId de la sesión, horas locales y filtro de estados.
+            var resultado = await AgendaLoader.CargarAsync(
+                sesion, DateOnly.FromDateTime(FechaSeleccionada), DateTime.Now,
+                _citaRepo, _clienteRepo, _servicioRepo);
 
             // Si se inició una carga posterior mientras esperábamos la consulta, descartar este resultado desfasado
             if (versionActual != _versionCarga) return;
 
-            var items = new List<CitaAgendaItem>();
-            decimal totalIngresos = 0m;
-            CitaAgendaItem? primeraProxima = null;
-            var ahora = DateTime.Now;
-
-            foreach (var cita in citas.OrderBy(c => c.Inicio))
-            {
-                var cliente = _clienteRepo != null ? await _clienteRepo.GetByIdAsync(cita.ClienteId) : null;
-                var servicio = _servicioRepo != null ? await _servicioRepo.GetByIdAsync(cita.ServicioId) : null;
-
-                var nombreCli = cliente?.Nombre ?? "Cliente";
-                var nombreServ = servicio?.Nombre ?? "Servicio";
-                var duracion = servicio?.DuracionMin ?? 30;
-                var precio = servicio?.Precio ?? 0m;
-
-                if (cita.Estado != EstadoCita.Cancelada && cita.Estado != EstadoCita.Rechazada)
-                {
-                    totalIngresos += precio;
-                }
-
-                // Generar iniciales del cliente
-                var partes = nombreCli.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                var iniciales = partes.Length >= 2
-                    ? $"{partes[0][..1]}{partes[1][..1]}".ToUpperInvariant()
-                    : (nombreCli.Length > 0 ? nombreCli[..1].ToUpperInvariant() : "CL");
-
-                var item = new CitaAgendaItem
-                {
-                    Hora = cita.Inicio.ToString("hh:mm", CultureInfo.InvariantCulture),
-                    Periodo = cita.Inicio.ToString("tt", CultureInfo.InvariantCulture).ToUpperInvariant(),
-                    NombreCliente = nombreCli,
-                    InicialesCliente = iniciales,
-                    Servicio = $"{nombreServ} · {duracion} min",
-                    Resumen = $"{nombreCli} · {nombreServ}"
-                };
-
-                items.Add(item);
-
-                // Si es hoy y la cita aún no ha pasado, buscar la próxima cita más cercana
-                if (FechaSeleccionada.Date == ahora.Date && cita.Inicio >= ahora && primeraProxima == null
-                    && cita.Estado is EstadoCita.Confirmada or EstadoCita.Pendiente)
-                {
-                    primeraProxima = item;
-                }
-            }
+            var items = resultado?.Items ?? new List<CitaAgendaItem>();
+            var totalIngresos = resultado?.Ingresos ?? 0m;
+            var primeraProxima = resultado?.Proxima;
 
             // Comprobación de versión antes de volcar cambios en colecciones y propiedades observables
             if (versionActual != _versionCarga) return;
@@ -322,6 +294,11 @@ public partial class AgendaDiaViewModel : BaseViewModel
 
 public partial class CitaAgendaItem : ObservableObject
 {
+    /// <summary>Id de la cita (para abrir su detalle e historial).</summary>
+    public Guid CitaId { get; set; }
+
+    public int ClienteId { get; set; }
+
     [ObservableProperty]
     private string hora = string.Empty;
 

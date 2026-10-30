@@ -1,162 +1,209 @@
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
+using BarberTurno.Data.Repositories;
+using BarberTurno.Helpers;
+using BarberTurno.Models;
+using BarberTurno.Services.Auth;
+using EstadoDeCita = BarberTurno.Models.EstadoCita;
 
 // Responsable: M10.
-// Estado de presentación de la pantalla DetalleCitaPage.
-//
-// No consulta repositorios todavía porque M02, M06 y M08 son responsables
-// de implementar y registrar los servicios necesarios.
+// Detalle de una cita del barbero con el historial del cliente (sus visitas anteriores).
+// Recibe el id de la cita por navegación (IQueryAttributable, clave "citaId") y lee todo de los repositorios locales,
+// por lo que funciona sin conexión.
 namespace BarberTurno.ViewModels;
 
-public class DetalleCitaViewModel : BaseViewModel
+/// <summary>Una visita anterior del cliente, lista para mostrar.</summary>
+public sealed class VisitaClienteItem
 {
-    /*
-        Indica si la pantalla recibió una cita real desde Agenda.
+    public string Fecha { get; init; } = string.Empty;
+    public string Servicio { get; init; } = string.Empty;
+    public string Precio { get; init; } = string.Empty;
+    public string Estado { get; init; } = string.Empty;
+}
 
-        False:
-        - Se muestra el estado “Selecciona una cita”.
-        - Se ocultan las tarjetas de detalle.
+public partial class DetalleCitaViewModel : BaseViewModel, IQueryAttributable
+{
+    private static readonly CultureInfo CulturaEs = CultureInfo.GetCultureInfo("es");
+    private const int MaximoVisitas = 20;
 
-        True:
-        - Se muestran cliente, fecha, hora, servicio y estado.
-    */
+    private readonly ICitaRepository _citas;
+    private readonly IClienteRepository _clientes;
+    private readonly IServicioRepository _servicios;
+    private readonly IAuthService _auth;
+
+    public DetalleCitaViewModel(
+        ICitaRepository citas,
+        IClienteRepository clientes,
+        IServicioRepository servicios,
+        IAuthService auth)
+    {
+        _citas = citas;
+        _clientes = clientes;
+        _servicios = servicios;
+        _auth = auth;
+        State = ViewState.Vacio; // hasta recibir una cita real: "Selecciona una cita"
+    }
+
+    // Indica si la pantalla recibió una cita real desde la agenda o el calendario.
+    [ObservableProperty]
     private bool tieneCitaSeleccionada;
 
-    public bool TieneCitaSeleccionada
-    {
-        get => tieneCitaSeleccionada;
-        private set => SetProperty(ref tieneCitaSeleccionada, value);
-    }
-
-    /*
-        ID real de la cita.
-
-        Más adelante M01 enviará este valor mediante navegación y M02 permitirá
-        buscarla con ICitaRepository.GetByIdAsync(CitaId).
-    */
+    [ObservableProperty]
     private Guid? citaId;
 
-    public Guid? CitaId
-    {
-        get => citaId;
-        private set => SetProperty(ref citaId, value);
-    }
-
-    // Nombre real obtenido desde Cliente.Nombre.
+    [ObservableProperty]
     private string nombreCliente = string.Empty;
 
-    public string NombreCliente
-    {
-        get => nombreCliente;
-        private set => SetProperty(ref nombreCliente, value);
-    }
-
-    // Iniciales derivadas del nombre real del cliente.
+    [ObservableProperty]
     private string inicialesCliente = string.Empty;
 
-    public string InicialesCliente
-    {
-        get => inicialesCliente;
-        private set => SetProperty(ref inicialesCliente, value);
-    }
-
-    // Fecha formateada para la interfaz.
-    private string fechaCita = string.Empty;
-
-    public string FechaCita
-    {
-        get => fechaCita;
-        private set => SetProperty(ref fechaCita, value);
-    }
-
-    // Hora formateada para la interfaz.
-    private string horaCita = string.Empty;
-
-    public string HoraCita
-    {
-        get => horaCita;
-        private set => SetProperty(ref horaCita, value);
-    }
-
-    // Nombre real del servicio.
-    private string servicio = string.Empty;
-
-    public string Servicio
-    {
-        get => servicio;
-        private set => SetProperty(ref servicio, value);
-    }
-
-    // Duración real, obtenida desde Servicio.DuracionMin.
-    private string duracion = string.Empty;
-
-    public string Duracion
-    {
-        get => duracion;
-        private set => SetProperty(ref duracion, value);
-    }
-
-    // Precio real, obtenido desde Servicio.Precio.
-    private string precioServicio = string.Empty;
-
-    public string PrecioServicio
-    {
-        get => precioServicio;
-        private set => SetProperty(ref precioServicio, value);
-    }
-
-    /*
-        Estado de dominio de la cita:
-        PendienteConfirmacion, Confirmada, Rechazada, Cancelada,
-        Atendida o Ausente.
-
-        M08 debe definir las transiciones válidas entre estados.
-    */
-    private string estadoCita = string.Empty;
-
-    public string EstadoCita
-    {
-        get => estadoCita;
-        private set => SetProperty(ref estadoCita, value);
-    }
-
-    // Teléfono real del cliente, si M02 lo tiene disponible.
+    [ObservableProperty]
     private string telefonoCliente = string.Empty;
 
-    public string TelefonoCliente
+    [ObservableProperty]
+    private string fechaCita = string.Empty;
+
+    [ObservableProperty]
+    private string horaCita = string.Empty;
+
+    [ObservableProperty]
+    private string servicio = string.Empty;
+
+    [ObservableProperty]
+    private string duracion = string.Empty;
+
+    [ObservableProperty]
+    private string precioServicio = string.Empty;
+
+    [ObservableProperty]
+    private string estadoCita = string.Empty;
+
+    [ObservableProperty]
+    private bool hayHistorial;
+
+    [ObservableProperty]
+    private bool sinHistorial;
+
+    public ObservableCollection<VisitaClienteItem> Historial { get; } = new();
+
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        get => telefonoCliente;
-        private set => SetProperty(ref telefonoCliente, value);
+        if (!query.TryGetValue("citaId", out var valor))
+            return;
+
+        var id = valor switch
+        {
+            Guid g => g,
+            string s when Guid.TryParse(s, out var parsed) => parsed,
+            _ => Guid.Empty
+        };
+
+        if (id != Guid.Empty)
+            _ = CargarAsync(id);
     }
 
-    /*
-        Estado inicial seguro.
-
-        No se cargan datos de demostración. La pantalla mostrará su estado vacío
-        hasta que Agenda entregue un identificador de cita real.
-    */
-    public DetalleCitaViewModel()
+    private async Task CargarAsync(Guid id)
     {
-        LimpiarDetalle();
+        State = ViewState.Cargando;
+        MensajeError = null;
+
+        try
+        {
+            var cita = await _citas.GetByIdAsync(id);
+            if (cita is null)
+            {
+                LimpiarDetalle();
+                MensajeError = "No se encontró la cita. Vuelve a la agenda e inténtalo de nuevo.";
+                State = ViewState.Error;
+                return;
+            }
+
+            var cliente = await _clientes.GetByIdAsync(cita.ClienteId);
+            var serv = await _servicios.GetByIdAsync(cita.ServicioId);
+
+            var nombre = string.IsNullOrWhiteSpace(cliente?.Nombre) ? "Cliente" : cliente!.Nombre.Trim();
+            var partes = nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            CitaId = cita.Id;
+            NombreCliente = nombre;
+            InicialesCliente = (partes.Length >= 2 ? $"{partes[0][0]}{partes[1][0]}" : nombre[..1]).ToUpperInvariant();
+            TelefonoCliente = cliente?.Telefono ?? string.Empty;
+            // Cita.Inicio ya está en hora local.
+            FechaCita = cita.Inicio.ToString("dddd d 'de' MMMM", CulturaEs);
+            HoraCita = cita.Inicio.ToString("hh:mm tt", CultureInfo.InvariantCulture);
+            Servicio = serv?.Nombre ?? "Servicio";
+            Duracion = serv is null ? string.Empty : $"{serv.DuracionMin} min";
+            PrecioServicio = serv is null ? string.Empty : $"${serv.Precio:N0}";
+            EstadoCita = TextoEstado(cita.Estado);
+            TieneCitaSeleccionada = true;
+
+            await CargarHistorialAsync(cita);
+            State = ViewState.ConDatos;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[DetalleCitaViewModel] Error al cargar la cita: {ex}");
+            MensajeError = "No se pudo cargar el detalle de la cita.";
+            State = ViewState.Error;
+        }
     }
 
-    /*
-        Limpia información previa antes de abrir otra cita.
+    // Visitas anteriores del mismo cliente (con este barbero), de la más reciente a la más antigua.
+    private async Task CargarHistorialAsync(Cita cita)
+    {
+        Historial.Clear();
 
-        Cuando M01 defina la navegación y M02 entregue los repositorios,
-        este método será llamado antes de cargar la nueva cita.
-    */
+        var previas = await _citas.GetHistorialClienteAsync(
+            cita.ClienteId, _auth.SesionActual?.BarberoId, antesDe: cita.Inicio, skip: 0, take: MaximoVisitas);
+
+        var catalogo = new Dictionary<int, Servicio?>();
+        foreach (var previa in previas.Where(c => c.Id != cita.Id
+                     && c.Estado is not (EstadoDeCita.Cancelada or EstadoDeCita.Rechazada)))
+        {
+            if (!catalogo.TryGetValue(previa.ServicioId, out var serv))
+                catalogo[previa.ServicioId] = serv = await _servicios.GetByIdAsync(previa.ServicioId);
+
+            Historial.Add(new VisitaClienteItem
+            {
+                Fecha = previa.Inicio.ToString("ddd d MMM yyyy · hh:mm tt", CulturaEs),
+                Servicio = serv?.Nombre ?? "Servicio",
+                Precio = serv is null ? string.Empty : $"${serv.Precio:N0}",
+                Estado = TextoEstado(previa.Estado)
+            });
+        }
+
+        HayHistorial = Historial.Count > 0;
+        SinHistorial = Historial.Count == 0;
+    }
+
     private void LimpiarDetalle()
     {
         CitaId = null;
         NombreCliente = string.Empty;
         InicialesCliente = string.Empty;
+        TelefonoCliente = string.Empty;
         FechaCita = string.Empty;
         HoraCita = string.Empty;
         Servicio = string.Empty;
         Duracion = string.Empty;
         PrecioServicio = string.Empty;
         EstadoCita = string.Empty;
-        TelefonoCliente = string.Empty;
         TieneCitaSeleccionada = false;
+        Historial.Clear();
+        HayHistorial = false;
+        SinHistorial = false;
     }
+
+    private static string TextoEstado(EstadoDeCita estado) => estado switch
+    {
+        EstadoDeCita.Pendiente => "Pendiente de confirmación",
+        EstadoDeCita.Confirmada => "Confirmada",
+        EstadoDeCita.Rechazada => "Rechazada",
+        EstadoDeCita.Cancelada => "Cancelada",
+        EstadoDeCita.Atendida => "Atendida",
+        EstadoDeCita.Ausente => "Ausente",
+        _ => estado.ToString()
+    };
 }

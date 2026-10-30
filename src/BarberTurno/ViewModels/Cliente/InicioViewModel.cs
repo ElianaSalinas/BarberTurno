@@ -52,10 +52,16 @@ public partial class InicioViewModel : BaseViewModel
         _ = CargarAsync(sesion);
     }
 
+    [RelayCommand]
+    private Task ReintentarAsync() => CargarAsync(_auth.SesionActual);
+
     private async Task CargarAsync(SesionUsuario? sesion)
     {
         if (_cargando) return;
         _cargando = true;
+        var fallo = false;
+        State = ViewState.Cargando;
+        MensajeError = null;
 
         try
         {
@@ -97,10 +103,15 @@ public partial class InicioViewModel : BaseViewModel
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
+            fallo = true;
+            MensajeError = "No se pudieron cargar tus datos. Revisa tu conexión e inténtalo de nuevo.";
+            State = ViewState.Error;
         }
         finally
         {
             _cargando = false;
+            if (!fallo)
+                State = ViewState.ConDatos;
         }
     }
 

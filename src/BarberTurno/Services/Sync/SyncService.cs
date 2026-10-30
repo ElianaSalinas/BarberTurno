@@ -7,6 +7,7 @@ using BarberTurno.Mappers;
 using BarberTurno.Models;
 using BarberTurno.Services.Api;
 using BarberTurno.Services.Network;
+using BarberTurno.Services.Notifications;
 
 namespace BarberTurno.Services.Sync;
 
@@ -18,6 +19,7 @@ public class SyncService : ISyncService
     private readonly IClienteRepository _clienteRepo;
     private readonly ICitaRepository _citaRepo;
     private readonly IBarberTurnoApi _api;
+    private readonly IReminderService? _reminders;
     private readonly SemaphoreSlim _catalogLock = new(1, 1);
     private readonly SemaphoreSlim _citasLock = new(1, 1);
     private readonly SemaphoreSlim _pendingLock = new(1, 1);
@@ -30,8 +32,10 @@ public class SyncService : ISyncService
         IServicioRepository servicioRepo,
         IClienteRepository clienteRepo,
         ICitaRepository citaRepo,
-        IBarberTurnoApi api)
+        IBarberTurnoApi api,
+        IReminderService? reminders = null)
     {
+        _reminders = reminders;
         _networkService = networkService;
         _barberoRepo = barberoRepo;
         _servicioRepo = servicioRepo;
@@ -162,6 +166,10 @@ public class SyncService : ISyncService
                         Debug.WriteLine($"[SyncService] Error al guardar cita {citaDto.Id}: {ex.Message}");
                     }
                 }
+
+                // Alinea los recordatorios con lo que dice el servidor (citas nuevas, canceladas o rechazadas).
+                if (_reminders is not null)
+                    await _reminders.ReconciliarAsync();
             }
         }
         catch (Exception ex)
@@ -207,12 +215,16 @@ public class SyncService : ISyncService
                         cita.Estado = EstadoCita.Confirmada;
                         cita.PendienteSincronizar = false;
                         await _citaRepo.SaveItemAsync(cita);
+                        if (_reminders is not null)
+                            await _reminders.ProgramarAsync(cita);
                     }
                     else if (respuesta.CodigoHttp == 409)
                     {
                         cita.Estado = EstadoCita.Rechazada;
                         cita.PendienteSincronizar = false;
                         await _citaRepo.SaveItemAsync(cita);
+                        if (_reminders is not null)
+                            await _reminders.CancelarAsync(cita.Id);
 
                         ReservaRechazada?.Invoke(this, cita.Id);
                     }

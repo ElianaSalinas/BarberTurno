@@ -9,6 +9,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             xmlns:controls="clr-namespace:BarberTurno.Controls"
              x:Class="BarberTurno.Views.AgendaDiaPage"
              x:DataType="vm:AgendaDiaViewModel"
              Style="{StaticResource M10Page}"
@@ -91,6 +92,8 @@
                             </Border.GestureRecognizers>
                         </Border>
                     </Grid>
+
+                    <controls:EstadoBanner State="{Binding State}" ErrorText="{Binding MensajeError}" RetryCommand="{Binding ReintentarCommand}" />
 
                     <!-- Saludo del barbero: NombreBarbero vendrá de M06. -->
                     <VerticalStackLayout Spacing="3">
@@ -317,7 +320,13 @@
                 <DataTemplate x:DataType="vm:CitaAgendaItem">
 
                     <Border Style="{StaticResource M10AgendaRow}"
-                            Margin="24,0,24,10">
+                            Margin="24,0,24,10"
+                            SemanticProperties.Hint="Toca para ver el detalle y el historial del cliente">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AgendaDiaViewModel}}, Path=AbrirCitaCommand}"
+                                CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
 
                         <!--
                             Estructura:

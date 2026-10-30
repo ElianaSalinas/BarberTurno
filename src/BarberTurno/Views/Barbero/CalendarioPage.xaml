@@ -18,6 +18,8 @@
                 <Label Text="Calendario de citas" Style="{StaticResource BtTitle}" />
                 <Label Text="Selecciona un día para revisar y gestionar los turnos programados." Style="{StaticResource BtMuted}" />
             </VerticalStackLayout>
+            <controls:EstadoBanner State="{Binding State}" ErrorText="{Binding MensajeError}" RetryCommand="{Binding ReintentarCommand}" />
+
 
             <!-- Selector de fecha -->
             <Border Style="{StaticResource BtCard}" Padding="16">
@@ -41,7 +43,13 @@
             <VerticalStackLayout BindableLayout.ItemsSource="{Binding Citas}" Spacing="10">
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="vm:CitaAgendaItem">
-                        <Border Style="{StaticResource BtCard}" Padding="16">
+                        <Border Style="{StaticResource BtCard}" Padding="16"
+                                SemanticProperties.Hint="Toca para ver el detalle y el historial del cliente">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CalendarioViewModel}}, Path=AbrirCitaCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
                             <Grid ColumnDefinitions="64,*" ColumnSpacing="14">
                                 <VerticalStackLayout VerticalOptions="Center">
                                     <Label Text="{Binding Hora}" FontFamily="OpenSansSemibold" FontSize="18" />

@@ -4,6 +4,8 @@ using BarberTurno.Data.Repositories;
 using BarberTurno.Dtos;
 using BarberTurno.Models;
 using BarberTurno.Services.Api;
+using BarberTurno.Services.Auth;
+using BarberTurno.Services.Notifications;
 
 namespace BarberTurno.Services.Booking;
 
@@ -11,11 +13,22 @@ public class BookingService : IBookingService
 {
     private readonly IBarberTurnoApi _api;
     private readonly ICitaRepository _citaRepo;
+    private readonly IServicioRepository? _servicioRepo;
+    private readonly IAuthService? _auth;
+    private readonly IReminderService? _reminders;
 
-    public BookingService(IBarberTurnoApi api, ICitaRepository citaRepo)
+    public BookingService(
+        IBarberTurnoApi api,
+        ICitaRepository citaRepo,
+        IServicioRepository? servicioRepo = null,
+        IAuthService? auth = null,
+        IReminderService? reminders = null)
     {
         _api = api;
         _citaRepo = citaRepo;
+        _servicioRepo = servicioRepo;
+        _auth = auth;
+        _reminders = reminders;
     }
 
     public async Task<ResultadoReserva> ReservarAsync(ReservaSolicitud solicitud)
@@ -44,6 +57,7 @@ public class BookingService : IBookingService
                 Estado = EstadoCita.Confirmada
             };
             await _citaRepo.InsertOrUpdateAsync(cita);
+            await ProgramarRecordatorioAsync(cita);
             return new ResultadoReserva
             {
                 Tipo = ResultadoReservaTipo.Confirmada,
@@ -63,18 +77,23 @@ public class BookingService : IBookingService
 
         if (apiResult.SinConexion)
         {
+            // La cita pendiente debe quedar a nombre del cliente de la sesión y con la duración real del servicio.
+            var servicio = _servicioRepo is null ? null : await _servicioRepo.GetByIdAsync(solicitud.ServicioId);
+            var duracionMin = servicio?.DuracionMin > 0 ? servicio.DuracionMin : 30;
+
             var citaLocal = new Cita
             {
                 Id = citaId,
-                ClienteId = 0,
+                ClienteId = _auth?.SesionActual?.UsuarioId ?? 0,
                 BarberoId = solicitud.BarberoId,
                 ServicioId = solicitud.ServicioId,
                 Inicio = solicitud.Inicio,
-                Fin = solicitud.Inicio.AddMinutes(30),
+                Fin = solicitud.Inicio.AddMinutes(duracionMin),
                 Estado = EstadoCita.Pendiente,
                 PendienteSincronizar = true
             };
             await _citaRepo.InsertOrUpdateAsync(citaLocal);
+            await ProgramarRecordatorioAsync(citaLocal);
             return new ResultadoReserva
             {
                 Tipo = ResultadoReservaTipo.PendienteSinConexion,
@@ -99,6 +118,17 @@ public class BookingService : IBookingService
             cita.Estado = EstadoCita.Cancelada;
             await _citaRepo.InsertOrUpdateAsync(cita);
         }
+
+        // Una cita cancelada no debe seguir avisando.
+        if (_reminders is not null)
+            await _reminders.CancelarAsync(citaId);
+
         return result.Exito;
+    }
+
+    private async Task ProgramarRecordatorioAsync(Cita cita)
+    {
+        if (_reminders is not null)
+            await _reminders.ProgramarAsync(cita);
     }
 }

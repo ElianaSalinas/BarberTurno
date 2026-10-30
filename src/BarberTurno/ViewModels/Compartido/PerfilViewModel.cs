@@ -156,20 +156,26 @@ public partial class PerfilViewModel : BaseViewModel
 
         if (EsBarbero)
         {
-            await CargarDatosBarberoAsync(sesion.UsuarioId);
+            await CargarDatosBarberoAsync(sesion.BarberoId);
         }
 
         MensajeError = null;
         State = ViewState.ConDatos;
     }
 
-    private async Task CargarDatosBarberoAsync(int usuarioId)
+    private async Task CargarDatosBarberoAsync(int? barberoId)
     {
         try
         {
-            var todosBarberos = await _barberos.GetAllAsync();
-            var barbero = todosBarberos.FirstOrDefault(b => b.Nombre.Equals(Nombre, StringComparison.OrdinalIgnoreCase))
-                ?? todosBarberos.FirstOrDefault(b => b.Nombre.Equals(Nombre, StringComparison.OrdinalIgnoreCase));
+            // El barbero se identifica por BarberoId de la sesión (no por nombre).
+            if (barberoId is not > 0)
+            {
+                _barberoId = 0;
+                Debug.WriteLine("[PerfilViewModel] La sesión no tiene BarberoId.");
+                return;
+            }
+
+            var barbero = await _barberos.GetByIdAsync(barberoId.Value);
 
             if (barbero != null)
             {
@@ -349,7 +355,7 @@ public partial class PerfilViewModel : BaseViewModel
 
                 var sesion = _auth.SesionActual;
                 if (sesion != null)
-                    await CargarDatosBarberoAsync(sesion.UsuarioId);
+                    await CargarDatosBarberoAsync(sesion.BarberoId);
 
                 await _dialogs.ShowAlertAsync("Servicio creado", "El nuevo servicio ha sido registrado y asignado a tu perfil.");
             }

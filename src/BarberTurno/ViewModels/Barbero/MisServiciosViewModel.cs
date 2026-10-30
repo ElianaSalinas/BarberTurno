@@ -13,7 +13,6 @@ namespace BarberTurno.ViewModels;
 public partial class MisServiciosViewModel : BaseViewModel
 {
     private readonly IAuthService _auth;
-    private readonly IBarberoRepository _barberos;
     private readonly IServicioRepository _servicios;
 
     public ObservableCollection<ServicioItem> Servicios { get; } = new();
@@ -21,10 +20,9 @@ public partial class MisServiciosViewModel : BaseViewModel
     [ObservableProperty]
     private bool sinServicios;
 
-    public MisServiciosViewModel(IAuthService auth, IBarberoRepository barberos, IServicioRepository servicios)
+    public MisServiciosViewModel(IAuthService auth, IServicioRepository servicios)
     {
         _auth = auth;
-        _barberos = barberos;
         _servicios = servicios;
     }
 
@@ -43,16 +41,18 @@ public partial class MisServiciosViewModel : BaseViewModel
                 return;
             }
 
-            var barberos = await _barberos.GetAllAsync();
-            var yo = barberos.FirstOrDefault(b => b.Nombre.Equals(sesion.Nombre, StringComparison.OrdinalIgnoreCase));
+            var barberoId = AgendaLoader.ObtenerBarberoId(sesion);
+            if (barberoId is null)
+            {
+                State = ViewState.Error;
+                MensajeError = "No se encontró tu perfil de barbero. Cierra sesión e inicia de nuevo.";
+                return;
+            }
 
             Servicios.Clear();
-            if (yo is not null)
-            {
-                var lista = await _servicios.GetByBarberoAsync(yo.Id);
-                foreach (var s in lista)
-                    Servicios.Add(ServicioItem.Desde(s));
-            }
+            var lista = await _servicios.GetByBarberoAsync(barberoId.Value);
+            foreach (var s in lista)
+                Servicios.Add(ServicioItem.Desde(s));
 
             SinServicios = Servicios.Count == 0;
             State = ViewState.ConDatos;
