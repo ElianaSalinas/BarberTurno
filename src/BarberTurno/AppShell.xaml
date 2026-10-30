@@ -16,7 +16,6 @@
     <!-- Pantalla de Login inicial de la aplicación -->
     <TabBar Route="auth">
         <ShellContent Route="login"
-                      Title="Iniciar sesión"
                       Shell.TabBarIsVisible="False"
                       Shell.NavBarIsVisible="False"
                       ContentTemplate="{DataTemplate views:LoginPage}" />
