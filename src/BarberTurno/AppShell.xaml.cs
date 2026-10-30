@@ -17,5 +17,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(Routes.ConfirmarReserva, typeof(ConfirmarReservaPage));
         Routing.RegisterRoute(Routes.HistorialCliente, typeof(HistorialClientePage));
         Routing.RegisterRoute(Routes.DetalleCita, typeof(DetalleCitaPage));
+
+        CurrentItem = LoginItem;
     }
 }

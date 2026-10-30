@@ -1,104 +1,78 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- Responsable: M5. Pantalla de login: usuario/contraseña, errores y navegación a registro. -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
              x:Class="BarberTurno.Views.LoginPage"
              x:DataType="vm:LoginViewModel"
+             Style="{StaticResource M10Page}"
              Title="Iniciar sesión"
-             Shell.NavBarIsVisible="False">
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False">
 
-    <!-- ScrollView: evita que el teclado virtual de Android tape los campos.
-         Al abrir el teclado, el contenido sube y los campos siguen visibles. -->
     <ScrollView>
-        <VerticalStackLayout
-            Padding="32,60,32,32"
-            Spacing="16"
-            VerticalOptions="Center">
+        <VerticalStackLayout Padding="28,56,28,32" Spacing="14" MaximumWidthRequest="460">
 
-            <!-- ── Encabezado ───────────────────────────────────────────── -->
-            <!-- Usa el estilo "Headline" definido en Styles.xaml (32px, MidnightBlue/White) -->
-            <Label Text="BarberTurno"
-                   Style="{StaticResource Headline}" />
+            <!-- Marca -->
+            <HorizontalStackLayout Spacing="10">
+                <Border WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 19" StrokeThickness="0"
+                        Background="{AppThemeBinding Light={StaticResource M10LightDarkCard}, Dark={StaticResource M10DarkDarkCard}}">
+                    <Image Source="icon_scissors_gold.svg" WidthRequest="20" HeightRequest="20" />
+                </Border>
+                <Label VerticalOptions="Center" FontFamily="OpenSansSemibold" FontSize="20"
+                       TextColor="{AppThemeBinding Light={StaticResource M10LightText}, Dark={StaticResource M10DarkText}}">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="Barber" />
+                            <Span Text="Turno" TextColor="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+            </HorizontalStackLayout>
 
-            <!-- Usa el estilo "SubHeadline" definido en Styles.xaml (24px) -->
-            <Label Text="Iniciar sesión"
-                   Style="{StaticResource SubHeadline}"
-                   Margin="0,0,0,16" />
+            <VerticalStackLayout Spacing="2" Margin="0,22,0,10">
+                <Label Text="BIENVENIDO" FontSize="10" CharacterSpacing="1.3" Style="{StaticResource BtGold}" />
+                <Label Text="Hola de nuevo." Style="{StaticResource BtTitle}" FontSize="34" />
+                <Label Text="Inicia sesión para reservar." FontFamily="OpenSansSemibold" FontSize="24"
+                       TextColor="{AppThemeBinding Light={StaticResource M10LightMutedText}, Dark={StaticResource M10DarkMutedText}}" />
+            </VerticalStackLayout>
 
-            <!-- ── Campo: Usuario ───────────────────────────────────────── -->
-            <!-- El estilo implícito de Entry (Styles.xaml) aplica automáticamente:
-                 fuente, colores de texto y placeholder con AppThemeBinding. -->
-            <!-- El foco al siguiente campo se maneja en code-behind (Completed event),
-                 que es comportamiento visual puro, no lógica de negocio. -->
-            <Entry x:Name="EntryUsuario"
-                   Text="{Binding Usuario}"
-                   Placeholder="Usuario"
-                   Keyboard="Email"
-                   ReturnType="Next" />
+            <Border Style="{StaticResource BtField}">
+                <Entry x:Name="EntryUsuario" Style="{StaticResource BtEntry}" Text="{Binding Usuario}"
+                       Placeholder="Usuario o correo" Keyboard="Email" ReturnType="Next" />
+            </Border>
+            <Border Style="{StaticResource BtField}">
+                <Entry x:Name="EntryPassword" Style="{StaticResource BtEntry}" Text="{Binding Password}"
+                       Placeholder="Contraseña" IsPassword="True" ReturnType="Done"
+                       ReturnCommand="{Binding LoginCommand}" />
+            </Border>
 
-            <!-- ── Campo: Contraseña ────────────────────────────────────── -->
-            <Entry x:Name="EntryPassword"
-                   Text="{Binding Password}"
-                   Placeholder="Contraseña"
-                   IsPassword="True"
-                   ReturnType="Done"
-                   ReturnCommand="{Binding LoginCommand}" />
-
-            <!-- ── Mensaje de error ─────────────────────────────────────── -->
-            <!-- Invisible por defecto; aparece solo cuando MensajeError tiene texto.
-                 DataTrigger: cuando MensajeError != "", pone IsVisible = True.
-                 No usamos convertidores porque ViewStateToVisibilityConverter
-                 todavía no está implementado (TODO M09). -->
-            <!-- Visible por defecto. El DataTrigger lo oculta cuando MensajeError=""
-                 (cadena vacía). Al tener texto, el trigger deja de aplicar y el Label
-                 recupera su IsVisible por defecto: True (visible). -->
-            <Label x:Name="LabelError"
-                   Text="{Binding MensajeError}"
-                   TextColor="{AppThemeBinding Light={StaticResource Magenta}, Dark={StaticResource Magenta}}"
-                   FontSize="13"
-                   HorizontalTextAlignment="Center">
+            <Label x:Name="LabelError" Text="{Binding MensajeError}" FontSize="13"
+                   TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" HorizontalTextAlignment="Center">
                 <Label.Triggers>
-                    <DataTrigger TargetType="Label"
-                                 Binding="{Binding MensajeError}"
-                                 Value="">
+                    <DataTrigger TargetType="Label" Binding="{Binding MensajeError}" Value="">
                         <Setter Property="IsVisible" Value="False" />
                     </DataTrigger>
-                    <!-- Cuando MensajeError deja de ser "" el trigger de arriba
-                         deja de aplicar y IsVisible vuelve al valor inicial: True.
-                         Por eso ponemos IsVisible="False" como inicial y
-                         confiamos en que solo el trigger con Value="" lo oculta. -->
                 </Label.Triggers>
             </Label>
 
-            <!-- ── Botón principal ──────────────────────────────────────── -->
-            <!-- El estilo implícito de Button (Styles.xaml) aplica colores,
-                 CornerRadius=8, MinimumHeightRequest=44 y el estado Disabled
-                 (gris automático cuando IsEnabled=False). -->
-            <!-- IsEnabled no necesita binding manual: AsyncRelayCommand (generado por
-                 [RelayCommand]) deshabilita el botón automáticamente mientras el
-                 comando está en ejecución (AllowConcurrentExecutions=false por defecto). -->
-            <Button Text="Entrar"
-                    Command="{Binding LoginCommand}"
-                    Margin="0,8,0,0" />
+            <!-- Botón dorado, igual que "Reservar un turno" -->
+            <Button Text="Entrar" Command="{Binding LoginCommand}" Style="{StaticResource BtGoldButton}" Margin="0,6,0,0" />
 
-            <!-- ── Indicador de carga ────────────────────────────────────── -->
-            <!-- El estilo implícito de ActivityIndicator (Styles.xaml) pone
-                 Primary en claro y White en oscuro. -->
-            <ActivityIndicator IsRunning="{Binding IsBusy}"
-                               IsVisible="{Binding IsBusy}"
-                               HorizontalOptions="Center" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center"
+                               Color="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
 
-            <!-- ── Botón de registro ─────────────────────────────────────── -->
-            <!-- Sin estilo de Button para que parezca un link de texto.
-                 BackgroundColor Transparent y TextColor del tema. -->
-            <Button Text="¿No tienes cuenta? Regístrate"
-                    Command="{Binding IrARegistroCommand}"
-                    BackgroundColor="Transparent"
-                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                    FontSize="13"
-                    Margin="0,8,0,0" />
-
+            <!-- Tarjeta oscura para registro -->
+            <Border Style="{StaticResource BtDarkCard}" Margin="0,18,0,0">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Spacing="3" VerticalOptions="Center">
+                        <Label Text="¿PRIMERA VEZ?" FontSize="10" CharacterSpacing="1.3" Style="{StaticResource BtGold}" />
+                        <Label Text="Crea tu cuenta gratis" FontFamily="OpenSansSemibold" FontSize="16" TextColor="White" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1" Text="Registrarme" Command="{Binding IrARegistroCommand}"
+                            BackgroundColor="#D6B362" TextColor="#1B1B17" FontFamily="OpenSansSemibold"
+                            FontSize="12" CornerRadius="10" HeightRequest="40" Padding="14,0" />
+                </Grid>
+            </Border>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

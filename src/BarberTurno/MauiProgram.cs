@@ -47,6 +47,10 @@ public static class MauiProgram
         services.AddTransient<LoginPage>();
         services.AddTransient<RegistroViewModel>();
         services.AddTransient<RegistroPage>();
+        services.AddTransient<InicioViewModel>();
+        services.AddTransient<InicioPage>();
+        services.AddTransient<CatalogoViewModel>();
+        services.AddTransient<CatalogoPage>();
         services.AddTransient<BarberosViewModel>();
         services.AddTransient<BarberosPage>();
         services.AddTransient<ServiciosViewModel>();
