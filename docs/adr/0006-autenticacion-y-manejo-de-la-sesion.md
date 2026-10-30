@@ -1,6 +1,6 @@
 # ADR-0006: Autenticación y manejo de la sesión
 
-- **Estado:** Propuesto
+- **Estado:** Aceptado
 - **Fecha:** 2026-10-28
 - **Responsable(s):** M5 (Autenticación, roles y sesión)
 

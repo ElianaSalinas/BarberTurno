@@ -27,6 +27,9 @@ public partial class HistorialClienteViewModel : BaseViewModel
     [RelayCommand]
     public async Task CargarClientesAsync()
     {
+        State = ViewState.Cargando;
+        MensajeError = null;
+
         try
         {
             await _sync.SincronizarCatalogosAsync();
@@ -36,10 +39,14 @@ public partial class HistorialClienteViewModel : BaseViewModel
             {
                 ListaClientes.Add(c);
             }
+
+            State = ListaClientes.Count == 0 ? ViewState.Vacio : ViewState.ConDatos;
         }
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
+            MensajeError = "No se pudo cargar la lista de clientes.";
+            State = ViewState.Error;
         }
     }
 }

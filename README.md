@@ -81,6 +81,14 @@ cd src/BarberTurno.Api
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=aws-0-us-east-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.<tu_project_ref>;Password=<tu_contraseña>;SSL Mode=Require"
 ```
 
+Además, la clave con la que la API firma los tokens de sesión (JWT) también es un secreto y debe configurarse (mínimo 32 caracteres; la API no arranca sin ella):
+
+```bash
+dotnet user-secrets set "Jwt:Key" "<cadena aleatoria de 32 o más caracteres>"
+```
+
+En un servidor (Render, etc.) se usan las variables de entorno `ConnectionStrings__DefaultConnection` y `Jwt__Key`.
+
 > [!TIP]
 > Puedes consultar el `UserSecretsId` compartido en `src/BarberTurno.Api/BarberTurno.Api.csproj` o pedir la cadena exacta de conexión a tus compañeros de equipo por canal privado.
 > El esquema inicial y las políticas RLS están versionados en `docs/db/001_esquema_inicial.sql`.

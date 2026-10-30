@@ -53,7 +53,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { mensaje = "Credenciales incorrectas." });
         }
 
-        var jwtKey = _configuration["Jwt:Key"] ?? "BarberTurnoClaveSuperSecretaDeSeguridad126!JwtKey2026";
+        var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("Falta la configuración Jwt:Key.");
         var jwtIssuer = _configuration["Jwt:Issuer"] ?? "BarberTurnoApi";
         var jwtAudience = _configuration["Jwt:Audience"] ?? "BarberTurnoApp";
         var expiraEnUtc = DateTime.UtcNow.AddHours(24);
@@ -140,7 +140,7 @@ public class AuthController : ControllerBase
             barberoId = barbero.Id;
         }
 
-        var jwtKey = _configuration["Jwt:Key"] ?? "BarberTurnoClaveSuperSecretaDeSeguridad126!JwtKey2026";
+        var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("Falta la configuración Jwt:Key.");
         var jwtIssuer = _configuration["Jwt:Issuer"] ?? "BarberTurnoApi";
         var jwtAudience = _configuration["Jwt:Audience"] ?? "BarberTurnoApp";
         var expiraEnUtc = DateTime.UtcNow.AddHours(24);

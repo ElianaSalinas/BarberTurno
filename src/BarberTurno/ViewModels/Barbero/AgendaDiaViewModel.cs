@@ -118,6 +118,19 @@ public partial class AgendaDiaViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    private Task ReintentarAsync() => CargarAgendaAsync();
+
+    // Tocar una cita abre su detalle con el historial del cliente.
+    [RelayCommand]
+    private async Task AbrirCitaAsync(CitaAgendaItem? item)
+    {
+        if (item is null || item.CitaId == Guid.Empty || _nav is null)
+            return;
+
+        await _nav.GoToAsync(Routes.DetalleCita, new Dictionary<string, object> { ["citaId"] = item.CitaId });
+    }
+
+    [RelayCommand]
     public async Task DiaAnteriorAsync()
     {
         FechaSeleccionada = FechaSeleccionada.AddDays(-1);
@@ -281,6 +294,11 @@ public partial class AgendaDiaViewModel : BaseViewModel
 
 public partial class CitaAgendaItem : ObservableObject
 {
+    /// <summary>Id de la cita (para abrir su detalle e historial).</summary>
+    public Guid CitaId { get; set; }
+
+    public int ClienteId { get; set; }
+
     [ObservableProperty]
     private string hora = string.Empty;
 

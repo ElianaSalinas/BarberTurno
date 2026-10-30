@@ -19,6 +19,8 @@
                 <Label Text="Lista de clientes" Style="{StaticResource BtTitle}" />
                 <Label Text="Clientes registrados en el sistema que han agendado citas." Style="{StaticResource BtMuted}" />
             </VerticalStackLayout>
+            <controls:EstadoBanner State="{Binding State}" ErrorText="{Binding MensajeError}" RetryCommand="{Binding CargarClientesCommand}" />
+
 
             <!-- Lista de clientes -->
             <CollectionView ItemsSource="{Binding ListaClientes}">

@@ -67,6 +67,8 @@ public static class AgendaLoader
 
             var item = new CitaAgendaItem
             {
+                CitaId = c.Id,
+                ClienteId = c.ClienteId,
                 Hora = c.Inicio.ToString("hh:mm", CultureInfo.InvariantCulture),
                 Periodo = c.Inicio.ToString("tt", CultureInfo.InvariantCulture).ToUpperInvariant(),
                 InicialesCliente = iniciales.ToUpperInvariant(),

@@ -6,6 +6,10 @@ using BarberTurno.Services.Availability;
 using BarberTurno.Services.Booking;
 using BarberTurno.Services.Dialogs;
 using BarberTurno.Services.Navigation;
+using BarberTurno.Services.Notifications;
+#if ANDROID || IOS || MACCATALYST || WINDOWS
+using Plugin.LocalNotification;
+#endif
 using BarberTurno.Services.Sync;
 using BarberTurno.ViewModels;
 using BarberTurno.Views;
@@ -26,6 +30,11 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
+#if ANDROID || IOS || MACCATALYST || WINDOWS
+        // Notificaciones locales (recordatorio de la cita). Ver ADR-0009.
+        builder.UseLocalNotification();
+#endif
+
         // Servicios fundamentales de navegación y diálogos
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddSingleton<IDialogService, DialogService>();
@@ -35,6 +44,7 @@ public static class MauiProgram
             .AddApiLayer()           // M05
             .AddAuthLayer()          // M06
             .AddSyncLayer()          // M07
+            .AddNotificationLayer()  // M06 (recordatorios locales)
             .AddBookingLayer()       // M08
             .AddPresentationLayer(); // M01 (ViewModels y páginas)
 

@@ -19,6 +19,8 @@
                 <Label Text="¿Listo para verte bien?" FontFamily="OpenSansSemibold" FontSize="28"
                        TextColor="{AppThemeBinding Light={StaticResource M10LightMutedText}, Dark={StaticResource M10DarkMutedText}}" />
             </VerticalStackLayout>
+            <controls:EstadoBanner State="{Binding State}" ErrorText="{Binding MensajeError}" RetryCommand="{Binding ReintentarCommand}" />
+
 
             <!-- Con próximo turno -->
             <Border Style="{StaticResource BtDarkCard}" Padding="22" IsVisible="{Binding TieneProxima}">
