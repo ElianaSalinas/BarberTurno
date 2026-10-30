@@ -5,11 +5,12 @@
              xmlns:controls="clr-namespace:BarberTurno.Controls"
              x:Class="BarberTurno.Views.CalendarioPage"
              Style="{StaticResource M10Page}"
-             Title="Calendario">
+             Title="Calendario"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
     <Shell.TitleView><controls:BrandBar /></Shell.TitleView>
 
     <ScrollView>
-        <VerticalStackLayout Padding="24,20" Spacing="20" HorizontalOptions="Center" MaximumWidthRequest="950">
+        <VerticalStackLayout motion:Motion.Enter="True" Padding="24,20" Spacing="20" HorizontalOptions="Center" MaximumWidthRequest="950">
             <!-- Título y subtítulo -->
             <VerticalStackLayout Spacing="4">
                 <Label Text="GESTIÓN DE TIEMPO" FontSize="11" CharacterSpacing="1.2" Style="{StaticResource BtGold}" />

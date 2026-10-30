@@ -6,9 +6,10 @@
              x:Class="BarberTurno.Views.ServiciosPage"
              x:DataType="vm:ServiciosViewModel"
              Style="{StaticResource M10Page}"
-             Title="{Binding Titulo}">
+             Title="{Binding Titulo}"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
 
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid motion:Motion.Enter="True" RowDefinitions="Auto,Auto,*">
 
         <Border Grid.Row="0" IsVisible="{Binding SinConexion}" StrokeThickness="0" Padding="16,8"
                 BackgroundColor="{AppThemeBinding Light=#FEF3C7, Dark=#78350F}">

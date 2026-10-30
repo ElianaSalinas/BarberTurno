@@ -16,11 +16,14 @@
                 </FormattedString>
             </Label.FormattedText>
         </Label>
-        <Border Grid.Column="2" WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 19"
+        <Border x:Name="CampanaBorder" Grid.Column="2" WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 19"
                 StrokeThickness="1"
                 Stroke="{AppThemeBinding Light={StaticResource M10LightBorder}, Dark={StaticResource M10DarkBorder}}"
                 Background="{AppThemeBinding Light={StaticResource M10LightSurface}, Dark={StaticResource M10DarkSurface}}">
-            <Image Source="icon_bell.svg" WidthRequest="20" HeightRequest="20" />
+            <Image Source="{AppThemeBinding Light=icon_bell.svg, Dark=icon_bell_dark.svg}" WidthRequest="20" HeightRequest="20" />
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnCampanaTapped" />
+            </Border.GestureRecognizers>
         </Border>
     </Grid>
 </ContentView>

@@ -6,11 +6,12 @@
              x:Class="BarberTurno.Views.InicioPage"
              x:DataType="vm:InicioViewModel"
              Style="{StaticResource M10Page}"
-             Title="Inicio">
+             Title="Inicio"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
     <Shell.TitleView><controls:BrandBar /></Shell.TitleView>
 
     <ScrollView>
-        <VerticalStackLayout Padding="24,24,24,32" Spacing="20" MaximumWidthRequest="460">
+        <VerticalStackLayout motion:Motion.Enter="True" Padding="24,24,24,32" Spacing="20" MaximumWidthRequest="460">
 
             <VerticalStackLayout Spacing="6">
                 <Label Text="{Binding Fecha}" FontSize="11" CharacterSpacing="1.2" Style="{StaticResource BtMuted}" />
@@ -29,7 +30,7 @@
                             <Label.FormattedText>
                                 <FormattedString>
                                     <Span Text="{Binding ProximaHora}" />
-                                    <Span Text="   ✂ " TextColor="#D6B362" />
+                                    <Span Text="   ·   " TextColor="#D6B362" />
                                     <Span Text="{Binding ProximaServicio}" />
                                 </FormattedString>
                             </Label.FormattedText>

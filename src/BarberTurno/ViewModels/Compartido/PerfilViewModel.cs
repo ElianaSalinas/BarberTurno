@@ -168,6 +168,19 @@ public partial class PerfilViewModel : BaseViewModel
     {
         try
         {
+            // Pide permiso de acceso a fotos (en Android 13+ el selector del sistema no lo necesita,
+            // pero en versiones anteriores sí; así el usuario siempre ve la solicitud).
+            var permiso = await Permissions.CheckStatusAsync<Permissions.Photos>();
+            if (permiso != PermissionStatus.Granted)
+                permiso = await Permissions.RequestAsync<Permissions.Photos>();
+
+            if (permiso != PermissionStatus.Granted)
+            {
+                await _dialogs.ShowAlertAsync("Permiso necesario",
+                    "Para cambiar tu foto necesitamos acceso a tus fotos. Puedes activarlo en Ajustes del teléfono.");
+                return;
+            }
+
             var results = await MediaPicker.Default.PickPhotosAsync(new MediaPickerOptions
             {
                 Title = "Selecciona una foto de perfil"

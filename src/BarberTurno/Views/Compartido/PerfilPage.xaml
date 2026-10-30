@@ -6,12 +6,13 @@
              x:Class="BarberTurno.Views.PerfilPage"
              x:DataType="vm:PerfilViewModel"
              Style="{StaticResource M10Page}"
-             Title="Perfil">
+             Title="Perfil"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
     <Shell.TitleView><controls:BrandBar /></Shell.TitleView>
 
     <controls:StateView State="{Binding State}" ErrorText="{Binding MensajeError}" RetryCommand="{Binding CargarCommand}">
         <ScrollView>
-            <VerticalStackLayout Padding="24,28,24,32" Spacing="18">
+            <VerticalStackLayout motion:Motion.Enter="True" Padding="24,28,24,32" Spacing="18">
 
                 <VerticalStackLayout Spacing="4">
                     <Label Text="TU CUENTA" FontSize="10" CharacterSpacing="1.3" Style="{StaticResource BtGold}" />
@@ -38,7 +39,7 @@
                         </VerticalStackLayout>
 
                         <!-- Botón cambiar foto -->
-                        <Button Grid.Column="2" Text="📷 Foto" FontSize="12" HeightRequest="38" Padding="12,0"
+                        <Button Grid.Column="2" Text="Foto" FontSize="12" HeightRequest="38" Padding="12,0"
                                 Command="{Binding CambiarFotoCommand}" Style="{StaticResource BtGoldButton}"
                                 VerticalOptions="Center" />
                     </Grid>
