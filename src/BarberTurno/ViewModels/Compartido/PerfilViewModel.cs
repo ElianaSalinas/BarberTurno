@@ -87,6 +87,9 @@ public partial class PerfilViewModel : BaseViewModel
     private bool temaOscuro;
 
     [ObservableProperty]
+    private string? nuevoServicioFoto;
+
+    [ObservableProperty]
     private string nuevoServicioNombre = "";
 
     [ObservableProperty]
@@ -202,6 +205,19 @@ public partial class PerfilViewModel : BaseViewModel
     {
         try
         {
+            // Pide permiso de acceso a fotos (en Android 13+ el selector del sistema no lo necesita,
+            // pero en versiones anteriores sí; así el usuario siempre ve la solicitud).
+            var permiso = await Permissions.CheckStatusAsync<Permissions.Photos>();
+            if (permiso != PermissionStatus.Granted)
+                permiso = await Permissions.RequestAsync<Permissions.Photos>();
+
+            if (permiso != PermissionStatus.Granted)
+            {
+                await _dialogs.ShowAlertAsync("Permiso necesario",
+                    "Para cambiar tu foto necesitamos acceso a tus fotos. Puedes activarlo en Ajustes del teléfono.");
+                return;
+            }
+
             var results = await MediaPicker.Default.PickPhotosAsync(new MediaPickerOptions
             {
                 Title = "Selecciona una foto de perfil"
@@ -210,7 +226,12 @@ public partial class PerfilViewModel : BaseViewModel
             var result = results?.FirstOrDefault();
             if (result == null) return;
 
-            FotoUrl = result.FullPath;
+            // Se reduce y se guarda embebida para que la vean también los clientes en sus dispositivos.
+            await using var origen = await result.OpenReadAsync();
+            using var imagen = Microsoft.Maui.Graphics.Platform.PlatformImage.FromStream(origen);
+            using var reducida = imagen.Downsize(480f, false);
+            var bytes = reducida.AsBytes(Microsoft.Maui.Graphics.ImageFormat.Jpeg, 0.8f);
+            FotoUrl = "data:image/jpeg;base64," + Convert.ToBase64String(bytes);
 
             if (_barberoId > 0)
             {
@@ -257,6 +278,28 @@ public partial class PerfilViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    private async Task ElegirFotoServicioAsync()
+    {
+        try
+        {
+            var (foto, denegado) = await FotoHelper.ElegirAsync(800);
+            if (denegado)
+            {
+                await _dialogs.ShowAlertAsync("Permiso necesario",
+                    "Necesitamos acceso a tus fotos. Puedes activarlo en Ajustes del teléfono.");
+                return;
+            }
+            if (foto is not null)
+                NuevoServicioFoto = foto;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await _dialogs.ShowAlertAsync("Error", "No se pudo cargar la foto.");
+        }
+    }
+
+    [RelayCommand]
     private async Task CrearNuevoServicioAsync()
     {
         MensajeErrorServicio = null;
@@ -282,7 +325,8 @@ public partial class PerfilViewModel : BaseViewModel
             {
                 Nombre = NuevoServicioNombre.Trim(),
                 Precio = precio,
-                DuracionMin = duracion
+                DuracionMin = duracion,
+                FotoUrl = NuevoServicioFoto
             });
 
             if (res.Exito && res.Datos != null)
@@ -298,6 +342,7 @@ public partial class PerfilViewModel : BaseViewModel
                 }
 
                 NuevoServicioNombre = "";
+                NuevoServicioFoto = null;
                 NuevoServicioPrecio = "";
                 DuracionSeleccionada = 30;
                 MensajeErrorServicio = null;

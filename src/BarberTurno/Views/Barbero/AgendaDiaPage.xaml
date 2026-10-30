@@ -62,14 +62,8 @@
                                 HeightRequest="40"
                                 WidthRequest="40">
 
-                            <Label Text="BT"
-                                   FontFamily="OpenSansSemibold"
-                                   FontSize="11"
-                                   TextColor="{AppThemeBinding Light={StaticResource M10LightGold},
-                                                                   Dark={StaticResource M10DarkGold}}"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center"
-                                   HorizontalTextAlignment="Center" />
+                            <Image Source="icon_scissors_gold.svg" WidthRequest="20" HeightRequest="20"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
 
                         <Label Grid.Column="1"
@@ -89,13 +83,12 @@
                                 HeightRequest="44"
                                 WidthRequest="44">
 
-                            <Label Text="•"
-                                   FontSize="20"
-                                   TextColor="{AppThemeBinding Light={StaticResource M10LightText},
-                                                                   Dark={StaticResource M10DarkText}}"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center"
-                                   HorizontalTextAlignment="Center" />
+                            <Image Source="{AppThemeBinding Light=icon_bell.svg, Dark=icon_bell_dark.svg}"
+                                   WidthRequest="20" HeightRequest="20"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnCampanaTapped" />
+                            </Border.GestureRecognizers>
                         </Border>
                     </Grid>
 
@@ -276,7 +269,11 @@
                         <Label Grid.Column="1"
                                Text="Ver calendario"
                                Style="{StaticResource M10TextAction}"
-                               VerticalOptions="End" />
+                               VerticalOptions="End">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnVerCalendarioTapped" />
+                            </Label.GestureRecognizers>
+                        </Label>
                     </Grid>
                     <!--
                     Estado vacío propio de M10.

@@ -6,6 +6,7 @@ public class ServicioEntity
     public string Nombre { get; set; } = string.Empty;
     public int DuracionMin { get; set; }
     public decimal Precio { get; set; }
+    public string? FotoUrl { get; set; }
 
     public ICollection<BarberoServicioEntity> BarberoServicios { get; set; } = new List<BarberoServicioEntity>();
 }

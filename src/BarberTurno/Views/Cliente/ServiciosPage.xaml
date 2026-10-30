@@ -6,9 +6,10 @@
              x:Class="BarberTurno.Views.ServiciosPage"
              x:DataType="vm:ServiciosViewModel"
              Style="{StaticResource M10Page}"
-             Title="{Binding Titulo}">
+             Title="{Binding Titulo}"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
 
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid motion:Motion.Enter="True" RowDefinitions="Auto,Auto,*">
 
         <Border Grid.Row="0" IsVisible="{Binding SinConexion}" StrokeThickness="0" Padding="16,8"
                 BackgroundColor="{AppThemeBinding Light=#FEF3C7, Dark=#78350F}">
@@ -45,7 +46,15 @@
                                 </Border.GestureRecognizers>
 
                                 <VerticalStackLayout Spacing="12">
-                                    <Image Source="icon_scissors_gold.svg" WidthRequest="22" HeightRequest="22" HorizontalOptions="Start" />
+                                    <Border HeightRequest="140" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                            Background="{AppThemeBinding Light={StaticResource M10LightDarkCard}, Dark={StaticResource M10DarkDarkCard}}">
+                                        <Grid>
+                                            <Image Source="icon_scissors_gold.svg" WidthRequest="34" HeightRequest="34"
+                                                   HorizontalOptions="Center" VerticalOptions="Center" Opacity="0.7" />
+                                            <Image Source="{Binding ImagenArchivo}" Aspect="AspectFill" />
+                                            <Image Source="{Binding FotoUrl, Converter={StaticResource FotoConverter}}" Aspect="AspectFill" />
+                                        </Grid>
+                                    </Border>
                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                                         <VerticalStackLayout Spacing="4">
                                             <Label Text="{Binding Nombre}" Style="{StaticResource BtH2}" FontSize="17" />

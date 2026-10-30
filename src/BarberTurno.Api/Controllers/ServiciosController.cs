@@ -26,7 +26,8 @@ public class ServiciosController : ControllerBase
                 Id = s.Id,
                 Nombre = s.Nombre,
                 DuracionMin = s.DuracionMin,
-                Precio = s.Precio
+                Precio = s.Precio,
+                FotoUrl = s.FotoUrl
             })
             .ToListAsync();
 
@@ -43,7 +44,8 @@ public class ServiciosController : ControllerBase
         {
             Nombre = dto.Nombre,
             DuracionMin = dto.DuracionMin > 0 ? dto.DuracionMin : 30,
-            Precio = dto.Precio
+            Precio = dto.Precio,
+            FotoUrl = dto.FotoUrl
         };
 
         _context.Servicios.Add(nuevo);
@@ -54,7 +56,8 @@ public class ServiciosController : ControllerBase
             Id = nuevo.Id,
             Nombre = nuevo.Nombre,
             DuracionMin = nuevo.DuracionMin,
-            Precio = nuevo.Precio
+            Precio = nuevo.Precio,
+            FotoUrl = nuevo.FotoUrl
         });
     }
 }

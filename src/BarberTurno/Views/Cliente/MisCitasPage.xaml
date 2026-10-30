@@ -7,7 +7,8 @@
              x:Class="BarberTurno.Views.MisCitasPage"
              x:DataType="vm:MisCitasViewModel"
              Style="{StaticResource M10Page}"
-             Title="Mis citas">
+             Title="Mis citas"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
     <Shell.TitleView><controls:BrandBar /></Shell.TitleView>
 
     <ContentPage.Resources>
@@ -15,7 +16,7 @@
         <conv:EstadoCitaToColorConverter x:Key="EstadoColor" />
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid motion:Motion.Enter="True" RowDefinitions="Auto,Auto,*">
 
         <Border Grid.Row="0" IsVisible="{Binding SinConexion}" StrokeThickness="0" Padding="16,8"
                 BackgroundColor="{AppThemeBinding Light=#FEF3C7, Dark=#78350F}">

@@ -6,10 +6,11 @@
              x:Class="BarberTurno.Views.CatalogoPage"
              x:DataType="vm:CatalogoViewModel"
              Style="{StaticResource M10Page}"
-             Title="Servicios">
+             Title="Servicios"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
     <Shell.TitleView><controls:BrandBar /></Shell.TitleView>
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid motion:Motion.Enter="True" RowDefinitions="Auto,*">
         <VerticalStackLayout Padding="24,24,24,8" Spacing="4">
             <Label Text="NUESTRO MENÚ" FontSize="10" CharacterSpacing="1.3" Style="{StaticResource BtGold}" />
             <Label Text="Servicios" Style="{StaticResource BtTitle}" FontSize="32" />
@@ -37,7 +38,15 @@
                     <DataTemplate x:DataType="vm:ServicioItem">
                         <Border Style="{StaticResource BtCard}" Margin="24,0">
                             <VerticalStackLayout Spacing="10">
-                                <Image Source="icon_scissors_gold.svg" WidthRequest="22" HeightRequest="22" HorizontalOptions="Start" />
+                                <Border HeightRequest="140" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                            Background="{AppThemeBinding Light={StaticResource M10LightDarkCard}, Dark={StaticResource M10DarkDarkCard}}">
+                                        <Grid>
+                                            <Image Source="icon_scissors_gold.svg" WidthRequest="34" HeightRequest="34"
+                                                   HorizontalOptions="Center" VerticalOptions="Center" Opacity="0.7" />
+                                            <Image Source="{Binding ImagenArchivo}" Aspect="AspectFill" />
+                                            <Image Source="{Binding FotoUrl, Converter={StaticResource FotoConverter}}" Aspect="AspectFill" />
+                                        </Grid>
+                                    </Border>
                                 <Label Text="{Binding Nombre}" Style="{StaticResource BtH2}" FontSize="17" />
                                 <Grid ColumnDefinitions="*,Auto">
                                     <Label Text="{Binding DuracionTexto}" Style="{StaticResource BtMuted}" VerticalOptions="Center" />

@@ -12,14 +12,15 @@
              x:Class="BarberTurno.Views.DetalleCitaPage"
              x:DataType="vm:DetalleCitaViewModel"
              Title="Detalle de cita"
-             Style="{StaticResource M10Page}">
+             Style="{StaticResource M10Page}"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
 
     <!--
         ScrollView es adecuado para un detalle vertical.
         No hay CollectionView porque esta pantalla representa una sola cita.
     -->
     <ScrollView>
-        <VerticalStackLayout Padding="24,24,24,32"
+        <VerticalStackLayout motion:Motion.Enter="True" Padding="24,24,24,32"
                              Spacing="20"
                              HorizontalOptions="Center"
                              MaximumWidthRequest="430">
