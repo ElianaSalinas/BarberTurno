@@ -1,13 +1,236 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- Responsable: M10. Visitas anteriores del cliente. -->
+<!--
+    Responsable: M10.
+
+    Vista de visitas anteriores de un cliente.
+    No crea datos ficticios: cada Label usa Binding hacia
+    HistorialClienteViewModel o HistorialVisitaItem.
+-->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
              x:Class="BarberTurno.Views.HistorialClientePage"
              x:DataType="vm:HistorialClienteViewModel"
-             Title="Historial del cliente">
-    <VerticalStackLayout Padding="16">
-        <!-- TODO(M10): interfaz (StateView, bindings, comandos). -->
-        <Label Text="Historial del cliente - pendiente de implementar" />
-    </VerticalStackLayout>
+             Title="Historial del cliente"
+             Style="{StaticResource M10Page}">
+
+    <!--
+        CollectionView administra las visitas y su desplazamiento.
+
+        No usamos ScrollView externo para evitar anidar scrolls.
+    -->
+    <CollectionView ItemsSource="{Binding Visitas}"
+                    SelectionMode="None"
+                    BackgroundColor="Transparent"
+                    HorizontalOptions="Center"
+                    MaximumWidthRequest="430">
+
+        <!-- Cabecera fija antes de las visitas. -->
+        <CollectionView.Header>
+            <VerticalStackLayout Padding="24,24,24,20"
+                                 Spacing="20">
+
+                <!-- Encabezado de página. -->
+                <VerticalStackLayout Spacing="4">
+
+                    <Label Text="HISTORIAL DEL CLIENTE"
+                           Style="{StaticResource M10Eyebrow}" />
+
+                    <Label Text="Visitas anteriores"
+                           Style="{StaticResource M10SectionTitle}" />
+                </VerticalStackLayout>
+
+                <!--
+                    Estado inicial:
+                    la pantalla se abrió sin recibir un cliente desde Detalle.
+                -->
+                <Border Style="{StaticResource M10MetricCard}"
+                        Padding="20">
+
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border"
+                                     Binding="{Binding TieneClienteSeleccionado}"
+                                     Value="True">
+                            <Setter Property="IsVisible"
+                                    Value="False" />
+                        </DataTrigger>
+                    </Border.Triggers>
+
+                    <VerticalStackLayout Spacing="8"
+                                         HorizontalOptions="Center">
+
+                        <Label Text="Selecciona un cliente"
+                               Style="{StaticResource M10SectionTitle}"
+                               HorizontalTextAlignment="Center" />
+
+                        <Label Text="El historial aparecerá al abrirlo desde el detalle de una cita."
+                               Style="{StaticResource M10Subtitle}"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Datos del cliente seleccionado. -->
+                <Border Style="{StaticResource M10MetricCard}"
+                        IsVisible="{Binding TieneClienteSeleccionado}">
+
+                    <Grid ColumnDefinitions="56,*,Auto"
+                          ColumnSpacing="14">
+
+                        <!-- Avatar textual: no se utiliza una imagen inventada. -->
+                        <Border Background="{AppThemeBinding Light={StaticResource M10LightHighlight},
+                                                                 Dark={StaticResource M10DarkHighlight}}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 18"
+                                HeightRequest="56"
+                                WidthRequest="56">
+
+                            <Label Text="{Binding InicialesCliente}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="16"
+                                   TextColor="{AppThemeBinding Light={StaticResource M10LightMutedText},
+                                                                   Dark={StaticResource M10DarkMutedText}}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   HorizontalTextAlignment="Center" />
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1"
+                                             Spacing="3"
+                                             VerticalOptions="Center">
+
+                            <Label Text="CLIENTE"
+                                   Style="{StaticResource M10Eyebrow}" />
+
+                            <Label Text="{Binding NombreCliente}"
+                                   Style="{StaticResource M10SectionTitle}" />
+
+                            <Label Text="{Binding TelefonoCliente}"
+                                   Style="{StaticResource M10Subtitle}" />
+                        </VerticalStackLayout>
+
+                        <!-- Resumen real de visitas. -->
+                        <VerticalStackLayout Grid.Column="2"
+                                             Spacing="2"
+                                             VerticalOptions="Center"
+                                             HorizontalOptions="End">
+
+                            <Label Text="{Binding TotalVisitas}"
+                                   Style="{StaticResource M10MetricValue}"
+                                   HorizontalTextAlignment="End" />
+
+                            <Label Text="visitas"
+                                   Style="{StaticResource M10Subtitle}"
+                                   HorizontalTextAlignment="End" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Título que aparece solo si existe cliente seleccionado. -->
+                <VerticalStackLayout Spacing="3"
+                                     IsVisible="{Binding TieneClienteSeleccionado}">
+
+                    <Label Text="HISTORIAL"
+                           Style="{StaticResource M10Eyebrow}" />
+
+                    <Label Text="Citas registradas"
+                           Style="{StaticResource M10SectionTitle}" />
+                </VerticalStackLayout>
+
+                <!--
+                    Cliente válido, pero sin visitas anteriores.
+                -->
+                <Border Style="{StaticResource M10MetricCard}"
+                        Padding="20"
+                        IsVisible="{Binding EstaHistorialVacio}">
+
+                    <VerticalStackLayout Spacing="8"
+                                         HorizontalOptions="Center">
+
+                        <Label Text="Sin visitas anteriores"
+                               Style="{StaticResource M10SectionTitle}"
+                               HorizontalTextAlignment="Center" />
+
+                        <Label Text="Las citas atendidas, ausentes o canceladas aparecerán aquí."
+                               Style="{StaticResource M10Subtitle}"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </CollectionView.Header>
+
+        <!--
+            Una fila por visita real.
+
+            x:DataType cambia el contexto de Binding:
+            deja de ser HistorialClienteViewModel y pasa a ser
+            HistorialVisitaItem.
+        -->
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="vm:HistorialVisitaItem">
+
+                <Border Style="{StaticResource M10AgendaRow}"
+                        Margin="24,0,24,10">
+
+                    <Grid ColumnDefinitions="56,*,Auto"
+                          ColumnSpacing="12">
+
+                        <!-- Bloque de fecha compacta. -->
+                        <Border Background="{AppThemeBinding Light={StaticResource M10LightHighlight},
+                                                                 Dark={StaticResource M10DarkHighlight}}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 12"
+                                HeightRequest="52"
+                                WidthRequest="52">
+
+                            <Label Text="{Binding FechaCorta}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource M10LightGold},
+                                                                   Dark={StaticResource M10DarkGold}}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   HorizontalTextAlignment="Center" />
+                        </Border>
+
+                        <!-- Información del servicio. -->
+                        <VerticalStackLayout Grid.Column="1"
+                                             Spacing="3"
+                                             VerticalOptions="Center">
+
+                            <Label Text="{Binding Servicio}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource M10LightText},
+                                                                   Dark={StaticResource M10DarkText}}" />
+
+                            <Label Text="{Binding FechaCompleta}"
+                                   Style="{StaticResource M10Subtitle}" />
+
+                            <Label Text="{Binding Hora}"
+                                   Style="{StaticResource M10Subtitle}" />
+                        </VerticalStackLayout>
+
+                        <!-- Estado, duración y precio. -->
+                        <VerticalStackLayout Grid.Column="2"
+                                             Spacing="3"
+                                             VerticalOptions="Center"
+                                             HorizontalOptions="End">
+
+                            <Label Text="{Binding Estado}"
+                                   Style="{StaticResource M10TextAction}"
+                                   HorizontalTextAlignment="End" />
+
+                            <Label Text="{Binding Duracion}"
+                                   Style="{StaticResource M10Subtitle}"
+                                   HorizontalTextAlignment="End" />
+
+                            <Label Text="{Binding Precio}"
+                                   Style="{StaticResource M10Subtitle}"
+                                   HorizontalTextAlignment="End" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
 </ContentPage>
