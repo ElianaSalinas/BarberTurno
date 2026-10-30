@@ -41,7 +41,7 @@ public partial class PerfilViewModel : BaseViewModel
     private bool temaOscuro;
 
     /// <summary>La página lo llama desde OnAppearing (solo delega).</summary>
-    public void OnAppearing() => Cargar();
+    public override void OnAppearing() => Cargar();
 
     [RelayCommand]
     private void Cargar()
