@@ -22,7 +22,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="BarberTurno.Controls.StateView"
              x:Name="Root">
-    <Grid>
+    <ContentView.Content>
+        <Grid>
 
         <!-- ── Estado: Cargando ──────────────────────────────────────────── -->
         <VerticalStackLayout x:Name="CargandoLayout"
@@ -88,5 +89,6 @@
         <ContentView x:Name="ConDatosLayout"
                      IsVisible="False" />
 
-    </Grid>
+        </Grid>
+    </ContentView.Content>
 </ContentView>

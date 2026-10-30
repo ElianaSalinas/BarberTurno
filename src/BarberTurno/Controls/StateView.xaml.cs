@@ -68,7 +68,7 @@ public partial class StateView : ContentView
             returnType:      typeof(EstadoPantalla),
             declaringType:   typeof(StateView),
             defaultValue:    EstadoPantalla.Cargando,
-            propertyChanged: (b, o, n) => ((StateView)b).Estado = (EstadoPantalla)n);
+            propertyChanged: OnEstadoCambiado);
 
     public static readonly BindableProperty EmptyTextProperty =
         BindableProperty.Create(
@@ -76,7 +76,7 @@ public partial class StateView : ContentView
             returnType:      typeof(string),
             declaringType:   typeof(StateView),
             defaultValue:    "No hay datos disponibles.",
-            propertyChanged: (b, o, n) => ((StateView)b).TextoVacio = n as string ?? "");
+            propertyChanged: OnTextoVacioCambiado);
 
     public static readonly BindableProperty ErrorTextProperty =
         BindableProperty.Create(
@@ -84,7 +84,7 @@ public partial class StateView : ContentView
             returnType:      typeof(string),
             declaringType:   typeof(StateView),
             defaultValue:    "Ocurrió un error inesperado.",
-            propertyChanged: (b, o, n) => ((StateView)b).TextoError = n as string ?? "");
+            propertyChanged: OnTextoErrorCambiado);
 
     public static readonly BindableProperty RetryCommandProperty =
         BindableProperty.Create(
@@ -92,7 +92,7 @@ public partial class StateView : ContentView
             returnType:      typeof(ICommand),
             declaringType:   typeof(StateView),
             defaultValue:    null,
-            propertyChanged: (b, o, n) => ((StateView)b).ComandoReintentar = n as ICommand);
+            propertyChanged: OnComandoReintentarCambiado);
 
     // ── Propiedades CLR ───────────────────────────────────────────────────────
 
@@ -104,12 +104,8 @@ public partial class StateView : ContentView
 
     public EstadoPantalla State
     {
-        get => Estado;
-        set
-        {
-            SetValue(StateProperty, value);
-            Estado = value;
-        }
+        get => (EstadoPantalla)GetValue(StateProperty);
+        set => SetValue(StateProperty, value);
     }
 
     public string TextoVacio
@@ -120,12 +116,8 @@ public partial class StateView : ContentView
 
     public string EmptyText
     {
-        get => TextoVacio;
-        set
-        {
-            SetValue(EmptyTextProperty, value);
-            TextoVacio = value;
-        }
+        get => (string)GetValue(EmptyTextProperty);
+        set => SetValue(EmptyTextProperty, value);
     }
 
     public string TextoError
@@ -136,12 +128,8 @@ public partial class StateView : ContentView
 
     public string ErrorText
     {
-        get => TextoError;
-        set
-        {
-            SetValue(ErrorTextProperty, value);
-            TextoError = value;
-        }
+        get => (string)GetValue(ErrorTextProperty);
+        set => SetValue(ErrorTextProperty, value);
     }
 
     public ICommand? ComandoReintentar
@@ -152,12 +140,8 @@ public partial class StateView : ContentView
 
     public ICommand? RetryCommand
     {
-        get => ComandoReintentar;
-        set
-        {
-            SetValue(RetryCommandProperty, value);
-            ComandoReintentar = value;
-        }
+        get => (ICommand?)GetValue(RetryCommandProperty);
+        set => SetValue(RetryCommandProperty, value);
     }
 
     public View? Contenido
@@ -178,8 +162,8 @@ public partial class StateView : ContentView
 
     private static void OnEstadoCambiado(BindableObject bindable, object oldVal, object newVal)
     {
-        if (bindable is StateView sv)
-            sv.AplicarEstado((EstadoPantalla)newVal);
+        if (bindable is StateView sv && newVal is EstadoPantalla estado)
+            sv.AplicarEstado(estado);
     }
 
     private static void OnTextoVacioCambiado(BindableObject bindable, object oldVal, object newVal)
@@ -203,7 +187,13 @@ public partial class StateView : ContentView
     private static void OnContenidoCambiado(BindableObject bindable, object oldVal, object newVal)
     {
         if (bindable is StateView sv && sv.ConDatosLayout != null)
+        {
+            // Protección contra ciclos recursivos si la plantilla interna es asignada a Contenido
+            if (ReferenceEquals(newVal, sv.Content) || ReferenceEquals(newVal, sv.ConDatosLayout))
+                return;
+
             sv.ConDatosLayout.Content = newVal as View;
+        }
     }
 
     // ── Lógica de estados ─────────────────────────────────────────────────────

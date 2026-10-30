@@ -1,4 +1,5 @@
 using BarberTurno.ViewModels;
+
 // Responsable: M09
 // Code-behind mínimo: asigna el BindingContext y avisa al ViewModel cuando la página aparece/desaparece.
 // Sin lógica de negocio.
@@ -18,5 +19,12 @@ public partial class PerfilPage : ContentPage
     {
         base.OnAppearing();
         _viewModel.OnAppearing();
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        // Avisar al ViewModel para desactivar la escucha de eventos de controles reciclados
+        _viewModel.OnDisappearing();
     }
 }
