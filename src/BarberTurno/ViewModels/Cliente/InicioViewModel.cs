@@ -89,8 +89,8 @@ public partial class InicioViewModel : BaseViewModel
         }
     }
 
-    [RelayCommand] private Task ReservarAsync() => _nav.GoToAsync("//barberos");
-    [RelayCommand] private Task MisTurnosAsync() => _nav.GoToAsync("//miscitas");
+    [RelayCommand] private Task ReservarAsync() => _nav.GoToAsync("//cliente/barberos");
+    [RelayCommand] private Task MisTurnosAsync() => _nav.GoToAsync("//cliente/miscitas");
 
     [RelayCommand]
     private Task SeleccionarAsync(BarberoItem? barbero) =>
