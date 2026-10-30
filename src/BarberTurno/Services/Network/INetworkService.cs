@@ -7,4 +7,3 @@ public interface INetworkService
     bool HayConexion { get; }
     event EventHandler<bool>? ConexionCambio;
 }
-

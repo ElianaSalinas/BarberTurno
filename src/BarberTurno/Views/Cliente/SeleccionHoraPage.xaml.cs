@@ -5,9 +5,17 @@ namespace BarberTurno.Views;
 
 public partial class SeleccionHoraPage : ContentPage
 {
+    private readonly SeleccionHoraViewModel _viewModel;
+
     public SeleccionHoraPage(SeleccionHoraViewModel viewModel)
     {
         InitializeComponent();
-        BindingContext = viewModel;
+        BindingContext = _viewModel = viewModel;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await _viewModel.AlAparecerAsync();
     }
 }

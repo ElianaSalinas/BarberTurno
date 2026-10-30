@@ -4,6 +4,8 @@ using BarberTurno.Services.Api;
 using BarberTurno.Services.Auth;
 using BarberTurno.Services.Availability;
 using BarberTurno.Services.Booking;
+using BarberTurno.Services.Dialogs;
+using BarberTurno.Services.Navigation;
 using BarberTurno.Services.Sync;
 using BarberTurno.ViewModels;
 using BarberTurno.Views;
@@ -18,13 +20,15 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
-            // TODO(M01): .UseMauiCommunityToolkit() si se usa CommunityToolkit.Maui
-            // TODO(M06): .UseLocalNotification() si se usa Plugin.LocalNotification
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
+
+        // Servicios fundamentales de navegación y diálogos
+        builder.Services.AddSingleton<INavigationService, NavigationService>();
+        builder.Services.AddSingleton<IDialogService, DialogService>();
 
         builder.Services
             .AddDataLayer()          // M02
@@ -33,7 +37,6 @@ public static class MauiProgram
             .AddSyncLayer()          // M07
             .AddBookingLayer()       // M08
             .AddPresentationLayer(); // M01 (ViewModels y páginas)
-        // TODO(M01): INavigationService, IDialogService.
 
         return builder.Build();
     }
@@ -42,6 +45,12 @@ public static class MauiProgram
     {
         services.AddTransient<LoginViewModel>();
         services.AddTransient<LoginPage>();
+        services.AddTransient<RegistroViewModel>();
+        services.AddTransient<RegistroPage>();
+        services.AddTransient<InicioViewModel>();
+        services.AddTransient<InicioPage>();
+        services.AddTransient<CatalogoViewModel>();
+        services.AddTransient<CatalogoPage>();
         services.AddTransient<BarberosViewModel>();
         services.AddTransient<BarberosPage>();
         services.AddTransient<ServiciosViewModel>();
