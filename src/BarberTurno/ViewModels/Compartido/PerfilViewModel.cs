@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Media;
+using Microsoft.Maui.Storage;
 using BarberTurno.Data.Repositories;
 using BarberTurno.Dtos;
 using BarberTurno.Helpers;
@@ -43,6 +44,7 @@ public partial class PerfilViewModel : BaseViewModel
     private readonly IBarberoRepository _barberos;
     private readonly IServicioRepository _servicios;
     private readonly ISyncService _sync;
+    private readonly IClienteRepository? _clientes;
 
     private bool _cargandoTema;
     private bool _paginaVisible;
@@ -57,7 +59,8 @@ public partial class PerfilViewModel : BaseViewModel
         IBarberTurnoApi api,
         IBarberoRepository barberos,
         IServicioRepository servicios,
-        ISyncService sync)
+        ISyncService sync,
+        IClienteRepository? clientes = null)
     {
         _auth = auth;
         _navigation = navigation;
@@ -66,6 +69,7 @@ public partial class PerfilViewModel : BaseViewModel
         _barberos = barberos;
         _servicios = servicios;
         _sync = sync;
+        _clientes = clientes;
     }
 
     [ObservableProperty]
@@ -160,6 +164,17 @@ public partial class PerfilViewModel : BaseViewModel
             {
                 await CargarDatosBarberoAsync(sesion.BarberoId);
             }
+            else
+            {
+                // Cargar foto del cliente persistida localmente
+                var fotoGuardada = Preferences.Default.Get<string?>($"foto_perfil_{sesion.UsuarioId}", null);
+                if (string.IsNullOrEmpty(fotoGuardada) && sesion.UsuarioId > 0 && _clientes is not null)
+                {
+                    var cliente = await _clientes.GetByIdAsync(sesion.UsuarioId);
+                    fotoGuardada = cliente?.FotoRuta;
+                }
+                FotoUrl = fotoGuardada;
+            }
 
             MensajeError = null;
             State = ViewState.ConDatos;
@@ -229,50 +244,25 @@ public partial class PerfilViewModel : BaseViewModel
         }
     }
 
+    /// <summary>
+    /// Seleccionar foto desde la galería.
+    /// </summary>
     [RelayCommand]
     private async Task CambiarFotoAsync()
     {
         try
         {
-            // Pide permiso de acceso a fotos (en Android 13+ el selector del sistema no lo necesita,
-            // pero en versiones anteriores sí; así el usuario siempre ve la solicitud).
-            var permiso = await Permissions.CheckStatusAsync<Permissions.Photos>();
-            if (permiso != PermissionStatus.Granted)
-                permiso = await Permissions.RequestAsync<Permissions.Photos>();
-
-            if (permiso != PermissionStatus.Granted)
+            var (foto, denegado) = await FotoHelper.ElegirAsync(480);
+            if (denegado)
             {
                 await _dialogs.ShowAlertAsync("Permiso necesario",
                     "Para cambiar tu foto necesitamos acceso a tus fotos. Puedes activarlo en Ajustes del teléfono.");
                 return;
             }
 
-            var results = await MediaPicker.Default.PickPhotosAsync(new MediaPickerOptions
+            if (foto is not null)
             {
-                Title = "Selecciona una foto de perfil"
-            });
-
-            var result = results?.FirstOrDefault();
-            if (result == null) return;
-
-            // Se reduce y se guarda embebida para que la vean también los clientes en sus dispositivos.
-            await using var origen = await result.OpenReadAsync();
-            using var imagen = Microsoft.Maui.Graphics.Platform.PlatformImage.FromStream(origen);
-            using var reducida = imagen.Downsize(480f, false);
-            var bytes = reducida.AsBytes(Microsoft.Maui.Graphics.ImageFormat.Jpeg, 0.8f);
-            FotoUrl = "data:image/jpeg;base64," + Convert.ToBase64String(bytes);
-
-            if (_barberoId > 0)
-            {
-                var barbero = await _barberos.GetByIdAsync(_barberoId);
-                if (barbero != null)
-                {
-                    barbero.FotoUrl = FotoUrl;
-                    await _barberos.UpsertAsync(barbero, []);
-                }
-
-                await _api.ActualizarFotoBarberoAsync(_barberoId, FotoUrl);
-                await _dialogs.ShowAlertAsync("Foto actualizada", "Tu foto de perfil se ha guardado correctamente.");
+                await GuardarFotoPerfilAsync(foto);
             }
         }
         catch (Exception ex)
@@ -280,6 +270,68 @@ public partial class PerfilViewModel : BaseViewModel
             Debug.WriteLine(ex);
             await _dialogs.ShowAlertAsync("Error", "No se pudo actualizar la foto.");
         }
+    }
+
+    /// <summary>
+    /// Tomar foto directamente con la cámara.
+    /// </summary>
+    [RelayCommand]
+    private async Task TomarFotoAsync()
+    {
+        try
+        {
+            var (foto, denegado) = await FotoHelper.TomarAsync(480);
+            if (denegado)
+            {
+                await _dialogs.ShowAlertAsync("Permiso necesario",
+                    "Para tomar una foto necesitamos acceso a la cámara. Puedes activarlo en Ajustes del teléfono.");
+                return;
+            }
+
+            if (foto is not null)
+            {
+                await GuardarFotoPerfilAsync(foto);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await _dialogs.ShowAlertAsync("Error", "No se pudo tomar la foto con la cámara.");
+        }
+    }
+
+    private async Task GuardarFotoPerfilAsync(string nuevaFoto)
+    {
+        FotoUrl = nuevaFoto;
+
+        var sesion = _auth.SesionActual;
+        if (sesion != null)
+        {
+            Preferences.Default.Set($"foto_perfil_{sesion.UsuarioId}", nuevaFoto);
+        }
+
+        if (_barberoId > 0)
+        {
+            var barbero = await _barberos.GetByIdAsync(_barberoId);
+            if (barbero != null)
+            {
+                barbero.FotoUrl = FotoUrl;
+                await _barberos.UpsertAsync(barbero, []);
+            }
+
+            await _api.ActualizarFotoBarberoAsync(_barberoId, FotoUrl);
+        }
+        else if (sesion != null && sesion.UsuarioId > 0 && _clientes is not null)
+        {
+            var cliente = await _clientes.GetByIdAsync(sesion.UsuarioId);
+            if (cliente != null)
+            {
+                cliente.FotoRuta = FotoUrl;
+                await _clientes.UpsertAsync(cliente);
+            }
+        }
+
+        await _dialogs.ShowAlertAsync("Foto actualizada", "Tu foto de perfil se ha guardado correctamente.");
     }
 
     [RelayCommand]
