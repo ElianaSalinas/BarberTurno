@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Storage;
 
 // Responsable: M01
-// Punto de entrada de la app.
+// Punto de entrada de la app. Mantiene la sesión en SecureStorage según criterio del Módulo 5.
 namespace BarberTurno;
 
 public partial class App : Application

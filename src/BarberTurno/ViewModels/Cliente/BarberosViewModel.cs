@@ -7,7 +7,8 @@ using BarberTurno.Services.Dialogs;
 using BarberTurno.Services.Navigation;
 using BarberTurno.Services.Network;
 using BarberTurno.Services.Sync;
-// Responsable: M09
+
+// Responsable: M09 / M04
 // Lista de barberos y sus servicios (cuatro estados). Sin lógica de negocio: lee repositorios y delega.
 namespace BarberTurno.ViewModels;
 
@@ -39,8 +40,52 @@ public partial class BarberosViewModel : ClienteViewModelBase
     public override void OnAppearing()
     {
         base.OnAppearing();
-        // Recarga silenciosa si ya hay datos (evita parpadeo del indicador al volver a la pestaña).
-        _ = CargarInternoAsync(mostrarCargando: Barberos.Count == 0);
+        // Carga inmediata de SQLite y sincronización transparente de fondo si hay red.
+        _ = IniciarCargaConSincronizacionSegundoPlanoAsync();
+    }
+
+    private async Task IniciarCargaConSincronizacionSegundoPlanoAsync()
+    {
+        await CargarInternoAsync(mostrarCargando: Barberos.Count == 0);
+
+        if (HayConexion)
+        {
+            try
+            {
+                await _sync.SincronizarCatalogosAsync();
+                var itemsActualizados = await LeerBarberosAsync();
+                if (itemsActualizados.Count > 0)
+                {
+                    void Actualizar()
+                    {
+                        Barberos.Clear();
+                        foreach (var item in itemsActualizados)
+                            Barberos.Add(item);
+                        State = ViewState.ConDatos;
+                    }
+
+                    try
+                    {
+                        if (MainThread.IsMainThread)
+                        {
+                            Actualizar();
+                        }
+                        else
+                        {
+                            MainThread.BeginInvokeOnMainThread(Actualizar);
+                        }
+                    }
+                    catch
+                    {
+                        Actualizar();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[BarberosViewModel] Error en sync de fondo: {ex.Message}");
+            }
+        }
     }
 
     /// <summary>Carga completa con indicador. También es el botón Reintentar/Actualizar de StateView.</summary>
@@ -98,7 +143,7 @@ public partial class BarberosViewModel : ClienteViewModelBase
             var items = await LeerBarberosAsync();
 
             // Primera vez (SQLite vacío): pedir el catálogo al servidor si hay red.
-            if (HayConexion)
+            if (HayConexion && items.Count == 0)
             {
                 await _sync.SincronizarCatalogosAsync();
                 items = await LeerBarberosAsync();

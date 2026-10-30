@@ -20,6 +20,7 @@ public partial class InicioViewModel : BaseViewModel
     private readonly IBarberoRepository _barberos;
     private readonly IServicioRepository _servicios;
     private readonly ICitaRepository _citas;
+    private bool _cargando;
 
     public InicioViewModel(IAuthService auth, INavigationService nav, IBarberoRepository barberos,
                            IServicioRepository servicios, ICitaRepository citas)
@@ -53,14 +54,24 @@ public partial class InicioViewModel : BaseViewModel
 
     private async Task CargarAsync(SesionUsuario? sesion)
     {
+        if (_cargando) return;
+        _cargando = true;
+
         try
         {
             var lista = (await _barberos.GetAllAsync()).OrderBy(b => b.Nombre).Take(6).ToList();
-            Barberos.Clear();
+            var nuevosBarberos = new List<BarberoItem>();
+
             foreach (var b in lista)
             {
                 var servs = await _servicios.GetByBarberoAsync(b.Id);
-                Barberos.Add(new BarberoItem(b.Id, b.Nombre, b.FotoUrl, string.Join(" · ", servs.Select(s => s.Nombre))));
+                nuevosBarberos.Add(new BarberoItem(b.Id, b.Nombre, b.FotoUrl, string.Join(" · ", servs.Select(s => s.Nombre))));
+            }
+
+            Barberos.Clear();
+            foreach (var item in nuevosBarberos)
+            {
+                Barberos.Add(item);
             }
 
             TieneProxima = false;
@@ -86,6 +97,10 @@ public partial class InicioViewModel : BaseViewModel
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
+        }
+        finally
+        {
+            _cargando = false;
         }
     }
 

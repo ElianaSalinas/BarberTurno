@@ -1,5 +1,6 @@
 using BarberTurno.Api.Data;
 using BarberTurno.Api.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,8 @@ public class ClientesController : ControllerBase
         _context = context;
     }
 
+    // Solo los barberos pueden consultar el directorio de clientes para ver su historial y citas
+    [Authorize(Roles = "Barbero")]
     [HttpGet]
     public async Task<ActionResult<List<ClienteDto>>> GetClientes()
     {

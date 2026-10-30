@@ -1,5 +1,8 @@
+// Responsable: M09
+// Datos del usuario, cambio de tema (claro/oscuro), gestión de perfil de barbero y cerrar sesión.
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.ApplicationModel;
@@ -42,6 +45,7 @@ public partial class PerfilViewModel : BaseViewModel
     private readonly ISyncService _sync;
 
     private bool _cargandoTema;
+    private bool _paginaVisible;
     private int _barberoId;
 
     public ObservableCollection<ServicioSeleccionableItem> MisServicios { get; } = new();
@@ -94,7 +98,31 @@ public partial class PerfilViewModel : BaseViewModel
     [ObservableProperty]
     private string nuevoServicioDuracion = "30";
 
-    public override void OnAppearing() => _ = CargarAsync();
+    public List<int> DuracionesDisponibles { get; } = new() { 15, 20, 30, 45, 60, 90, 120 };
+
+    [ObservableProperty]
+    private int duracionSeleccionada = 30;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TieneErrorServicio))]
+    private string? mensajeErrorServicio;
+
+    public bool TieneErrorServicio => !string.IsNullOrEmpty(MensajeErrorServicio);
+
+    /// <summary>La página avisa al aparecer: marca visible y delega la carga.</summary>
+    public override void OnAppearing()
+    {
+        base.OnAppearing();
+        _paginaVisible = true;
+        _ = CargarAsync();
+    }
+
+    /// <summary>La página avisa al desaparecer: marca invisible para ignorar reciclaje de controles en Android.</summary>
+    public override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _paginaVisible = false;
+    }
 
     [RelayCommand]
     private async Task CargarAsync()
@@ -113,12 +141,18 @@ public partial class PerfilViewModel : BaseViewModel
         Inicial = string.IsNullOrWhiteSpace(sesion.Nombre) ? "?" : sesion.Nombre.Trim()[..1].ToUpperInvariant();
 
         _cargandoTema = true;
-        var app = Application.Current;
-        var tema = app?.UserAppTheme ?? AppTheme.Unspecified;
-        if (tema == AppTheme.Unspecified)
-            tema = app?.RequestedTheme ?? AppTheme.Unspecified;
-        TemaOscuro = tema == AppTheme.Dark;
-        _cargandoTema = false;
+        try
+        {
+            var app = Application.Current;
+            var tema = app?.UserAppTheme ?? AppTheme.Unspecified;
+            if (tema == AppTheme.Unspecified)
+                tema = app?.RequestedTheme ?? AppTheme.Unspecified;
+            TemaOscuro = tema == AppTheme.Dark;
+        }
+        finally
+        {
+            _cargandoTema = false;
+        }
 
         if (EsBarbero)
         {
@@ -268,22 +302,24 @@ public partial class PerfilViewModel : BaseViewModel
     [RelayCommand]
     private async Task CrearNuevoServicioAsync()
     {
+        MensajeErrorServicio = null;
+
         if (string.IsNullOrWhiteSpace(NuevoServicioNombre))
         {
-            await _dialogs.ShowAlertAsync("Atención", "Ingresa el nombre del servicio.");
+            MensajeErrorServicio = "Ingresa el nombre del servicio.";
+            await _dialogs.ShowAlertAsync("Atención", MensajeErrorServicio);
             return;
         }
 
-        if (!decimal.TryParse(NuevoServicioPrecio, out var precio) || precio <= 0)
+        var precioStr = NuevoServicioPrecio?.Trim().Replace(',', '.');
+        if (!decimal.TryParse(precioStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var precio) || precio <= 0)
         {
-            await _dialogs.ShowAlertAsync("Atención", "Ingresa un precio válido mayor a 0.");
+            MensajeErrorServicio = "Ingresa un precio válido mayor a 0 (ej. 500).";
+            await _dialogs.ShowAlertAsync("Atención", MensajeErrorServicio);
             return;
         }
 
-        if (!int.TryParse(NuevoServicioDuracion, out var duracion) || duracion <= 0)
-        {
-            duracion = 30;
-        }
+        int duracion = DuracionSeleccionada > 0 ? DuracionSeleccionada : 30;
 
         try
         {
@@ -310,7 +346,8 @@ public partial class PerfilViewModel : BaseViewModel
                 NuevoServicioNombre = "";
                 NuevoServicioFoto = null;
                 NuevoServicioPrecio = "";
-                NuevoServicioDuracion = "30";
+                DuracionSeleccionada = 30;
+                MensajeErrorServicio = null;
 
                 var sesion = _auth.SesionActual;
                 if (sesion != null)
@@ -320,7 +357,8 @@ public partial class PerfilViewModel : BaseViewModel
             }
             else
             {
-                await _dialogs.ShowAlertAsync("Error", "No se pudo registrar el nuevo servicio en el servidor.");
+                MensajeErrorServicio = "No se pudo registrar el nuevo servicio en el servidor.";
+                await _dialogs.ShowAlertAsync("Error", MensajeErrorServicio);
             }
         }
         catch (Exception ex)
@@ -330,16 +368,36 @@ public partial class PerfilViewModel : BaseViewModel
         }
     }
 
+    /// <summary>
+    /// Maneja el cambio de estado del Switch. La bandera _paginaVisible asegura que solo se procesen
+    /// cambios manuales realizados por el usuario mientras la página está activa en pantalla.
+    /// </summary>
     partial void OnTemaOscuroChanged(bool value)
     {
-        if (_cargandoTema) return;
+        if (_cargandoTema || !_paginaVisible)
+            return;
 
         try
         {
-            if (Application.Current is { } app)
-                app.UserAppTheme = value ? AppTheme.Dark : AppTheme.Light;
+            var app = Application.Current;
+            if (app is null)
+                return;
+
+            var temaActual = app.UserAppTheme == AppTheme.Unspecified
+                ? (app.RequestedTheme == AppTheme.Dark)
+                : (app.UserAppTheme == AppTheme.Dark);
+
+            // Si el tema actual ya coincide, evitar reestilizar la app y bloquear la navegación
+            if (temaActual == value)
+                return;
 
             Preferences.Default.Set(PrefTemaOscuro, value);
+
+            // Despachar a la cola del hilo principal para no interrumpir el evento del switch ni la transición de Shell
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                app.UserAppTheme = value ? AppTheme.Dark : AppTheme.Light;
+            });
         }
         catch (Exception ex)
         {

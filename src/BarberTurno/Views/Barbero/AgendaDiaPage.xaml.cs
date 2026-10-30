@@ -1,6 +1,7 @@
 using BarberTurno.ViewModels;
-// Responsable: M10
-// Code-behind mínimo: solo asigna el BindingContext. Sin lógica de negocio.
+
+// Responsable: M10 / M04
+// Code-behind mínimo: solo asigna el BindingContext y propaga OnAppearing al ViewModel. Sin lógica de negocio.
 namespace BarberTurno.Views;
 
 public partial class AgendaDiaPage : ContentPage
