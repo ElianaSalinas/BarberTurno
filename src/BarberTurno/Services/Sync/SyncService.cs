@@ -1,31 +1,47 @@
-// Responsable: M07
-// Implementa ISyncService; reintenta al volver la conexión.
+// Responsable: M07 / M04
+// Implementa ISyncService; reintenta al volver la conexión con protección contra excepciones y duplicidad.
+using System.Diagnostics;
 using BarberTurno.Data.Repositories;
+using BarberTurno.Dtos;
+using BarberTurno.Mappers;
+using BarberTurno.Models;
 using BarberTurno.Services.Api;
 using BarberTurno.Services.Network;
+using BarberTurno.Services.Notifications;
 
 namespace BarberTurno.Services.Sync;
 
+/// <summary>Mantiene los datos SQLite alineados con la API y reintenta las citas pendientes al volver la red.</summary>
 public class SyncService : ISyncService
 {
     private readonly INetworkService _networkService;
     private readonly IBarberoRepository _barberoRepo;
     private readonly IServicioRepository _servicioRepo;
+    private readonly IClienteRepository _clienteRepo;
     private readonly ICitaRepository _citaRepo;
     private readonly IBarberTurnoApi _api;
+    private readonly IReminderService? _reminders;
+    private readonly SemaphoreSlim _catalogLock = new(1, 1);
+    private readonly SemaphoreSlim _citasLock = new(1, 1);
+    private readonly SemaphoreSlim _pendingLock = new(1, 1);
 
     public event EventHandler<Guid>? ReservaRechazada;
 
+    /// <summary>Recibe los repositorios locales, la API y el detector de conexión usados por la sincronización.</summary>
     public SyncService(
         INetworkService networkService,
         IBarberoRepository barberoRepo,
         IServicioRepository servicioRepo,
+        IClienteRepository clienteRepo,
         ICitaRepository citaRepo,
-        IBarberTurnoApi api)
+        IBarberTurnoApi api,
+        IReminderService? reminders = null)
     {
+        _reminders = reminders;
         _networkService = networkService;
         _barberoRepo = barberoRepo;
         _servicioRepo = servicioRepo;
+        _clienteRepo = clienteRepo;
         _citaRepo = citaRepo;
         _api = api;
 
@@ -33,73 +49,200 @@ public class SyncService : ISyncService
         {
             if (hayRed)
             {
-                await SincronizarCatalogosAsync();
-                await SincronizarPendientesAsync();
+                try
+                {
+                    await SincronizarCatalogosAsync();
+                    await SincronizarCitasAsync();
+                    await SincronizarPendientesAsync();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[SyncService] Excepción capturada en auto-sincronización: {ex}");
+                }
             }
         };
     }
 
+    /// <summary>Descarga servicios, barberos y clientes de la API y actualiza sus copias locales.</summary>
     public async Task SincronizarCatalogosAsync()
     {
         if (!_networkService.HayConexion) return;
 
+        // Esperar el semáforo sin descartar: si BarberosViewModel o ServiciosViewModel llaman cuando SQLite está vacío,
+        // deben esperar a que la sincronización en curso termine antes de leer para no obtener listas vacías falsas.
+        await _catalogLock.WaitAsync();
+
         try
         {
-            var resultadoBarberos = await _api.GetBarberosAsync();
-            if (resultadoBarberos.IsSuccess && resultadoBarberos.Data != null)
-            {
-                foreach (var barbero in resultadoBarberos.Data)
-                {
-                    await _barberoRepo.SaveItemAsync(barbero);
-                }
-            }
-
-            var resultadoServicios = await _api.GetServiciosAsync();
-            if (resultadoServicios.IsSuccess && resultadoServicios.Data != null)
-            {
-                foreach (var servicio in resultadoServicios.Data)
-                {
-                    await _servicioRepo.SaveItemAsync(servicio);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error al sincronizar catalogos: {ex.Message}");
-        }
-    }
-
-    public async Task SincronizarPendientesAsync()
-    {
-        if (!_networkService.HayConexion) return;
-
-        var citasPendientes = await _citaRepo.GetPendientesDeSincronizarAsync();
-
-        foreach (var cita in citasPendientes)
-        {
+            // 1. Sincronizar servicios PRIMERO para que existan antes de vincularlos con barberos
             try
             {
-                var respuesta = await _api.CrearCitaAsync(cita);
-
-                if (respuesta.IsSuccess)
+                var resultadoServicios = await _api.GetServiciosAsync();
+                if (resultadoServicios.Exito && resultadoServicios.Datos != null)
                 {
-                    cita.Estado = "Confirmada";
-                    cita.IsSynced = true;
-                    await _citaRepo.SaveItemAsync(cita);
-                }
-                else if (respuesta.StatusCode == System.Net.HttpStatusCode.Conflict)
-                {
-                    cita.Estado = "Rechazada";
-                    cita.IsSynced = true;
-                    await _citaRepo.SaveItemAsync(cita);
-
-                    ReservaRechazada?.Invoke(this, cita.Id);
+                    var servicios = resultadoServicios.Datos.Select(s => s.ToEntidad()).ToList();
+                    await _servicioRepo.ReplaceAllAsync(servicios);
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error al sincronizar cita {cita.Id}: {ex.Message}");
+                Debug.WriteLine($"[SyncService] Error al sincronizar servicios: {ex.Message}");
             }
+
+            // 2. Sincronizar barberos CON sus relaciones de servicios de forma atómica
+            try
+            {
+                var resultadoBarberos = await _api.GetBarberosAsync();
+                if (resultadoBarberos.Exito && resultadoBarberos.Datos != null)
+                {
+                    var barberos = new List<Barbero>();
+                    var todasRelaciones = new List<BarberoServicio>();
+
+                    foreach (var barberoDto in resultadoBarberos.Datos)
+                    {
+                        var barbero = barberoDto.ToEntidad();
+                        barberos.Add(barbero);
+
+                        var relaciones = (barberoDto.ServicioIds ?? new List<int>())
+                            .Distinct()
+                            .Select(sId => new BarberoServicio { BarberoId = barbero.Id, ServicioId = sId });
+
+                        todasRelaciones.AddRange(relaciones);
+                    }
+
+                    await _barberoRepo.ReplaceAllAsync(barberos, todasRelaciones);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[SyncService] Error al sincronizar barberos: {ex.Message}");
+            }
+
+            // 3. Sincronizar clientes
+            try
+            {
+                var resultadoClientes = await _api.GetClientesAsync();
+                if (resultadoClientes.Exito && resultadoClientes.Datos != null)
+                {
+                    var clientes = resultadoClientes.Datos.Select(c => c.ToEntidad()).ToList();
+                    await _clienteRepo.UpsertRangeAsync(clientes);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[SyncService] Error al sincronizar clientes: {ex.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SyncService] Error general al sincronizar catálogos: {ex.Message}");
+        }
+        finally
+        {
+            _catalogLock.Release();
+        }
+    }
+
+    /// <summary>Actualiza las citas locales con el estado remoto y reconcilia sus recordatorios.</summary>
+    public async Task SincronizarCitasAsync()
+    {
+        if (!_networkService.HayConexion) return;
+
+        if (!await _citasLock.WaitAsync(0))
+        {
+            Debug.WriteLine("[SyncService] Sincronización de citas ya en progreso, omitiendo.");
+            return;
+        }
+
+        try
+        {
+            var resultadoCitas = await _api.GetMisCitasAsync();
+            if (resultadoCitas.Exito && resultadoCitas.Datos != null)
+            {
+                foreach (var citaDto in resultadoCitas.Datos)
+                {
+                    try
+                    {
+                        await _citaRepo.SaveItemAsync(citaDto.ToEntidad());
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"[SyncService] Error al guardar cita {citaDto.Id}: {ex.Message}");
+                    }
+                }
+
+                // Alinea los recordatorios con lo que dice el servidor (citas nuevas, canceladas o rechazadas).
+                if (_reminders is not null)
+                    await _reminders.ReconciliarAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SyncService] Error al sincronizar citas: {ex.Message}");
+        }
+        finally
+        {
+            _citasLock.Release();
+        }
+    }
+
+    /// <summary>Envía a la API las citas creadas sin conexión y comunica los conflictos de horario.</summary>
+    public async Task SincronizarPendientesAsync()
+    {
+        if (!_networkService.HayConexion) return;
+
+        if (!await _pendingLock.WaitAsync(0))
+        {
+            Debug.WriteLine("[SyncService] Sincronización de pendientes ya en progreso, omitiendo.");
+            return;
+        }
+
+        try
+        {
+            var citasPendientes = await _citaRepo.GetPendientesDeSincronizarAsync();
+
+            foreach (var cita in citasPendientes)
+            {
+                try
+                {
+                    var request = new CrearCitaRequestDto
+                    {
+                        Id = cita.Id,
+                        BarberoId = cita.BarberoId,
+                        ServicioId = cita.ServicioId,
+                        InicioUtc = cita.Inicio.ToUniversalTime()
+                    };
+
+                    var respuesta = await _api.CrearCitaAsync(request);
+
+                    if (respuesta.Exito)
+                    {
+                        cita.Estado = EstadoCita.Confirmada;
+                        cita.PendienteSincronizar = false;
+                        await _citaRepo.SaveItemAsync(cita);
+                        if (_reminders is not null)
+                            await _reminders.ProgramarAsync(cita);
+                    }
+                    else if (respuesta.CodigoHttp == 409)
+                    {
+                        cita.Estado = EstadoCita.Rechazada;
+                        cita.PendienteSincronizar = false;
+                        await _citaRepo.SaveItemAsync(cita);
+                        if (_reminders is not null)
+                            await _reminders.CancelarAsync(cita.Id);
+
+                        ReservaRechazada?.Invoke(this, cita.Id);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[SyncService] Error al sincronizar cita {cita.Id}: {ex.Message}");
+                }
+            }
+        }
+        finally
+        {
+            _pendingLock.Release();
         }
     }
 }

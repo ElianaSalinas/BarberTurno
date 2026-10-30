@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             xmlns:controls="clr-namespace:BarberTurno.Controls"
+             x:Class="BarberTurno.Views.CatalogoPage"
+             x:DataType="vm:CatalogoViewModel"
+             Style="{StaticResource M10Page}"
+             Title="Servicios"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
+    <Shell.TitleView><controls:BrandBar /></Shell.TitleView>
+
+    <Grid motion:Motion.Enter="True" RowDefinitions="Auto,*">
+        <VerticalStackLayout Padding="24,24,24,8" Spacing="4">
+            <Label Text="NUESTRO MENÚ" FontSize="10" CharacterSpacing="1.3" Style="{StaticResource BtGold}" />
+            <Label Text="Servicios" Style="{StaticResource BtTitle}" FontSize="32" />
+            <Label Text="Elige tu ritual. Nosotros hacemos el resto." Style="{StaticResource BtMuted}" />
+        </VerticalStackLayout>
+
+        <controls:StateView Grid.Row="1" State="{Binding State}" EmptyText="Aún no hay servicios disponibles."
+                            ErrorText="{Binding MensajeError}" RetryCommand="{Binding CargarCommand}">
+            <CollectionView ItemsSource="{Binding Servicios}" SelectionMode="None" Margin="0,8">
+                <CollectionView.Header>
+                    <!-- Destacado -->
+                    <Border Style="{StaticResource BtDarkCard}" Margin="24,8,24,12" Padding="22">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="EL FAVORITO" FontSize="9" CharacterSpacing="1.5" Style="{StaticResource BtGold}" />
+                            <Label Text="{Binding Destacado.Nombre}" FontFamily="OpenSansSemibold" FontSize="24" TextColor="White" Margin="0,6,0,0" />
+                            <Label Text="La experiencia completa para salir impecable." FontSize="11" TextColor="#C4C0B8" />
+                            <Label Text="{Binding Destacado.PrecioTexto}" FontSize="18" Style="{StaticResource BtGold}" Margin="0,8,0,0" />
+                        </VerticalStackLayout>
+                    </Border>
+                </CollectionView.Header>
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ServicioItem">
+                        <Border Style="{StaticResource BtCard}" Margin="24,0">
+                            <VerticalStackLayout Spacing="10">
+                                <Border HeightRequest="140" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                            Background="{AppThemeBinding Light={StaticResource M10LightDarkCard}, Dark={StaticResource M10DarkDarkCard}}">
+                                        <Grid>
+                                            <Image Source="icon_scissors_gold.svg" WidthRequest="34" HeightRequest="34"
+                                                   HorizontalOptions="Center" VerticalOptions="Center" Opacity="0.7" />
+                                            <Image Source="{Binding ImagenArchivo}" Aspect="AspectFill" />
+                                            <Image Source="{Binding FotoUrl, Converter={StaticResource FotoConverter}}" Aspect="AspectFill" />
+                                        </Grid>
+                                    </Border>
+                                <Label Text="{Binding Nombre}" Style="{StaticResource BtH2}" FontSize="17" />
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Text="{Binding DuracionTexto}" Style="{StaticResource BtMuted}" VerticalOptions="Center" />
+                                    <Label Grid.Column="1" Text="{Binding PrecioTexto}" FontSize="17" Style="{StaticResource BtGold}" />
+                                </Grid>
+                                <Button Text="Reservar  ›" Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CatalogoViewModel}}, Path=ReservarCommand}"
+                                        BackgroundColor="{AppThemeBinding Light=#EFEBE2, Dark={StaticResource M10DarkHighlight}}"
+                                        TextColor="{AppThemeBinding Light={StaticResource M10LightText}, Dark={StaticResource M10DarkText}}"
+                                        FontFamily="OpenSansSemibold" FontSize="12" CornerRadius="10" HeightRequest="40" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </controls:StateView>
+    </Grid>
+</ContentPage>

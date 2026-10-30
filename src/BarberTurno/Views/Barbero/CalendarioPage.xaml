@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             xmlns:controls="clr-namespace:BarberTurno.Controls"
+             x:Class="BarberTurno.Views.CalendarioPage"
+             x:DataType="vm:CalendarioViewModel"
+             Style="{StaticResource M10Page}"
+             Title="Calendario"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
+    <Shell.TitleView><controls:BrandBar /></Shell.TitleView>
+
+    <ScrollView>
+        <VerticalStackLayout motion:Motion.Enter="True" Padding="24,20" Spacing="20" HorizontalOptions="Center" MaximumWidthRequest="950">
+            <!-- Título y subtítulo -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="GESTIÓN DE TIEMPO" FontSize="11" CharacterSpacing="1.2" Style="{StaticResource BtGold}" />
+                <Label Text="Calendario de citas" Style="{StaticResource BtTitle}" />
+                <Label Text="Selecciona un día para revisar y gestionar los turnos programados." Style="{StaticResource BtMuted}" />
+            </VerticalStackLayout>
+            <controls:EstadoBanner State="{Binding State}" ErrorText="{Binding MensajeError}" RetryCommand="{Binding ReintentarCommand}" />
+
+
+            <!-- Selector de fecha -->
+            <Border Style="{StaticResource BtCard}" Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Seleccionar fecha" Style="{StaticResource BtH2}" />
+                    <DatePicker Date="{Binding FechaSeleccionada}"
+                                Format="D"
+                                MinimumDate="2024-01-01"
+                                TextColor="{AppThemeBinding Light=#18202D, Dark=#F7F4EE}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Turnos del día seleccionado -->
+            <Border Style="{StaticResource BtDarkCard}" Padding="20">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="TURNOS DEL DÍA" FontSize="10" CharacterSpacing="1.2" Style="{StaticResource BtGold}" />
+                    <Label Text="{Binding Resumen}" FontFamily="OpenSansSemibold" FontSize="18" TextColor="White" />
+                </VerticalStackLayout>
+            </Border>
+
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Citas}" Spacing="10">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CitaAgendaItem">
+                        <Border Style="{StaticResource BtCard}" Padding="16"
+                                SemanticProperties.Hint="Toca para ver el detalle y el historial del cliente">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CalendarioViewModel}}, Path=AbrirCitaCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="64,*" ColumnSpacing="14">
+                                <VerticalStackLayout VerticalOptions="Center">
+                                    <Label Text="{Binding Hora}" FontFamily="OpenSansSemibold" FontSize="18" />
+                                    <Label Text="{Binding Periodo}" Style="{StaticResource BtMuted}" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                    <Label Text="{Binding NombreCliente}" Style="{StaticResource BtH2}" FontSize="16" />
+                                    <Label Text="{Binding Servicio}" Style="{StaticResource BtMuted}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

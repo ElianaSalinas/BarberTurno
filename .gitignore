@@ -25,6 +25,13 @@ appsettings.Production.json
 *.db
 *.db3
 *.sqlite
+*.db-shm
+*.db-wal
+*.db-journal
+# Logs de depuración local
+anr.txt
+crash.txt
+*.log
 # SO / IDE
 .DS_Store
 Thumbs.db

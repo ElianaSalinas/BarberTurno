@@ -3,6 +3,7 @@ using BarberTurno.Models;
 // Recordatorios locales de citas (con permiso).
 namespace BarberTurno.Services.Notifications;
 
+/// <summary>Contrato para gestionar los avisos locales asociados a citas.</summary>
 public interface IReminderService
 {
     Task<bool> SolicitarPermisoAsync();

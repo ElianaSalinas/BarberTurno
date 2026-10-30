@@ -2,6 +2,7 @@
 // Constantes de rutas de Shell (sin cadenas sueltas).
 namespace BarberTurno.Helpers;
 
+/// <summary>Reúne las rutas Shell consumidas por el servicio de navegación y las vistas.</summary>
 public static class Routes
 {
     public const string Login = "//login";
