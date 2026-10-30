@@ -7,10 +7,35 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Base de datos SQLite
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=barberturno.db";
+// 1. Base de datos (Soporta PostgreSQL para Supabase o SQLite local por defecto)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? builder.Configuration["DATABASE_URL"] 
+    ?? "Data Source=barberturno.db";
+
 builder.Services.AddDbContext<ApiDbContext>(options =>
-    options.UseSqlite(connectionString));
+{
+    if (connectionString.Contains("Host=", StringComparison.OrdinalIgnoreCase) ||
+        connectionString.Contains("Server=", StringComparison.OrdinalIgnoreCase) ||
+        connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) ||
+        connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+    {
+        string npgsqlConn = connectionString;
+        if (connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+            connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+        {
+            var uri = new Uri(connectionString);
+            var userInfo = uri.UserInfo.Split(':');
+            var user = userInfo.Length > 0 ? userInfo[0] : "postgres";
+            var pass = userInfo.Length > 1 ? userInfo[1] : "";
+            npgsqlConn = $"Host={uri.Host};Port={(uri.Port > 0 ? uri.Port : 5432)};Database={uri.AbsolutePath.TrimStart('/')};Username={user};Password={pass};SSL Mode=Require;Trust Server Certificate=true";
+        }
+        options.UseNpgsql(npgsqlConn);
+    }
+    else
+    {
+        options.UseSqlite(connectionString);
+    }
+});
 
 // 2. Controladores
 builder.Services.AddControllers();
@@ -110,7 +135,10 @@ app.UseSwaggerUI(c =>
 
 app.UseCors("AllowAll");
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

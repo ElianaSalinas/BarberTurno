@@ -4,6 +4,25 @@ using System.Text.Json.Serialization;
 
 namespace BarberTurno.Dtos;
 
+/// <summary>Datos enviados al servidor para registrar una cuenta.</summary>
+public class RegistroRequestDto
+{
+    [JsonPropertyName("nombre")]
+    public string Nombre { get; set; } = "";
+
+    [JsonPropertyName("telefono")]
+    public string Telefono { get; set; } = "";
+
+    [JsonPropertyName("usuario")]
+    public string Usuario { get; set; } = "";
+
+    [JsonPropertyName("password")]
+    public string Password { get; set; } = "";
+
+    [JsonPropertyName("rol")]
+    public string Rol { get; set; } = "Cliente";
+}
+
 /// <summary>Datos enviados al servidor para iniciar sesión.</summary>
 public class LoginRequestDto
 {

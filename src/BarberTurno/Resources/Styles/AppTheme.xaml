@@ -469,4 +469,69 @@
                                         Dark={StaticResource M10DarkGold}}" />
     </Style>
 
+    <!-- ===== BarberTurno · estilos compartidos (usan la paleta M10 existente) ===== -->
+    <Style x:Key="BtTitle" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="30" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightText}, Dark={StaticResource M10DarkText}}" />
+    </Style>
+    <Style x:Key="BtH2" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightText}, Dark={StaticResource M10DarkText}}" />
+    </Style>
+    <Style x:Key="BtMuted" TargetType="Label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightMutedText}, Dark={StaticResource M10DarkMutedText}}" />
+    </Style>
+    <Style x:Key="BtGold" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
+    </Style>
+
+    <!-- Tarjeta blanca con borde fino -->
+    <Style x:Key="BtCard" TargetType="Border">
+        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource M10LightSurface}, Dark={StaticResource M10DarkSurface}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource M10LightBorder}, Dark={StaticResource M10DarkBorder}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+        <Setter Property="Padding" Value="16" />
+    </Style>
+    <!-- Tarjeta oscura (hero) -->
+    <Style x:Key="BtDarkCard" TargetType="Border">
+        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource M10LightDarkCard}, Dark={StaticResource M10DarkDarkCard}}" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 22" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+    <!-- Contenedor de campos de texto -->
+    <Style x:Key="BtField" TargetType="Border">
+        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource M10LightSurface}, Dark={StaticResource M10DarkSurface}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource M10LightBorder}, Dark={StaticResource M10DarkBorder}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+        <Setter Property="Padding" Value="14,0" />
+    </Style>
+    <Style x:Key="BtEntry" TargetType="Entry">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="HeightRequest" Value="50" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightText}, Dark={StaticResource M10DarkText}}" />
+        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource M10LightMutedText}, Dark={StaticResource M10DarkMutedText}}" />
+    </Style>
+    <!-- Botones -->
+    <Style x:Key="BtGoldButton" TargetType="Button">
+        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
+        <Setter Property="TextColor" Value="#1B1B17" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="HeightRequest" Value="52" />
+    </Style>
+    <Style x:Key="BtLinkButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
+    </Style>
 </ResourceDictionary>

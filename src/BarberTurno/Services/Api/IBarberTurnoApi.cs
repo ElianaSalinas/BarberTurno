@@ -6,6 +6,7 @@ public interface IBarberTurnoApi
 {
     void SetAuthToken(string? token);
     Task<ApiResult<LoginResponseDto>> LoginAsync(LoginRequestDto request);
+    Task<ApiResult<LoginResponseDto>> RegistrarAsync(RegistroRequestDto request);
     Task<ApiResult<List<BarberoDto>>> GetBarberosAsync();
     Task<ApiResult<List<ServicioDto>>> GetServiciosAsync();
     Task<ApiResult<List<SlotDto>>> GetDisponibilidadAsync(int barberoId, int servicioId, DateOnly fecha);

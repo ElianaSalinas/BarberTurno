@@ -1,120 +1,94 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- Responsable: M5. Pantalla de registro: rol, datos personales, contraseña. -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
              x:Class="BarberTurno.Views.RegistroPage"
              x:DataType="vm:RegistroViewModel"
+             Style="{StaticResource M10Page}"
              Title="Crear cuenta"
-             Shell.NavBarIsVisible="False">
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <!-- RadioButton convertido en "chip" de rol: se ilumina en dorado al seleccionarlo -->
+        <ControlTemplate x:Key="RolChip">
+            <Border x:Name="Caja" StrokeThickness="1" StrokeShape="RoundRectangle 14" Padding="0,14"
+                    Background="{AppThemeBinding Light={StaticResource M10LightSurface}, Dark={StaticResource M10DarkSurface}}"
+                    Stroke="{AppThemeBinding Light={StaticResource M10LightBorder}, Dark={StaticResource M10DarkBorder}}">
+                <Label x:Name="Texto" Text="{TemplateBinding Content}" HorizontalOptions="Center"
+                       FontFamily="OpenSansSemibold" FontSize="14"
+                       TextColor="{AppThemeBinding Light={StaticResource M10LightMutedText}, Dark={StaticResource M10DarkMutedText}}" />
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="CheckedStates">
+                            <VisualState x:Name="Checked">
+                                <VisualState.Setters>
+                                    <Setter TargetName="Caja" Property="Border.Background" Value="{AppThemeBinding Light={StaticResource M10LightDarkCard}, Dark={StaticResource M10DarkGold}}" />
+                                    <Setter TargetName="Caja" Property="Border.Stroke" Value="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
+                                    <Setter TargetName="Texto" Property="Label.TextColor" Value="{AppThemeBinding Light={StaticResource M10LightGold}, Dark=#1B1B17}" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Unchecked" />
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+            </Border>
+        </ControlTemplate>
+    </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout
-            Padding="32,60,32,32"
-            Spacing="14"
-            VerticalOptions="Center">
+        <VerticalStackLayout Padding="28,56,28,32" Spacing="14" MaximumWidthRequest="460">
 
-            <!-- ── Encabezado ───────────────────────────────────────────── -->
-            <Label Text="Crear cuenta"
-                   Style="{StaticResource Headline}" />
+            <Label Text="NUEVA CUENTA" FontSize="10" CharacterSpacing="1.3" Style="{StaticResource BtGold}" />
+            <Label Text="Crea tu cuenta" Style="{StaticResource BtTitle}" Margin="0,-10,0,0" />
+            <Label Text="Solo toma un minuto." Style="{StaticResource BtMuted}" Margin="0,-10,0,6" />
 
-            <!-- ── Selección de rol ─────────────────────────────────────── -->
-            <!-- GroupName="Rol" garantiza que solo uno puede estar activo.
-                 IsChecked enlazado en TwoWay: la vista actualiza el ViewModel
-                 y el ViewModel puede actualizar la vista. -->
-            <Label Text="¿Cómo te quieres registrar?"
-                   Style="{StaticResource SubHeadline}"
-                   FontSize="16"
-                   Margin="0,8,0,0" />
+            <Label Text="¿CÓMO TE QUIERES REGISTRAR?" FontSize="10" CharacterSpacing="1.2" Style="{StaticResource BtMuted}" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,-6,0,4">
+                <RadioButton x:Name="RadioCliente" Content="Cliente" GroupName="Rol"
+                             ControlTemplate="{StaticResource RolChip}" IsChecked="{Binding EsCliente, Mode=TwoWay}" />
+                <RadioButton x:Name="RadioBarbero" Grid.Column="1" Content="Barbero" GroupName="Rol"
+                             ControlTemplate="{StaticResource RolChip}" IsChecked="{Binding EsBarbero, Mode=TwoWay}" />
+            </Grid>
 
-            <HorizontalStackLayout Spacing="24" HorizontalOptions="Center">
-                <RadioButton x:Name="RadioCliente"
-                             Content="Cliente"
-                             GroupName="Rol"
-                             IsChecked="{Binding EsCliente, Mode=TwoWay}" />
-                <RadioButton x:Name="RadioBarbero"
-                             Content="Barbero"
-                             GroupName="Rol"
-                             IsChecked="{Binding EsBarbero, Mode=TwoWay}" />
-            </HorizontalStackLayout>
+            <Border Style="{StaticResource BtField}">
+                <Entry x:Name="EntryNombre" Style="{StaticResource BtEntry}" Text="{Binding Nombre}"
+                       Placeholder="Nombre completo" Keyboard="Text" ReturnType="Next" />
+            </Border>
+            <Border Style="{StaticResource BtField}">
+                <Entry x:Name="EntryTelefono" Style="{StaticResource BtEntry}" Text="{Binding Telefono}"
+                       Placeholder="Teléfono (10 dígitos)" Keyboard="Telephone" ReturnType="Next" />
+            </Border>
+            <Border Style="{StaticResource BtField}">
+                <Entry x:Name="EntryUsuario" Style="{StaticResource BtEntry}" Text="{Binding Usuario}"
+                       Placeholder="Usuario" Keyboard="Email" ReturnType="Next" />
+            </Border>
+            <Border Style="{StaticResource BtField}">
+                <Entry x:Name="EntryPassword" Style="{StaticResource BtEntry}" Text="{Binding Password}"
+                       Placeholder="Contraseña (mínimo 6 caracteres)" IsPassword="True" ReturnType="Next" />
+            </Border>
+            <Border Style="{StaticResource BtField}">
+                <Entry x:Name="EntryConfirmarPassword" Style="{StaticResource BtEntry}" Text="{Binding ConfirmarPassword}"
+                       Placeholder="Confirmar contraseña" IsPassword="True" ReturnType="Done"
+                       ReturnCommand="{Binding RegistrarCommand}" />
+            </Border>
 
-            <!-- ── Campos de datos ──────────────────────────────────────── -->
-            <!-- El estilo implícito de Entry en Styles.xaml aplica fuente,
-                 colores y placeholder según el tema claro/oscuro. -->
-
-            <Entry x:Name="EntryNombre"
-                   Text="{Binding Nombre}"
-                   Placeholder="Nombre completo"
-                   Keyboard="Text"
-                   ReturnType="Next" />
-
-            <Entry x:Name="EntryTelefono"
-                   Text="{Binding Telefono}"
-                   Placeholder="Teléfono (10 dígitos)"
-                   Keyboard="Telephone"
-                   ReturnType="Next" />
-
-            <Entry x:Name="EntryUsuario"
-                   Text="{Binding Usuario}"
-                   Placeholder="Usuario"
-                   Keyboard="Email"
-                   ReturnType="Next" />
-
-            <!-- ── Contraseñas ───────────────────────────────────────────── -->
-            <Entry x:Name="EntryPassword"
-                   Text="{Binding Password}"
-                   Placeholder="Contraseña (mínimo 6 caracteres)"
-                   IsPassword="True"
-                   ReturnType="Next" />
-
-            <!-- El Completed de EntryConfirmarPassword llama a RegistrarCommand
-                 desde el code-behind (es un ICommand válido, no un método). -->
-            <Entry x:Name="EntryConfirmarPassword"
-                   Text="{Binding ConfirmarPassword}"
-                   Placeholder="Confirmar contraseña"
-                   IsPassword="True"
-                   ReturnType="Done"
-                   ReturnCommand="{Binding RegistrarCommand}" />
-
-            <!-- ── Mensaje de error ─────────────────────────────────────── -->
-            <!-- Visible por defecto. El DataTrigger lo oculta cuando
-                 MensajeError es "" (cadena vacía). Al tener texto, el trigger
-                 deja de aplicar y el Label recupera IsVisible=True (visible). -->
-            <Label x:Name="LabelError"
-                   Text="{Binding MensajeError}"
-                   TextColor="{AppThemeBinding Light={StaticResource Magenta}, Dark={StaticResource Magenta}}"
-                   FontSize="13"
-                   HorizontalTextAlignment="Center">
+            <Label x:Name="LabelError" Text="{Binding MensajeError}" FontSize="13"
+                   TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" HorizontalTextAlignment="Center">
                 <Label.Triggers>
-                    <DataTrigger TargetType="Label"
-                                 Binding="{Binding MensajeError}"
-                                 Value="">
+                    <DataTrigger TargetType="Label" Binding="{Binding MensajeError}" Value="">
                         <Setter Property="IsVisible" Value="False" />
                     </DataTrigger>
                 </Label.Triggers>
             </Label>
 
-            <!-- ── Botón principal ──────────────────────────────────────── -->
-            <!-- Sin IsEnabled manual: AsyncRelayCommand deshabilita el botón
-                 automáticamente mientras RegistrarCommand está en ejecución
-                 (AllowConcurrentExecutions=false por defecto). -->
-            <Button Text="Crear cuenta"
-                    Command="{Binding RegistrarCommand}"
-                    Margin="0,8,0,0" />
+            <Button Text="Crear cuenta" Command="{Binding RegistrarCommand}" Style="{StaticResource BtGoldButton}" Margin="0,6,0,0" />
 
-            <!-- ── Indicador de carga ────────────────────────────────────── -->
-            <ActivityIndicator IsRunning="{Binding IsBusy}"
-                               IsVisible="{Binding IsBusy}"
-                               HorizontalOptions="Center" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center"
+                               Color="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
 
-            <!-- ── Enlace al login ───────────────────────────────────────── -->
-            <Button Text="¿Ya tienes cuenta? Inicia sesión"
-                    Command="{Binding VolverALoginCommand}"
-                    BackgroundColor="Transparent"
-                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
-                    FontSize="13"
-                    Margin="0,8,0,0" />
-
+            <Button Text="¿Ya tienes cuenta? Inicia sesión" Command="{Binding VolverALoginCommand}"
+                    Style="{StaticResource BtLinkButton}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
