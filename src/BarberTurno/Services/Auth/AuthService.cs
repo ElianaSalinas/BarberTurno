@@ -160,6 +160,7 @@ public class AuthService : IAuthService
         {
             UsuarioId = dto.UsuarioId,
             Nombre    = dto.Nombre,
-            Rol       = rol
+            Rol       = rol,
+            BarberoId = dto.BarberoId
         };
 }
