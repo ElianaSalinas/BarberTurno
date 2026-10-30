@@ -98,7 +98,7 @@ public partial class BarberosViewModel : ClienteViewModelBase
             var items = await LeerBarberosAsync();
 
             // Primera vez (SQLite vacío): pedir el catálogo al servidor si hay red.
-            if (HayConexion)
+            if (HayConexion && items.Count == 0)
             {
                 await _sync.SincronizarCatalogosAsync();
                 items = await LeerBarberosAsync();
