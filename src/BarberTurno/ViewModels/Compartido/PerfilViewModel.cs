@@ -29,7 +29,7 @@ public partial class ServicioSeleccionableItem : ObservableObject
     [ObservableProperty]
     private bool asignado;
 
-    public string Detalle => $"${Precio:F0} · {DuracionMin} min";
+    public string Detalle => $"{FormatoCliente.Precio(Precio)} · {DuracionMin} min";
 }
 
 public partial class PerfilViewModel : BaseViewModel
@@ -306,16 +306,14 @@ public partial class PerfilViewModel : BaseViewModel
 
         if (string.IsNullOrWhiteSpace(NuevoServicioNombre))
         {
+            // El error se muestra únicamente junto al campo sin alert duplicado
             MensajeErrorServicio = "Ingresa el nombre del servicio.";
-            await _dialogs.ShowAlertAsync("Atención", MensajeErrorServicio);
             return;
         }
 
-        var precioStr = NuevoServicioPrecio?.Trim().Replace(',', '.');
-        if (!decimal.TryParse(precioStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var precio) || precio <= 0)
+        if (!TryParsePrecio(NuevoServicioPrecio, out var precio))
         {
             MensajeErrorServicio = "Ingresa un precio válido mayor a 0 (ej. 500).";
-            await _dialogs.ShowAlertAsync("Atención", MensajeErrorServicio);
             return;
         }
 
@@ -358,14 +356,51 @@ public partial class PerfilViewModel : BaseViewModel
             else
             {
                 MensajeErrorServicio = "No se pudo registrar el nuevo servicio en el servidor.";
-                await _dialogs.ShowAlertAsync("Error", MensajeErrorServicio);
             }
         }
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
-            await _dialogs.ShowAlertAsync("Error", "Ocurrió un problema al crear el servicio.");
+            MensajeErrorServicio = "Ocurrió un problema al crear el servicio.";
         }
+    }
+
+    /// <summary>
+    /// Valida y analiza de manera robusta precios ingresados por el usuario.
+    /// Soporta formatos con separador de miles y decimales ("1,500", "1.500", "1,500.50", "1.500,50", "500").
+    /// </summary>
+    public static bool TryParsePrecio(string? raw, out decimal precio)
+    {
+        precio = 0m;
+        if (string.IsNullOrWhiteSpace(raw)) return false;
+
+        var texto = raw.Trim();
+
+        // 1. Si contiene tanto punto como coma: el último separador es el decimal y el anterior es miles
+        if (texto.Contains('.') && texto.Contains(','))
+        {
+            int idxPunto = texto.LastIndexOf('.');
+            int idxComa = texto.LastIndexOf(',');
+            if (idxPunto > idxComa)
+            {
+                texto = texto.Replace(",", "");
+            }
+            else
+            {
+                texto = texto.Replace(".", "").Replace(',', '.');
+            }
+        }
+        // 2. Si solo contiene un separador (',' o '.') seguido de exactamente 3 dígitos al final (ej. 1,500 o 1.500), es separador de miles
+        else if (System.Text.RegularExpressions.Regex.IsMatch(texto, @"^\d{1,3}[,\.]\d{3}$"))
+        {
+            texto = texto.Replace(",", "").Replace(".", "");
+        }
+        else
+        {
+            texto = texto.Replace(',', '.');
+        }
+
+        return decimal.TryParse(texto, NumberStyles.Any, CultureInfo.InvariantCulture, out precio) && precio > 0;
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using BarberTurno.Helpers;
 using BarberTurno.Models;
 
 namespace BarberTurno.ViewModels;
@@ -11,7 +12,8 @@ public sealed class ServicioItem
     public string? FotoUrl { get; }
 
     public string DuracionTexto => $"{DuracionMin} min";
-    public string PrecioTexto => $"${Precio:N2}";
+    public string PrecioTexto => FormatoCliente.Precio(Precio);
+    public string Detalle => $"{FormatoCliente.Precio(Precio)} · {DuracionMin} min";
 
     /// <summary>
     /// Nombre del archivo de la foto del servicio, por convención a partir del nombre:
