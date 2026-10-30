@@ -15,6 +15,7 @@ public class SyncService : ISyncService
     private readonly INetworkService _networkService;
     private readonly IBarberoRepository _barberoRepo;
     private readonly IServicioRepository _servicioRepo;
+    private readonly IClienteRepository _clienteRepo;
     private readonly ICitaRepository _citaRepo;
     private readonly IBarberTurnoApi _api;
     private readonly SemaphoreSlim _catalogLock = new(1, 1);
@@ -26,12 +27,14 @@ public class SyncService : ISyncService
         INetworkService networkService,
         IBarberoRepository barberoRepo,
         IServicioRepository servicioRepo,
+        IClienteRepository clienteRepo,
         ICitaRepository citaRepo,
         IBarberTurnoApi api)
     {
         _networkService = networkService;
         _barberoRepo = barberoRepo;
         _servicioRepo = servicioRepo;
+        _clienteRepo = clienteRepo;
         _citaRepo = citaRepo;
         _api = api;
 
@@ -86,6 +89,26 @@ public class SyncService : ISyncService
                         .Select(sId => new BarberoServicio { BarberoId = barbero.Id, ServicioId = sId });
 
                     await _barberoRepo.UpsertAsync(barbero, relaciones);
+                }
+            }
+
+            // 3. Sincronizar clientes
+            var resultadoClientes = await _api.GetClientesAsync();
+            if (resultadoClientes.Exito && resultadoClientes.Datos != null)
+            {
+                foreach (var clienteDto in resultadoClientes.Datos)
+                {
+                    await _clienteRepo.UpsertAsync(clienteDto.ToEntidad());
+                }
+            }
+
+            // 4. Sincronizar citas
+            var resultadoCitas = await _api.GetMisCitasAsync();
+            if (resultadoCitas.Exito && resultadoCitas.Datos != null)
+            {
+                foreach (var citaDto in resultadoCitas.Datos)
+                {
+                    await _citaRepo.SaveItemAsync(citaDto.ToEntidad());
                 }
             }
         }

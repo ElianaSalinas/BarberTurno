@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             xmlns:controls="clr-namespace:BarberTurno.Controls"
+             x:Class="BarberTurno.Views.CalendarioPage"
+             Style="{StaticResource M10Page}"
+             Title="Calendario">
+    <Shell.TitleView><controls:BrandBar /></Shell.TitleView>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24,20" Spacing="20" HorizontalOptions="Center" MaximumWidthRequest="950">
+            <!-- Título y subtítulo -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="GESTIÓN DE TIEMPO" FontSize="11" CharacterSpacing="1.2" Style="{StaticResource BtGold}" />
+                <Label Text="Calendario de citas" Style="{StaticResource BtTitle}" />
+                <Label Text="Selecciona un día para revisar y gestionar los turnos programados." Style="{StaticResource BtMuted}" />
+            </VerticalStackLayout>
+
+            <!-- Selector de Fecha / Calendario -->
+            <Border Style="{StaticResource BtCard}" Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Seleccionar Fecha" Style="{StaticResource BtH2}" />
+                    <DatePicker x:Name="DatePickerCalendario"
+                                Format="D"
+                                MinimumDate="2024-01-01"
+                                TextColor="{AppThemeBinding Light=#18202D, Dark=#F7F4EE}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Horarios y Bloques del día seleccionado -->
+            <Border Style="{StaticResource BtDarkCard}" Padding="20">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="ESTADO DEL DÍA" FontSize="10" CharacterSpacing="1.2" Style="{StaticResource BtGold}" />
+                    <Label Text="Jornada Laboral: 09:00 AM - 06:00 PM" FontFamily="OpenSansSemibold" FontSize="16" TextColor="White" />
+                    <Label Text="• Citas confirmadas en la jornada: Se visualizan en tiempo real" Style="{StaticResource BtMuted}" TextColor="#E2E8F0" />
+                    <Label Text="• Intervalos libres disponibles para reserva de clientes" Style="{StaticResource BtMuted}" TextColor="#E2E8F0" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

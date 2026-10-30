@@ -1,33 +1,70 @@
+// Responsable: M09
+// Datos del usuario, cambio de tema (claro/oscuro), gestión de perfil de barbero y cerrar sesión.
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Media;
+using BarberTurno.Data.Repositories;
+using BarberTurno.Dtos;
 using BarberTurno.Helpers;
 using BarberTurno.Models;
+using BarberTurno.Services.Api;
 using BarberTurno.Services.Auth;
 using BarberTurno.Services.Dialogs;
 using BarberTurno.Services.Navigation;
+using BarberTurno.Services.Sync;
 
-// Responsable: M09
-// Datos del usuario, cambio de tema (claro/oscuro) y cerrar sesión.
 namespace BarberTurno.ViewModels;
+
+public partial class ServicioSeleccionableItem : ObservableObject
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; } = "";
+    public decimal Precio { get; set; }
+    public int DuracionMin { get; set; }
+
+    [ObservableProperty]
+    private bool asignado;
+
+    public string Detalle => $"${Precio:F0} · {DuracionMin} min";
+}
 
 public partial class PerfilViewModel : BaseViewModel
 {
-    /// <summary>Clave en Preferences; M10/M01 pueden leerla al iniciar la app para restaurar el tema.</summary>
     public const string PrefTemaOscuro = "tema_oscuro";
 
     private readonly IAuthService _auth;
     private readonly INavigationService _navigation;
     private readonly IDialogService _dialogs;
+    private readonly IBarberTurnoApi _api;
+    private readonly IBarberoRepository _barberos;
+    private readonly IServicioRepository _servicios;
+    private readonly ISyncService _sync;
+
     private bool _cargandoTema;
     private bool _paginaVisible;
+    private int _barberoId;
 
-    public PerfilViewModel(IAuthService auth, INavigationService navigation, IDialogService dialogs)
+    public ObservableCollection<ServicioSeleccionableItem> MisServicios { get; } = new();
+
+    public PerfilViewModel(
+        IAuthService auth,
+        INavigationService navigation,
+        IDialogService dialogs,
+        IBarberTurnoApi api,
+        IBarberoRepository barberos,
+        IServicioRepository servicios,
+        ISyncService sync)
     {
         _auth = auth;
         _navigation = navigation;
         _dialogs = dialogs;
+        _api = api;
+        _barberos = barberos;
+        _servicios = servicios;
+        _sync = sync;
     }
 
     [ObservableProperty]
@@ -40,14 +77,29 @@ public partial class PerfilViewModel : BaseViewModel
     private string inicial = "?";
 
     [ObservableProperty]
+    private string? fotoUrl;
+
+    [ObservableProperty]
+    private bool esBarbero;
+
+    [ObservableProperty]
     private bool temaOscuro;
+
+    [ObservableProperty]
+    private string nuevoServicioNombre = "";
+
+    [ObservableProperty]
+    private string nuevoServicioPrecio = "";
+
+    [ObservableProperty]
+    private string nuevoServicioDuracion = "30";
 
     /// <summary>La página avisa al aparecer: marca visible y delega la carga.</summary>
     public override void OnAppearing()
     {
         base.OnAppearing();
         _paginaVisible = true;
-        Cargar();
+        _ = CargarAsync();
     }
 
     /// <summary>La página avisa al desaparecer: marca invisible para ignorar reciclaje de controles en Android.</summary>
@@ -58,7 +110,7 @@ public partial class PerfilViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    private void Cargar()
+    private async Task CargarAsync()
     {
         var sesion = _auth.SesionActual;
         if (sesion is null)
@@ -69,10 +121,10 @@ public partial class PerfilViewModel : BaseViewModel
         }
 
         Nombre = sesion.Nombre;
-        RolTexto = sesion.Rol == RolUsuario.Barbero ? "Barbero" : "Cliente";
+        EsBarbero = sesion.Rol == RolUsuario.Barbero;
+        RolTexto = EsBarbero ? "Barbero" : "Cliente";
         Inicial = string.IsNullOrWhiteSpace(sesion.Nombre) ? "?" : sesion.Nombre.Trim()[..1].ToUpperInvariant();
 
-        // Leer el tema actual sin disparar el cambio de tema.
         _cargandoTema = true;
         try
         {
@@ -87,19 +139,180 @@ public partial class PerfilViewModel : BaseViewModel
             _cargandoTema = false;
         }
 
+        if (EsBarbero)
+        {
+            await CargarDatosBarberoAsync(sesion.UsuarioId);
+        }
+
         MensajeError = null;
         State = ViewState.ConDatos;
     }
 
+    private async Task CargarDatosBarberoAsync(int usuarioId)
+    {
+        try
+        {
+            var todosBarberos = await _barberos.GetAllAsync();
+            var barbero = todosBarberos.FirstOrDefault(b => b.Nombre.Equals(Nombre, StringComparison.OrdinalIgnoreCase))
+                ?? todosBarberos.FirstOrDefault(b => b.Nombre.Equals(Nombre, StringComparison.OrdinalIgnoreCase));
+
+            if (barbero != null)
+            {
+                _barberoId = barbero.Id;
+                FotoUrl = barbero.FotoUrl;
+
+                var todosServicios = await _servicios.GetAllAsync();
+                var serviciosDelBarbero = await _servicios.GetByBarberoAsync(barbero.Id);
+                var idsAsignados = serviciosDelBarbero.Select(s => s.Id).ToHashSet();
+
+                MisServicios.Clear();
+                foreach (var serv in todosServicios)
+                {
+                    MisServicios.Add(new ServicioSeleccionableItem
+                    {
+                        Id = serv.Id,
+                        Nombre = serv.Nombre,
+                        Precio = serv.Precio,
+                        DuracionMin = serv.DuracionMin,
+                        Asignado = idsAsignados.Contains(serv.Id)
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[PerfilViewModel] Error cargando datos barbero: {ex}");
+        }
+    }
+
+    [RelayCommand]
+    private async Task CambiarFotoAsync()
+    {
+        try
+        {
+            var results = await MediaPicker.Default.PickPhotosAsync(new MediaPickerOptions
+            {
+                Title = "Selecciona una foto de perfil"
+            });
+
+            var result = results?.FirstOrDefault();
+            if (result == null) return;
+
+            FotoUrl = result.FullPath;
+
+            if (_barberoId > 0)
+            {
+                var barbero = await _barberos.GetByIdAsync(_barberoId);
+                if (barbero != null)
+                {
+                    barbero.FotoUrl = FotoUrl;
+                    await _barberos.UpsertAsync(barbero, []);
+                }
+
+                await _api.ActualizarFotoBarberoAsync(_barberoId, FotoUrl);
+                await _dialogs.ShowAlertAsync("Foto actualizada", "Tu foto de perfil se ha guardado correctamente.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await _dialogs.ShowAlertAsync("Error", "No se pudo actualizar la foto.");
+        }
+    }
+
+    [RelayCommand]
+    private async Task GuardarServiciosAsignadosAsync()
+    {
+        if (_barberoId <= 0)
+        {
+            await _dialogs.ShowAlertAsync("Error", "No se encontró el perfil de barbero asociado.");
+            return;
+        }
+
+        try
+        {
+            var seleccionados = MisServicios.Where(s => s.Asignado).Select(s => s.Id).ToList();
+            var resultado = await _api.ActualizarServiciosBarberoAsync(_barberoId, seleccionados);
+
+            await _sync.SincronizarCatalogosAsync();
+            await _dialogs.ShowAlertAsync("Servicios guardados", "Tus servicios activos han sido actualizados.");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await _dialogs.ShowAlertAsync("Error", "No se pudieron guardar los servicios.");
+        }
+    }
+
+    [RelayCommand]
+    private async Task CrearNuevoServicioAsync()
+    {
+        if (string.IsNullOrWhiteSpace(NuevoServicioNombre))
+        {
+            await _dialogs.ShowAlertAsync("Atención", "Ingresa el nombre del servicio.");
+            return;
+        }
+
+        if (!decimal.TryParse(NuevoServicioPrecio, out var precio) || precio <= 0)
+        {
+            await _dialogs.ShowAlertAsync("Atención", "Ingresa un precio válido mayor a 0.");
+            return;
+        }
+
+        if (!int.TryParse(NuevoServicioDuracion, out var duracion) || duracion <= 0)
+        {
+            duracion = 30;
+        }
+
+        try
+        {
+            var res = await _api.CrearServicioAsync(new CrearServicioDto
+            {
+                Nombre = NuevoServicioNombre.Trim(),
+                Precio = precio,
+                DuracionMin = duracion
+            });
+
+            if (res.Exito && res.Datos != null)
+            {
+                await _sync.SincronizarCatalogosAsync();
+
+                if (_barberoId > 0)
+                {
+                    var seleccionados = MisServicios.Where(s => s.Asignado).Select(s => s.Id).ToList();
+                    seleccionados.Add(res.Datos.Id);
+                    await _api.ActualizarServiciosBarberoAsync(_barberoId, seleccionados);
+                    await _sync.SincronizarCatalogosAsync();
+                }
+
+                NuevoServicioNombre = "";
+                NuevoServicioPrecio = "";
+                NuevoServicioDuracion = "30";
+
+                var sesion = _auth.SesionActual;
+                if (sesion != null)
+                    await CargarDatosBarberoAsync(sesion.UsuarioId);
+
+                await _dialogs.ShowAlertAsync("Servicio creado", "El nuevo servicio ha sido registrado y asignado a tu perfil.");
+            }
+            else
+            {
+                await _dialogs.ShowAlertAsync("Error", "No se pudo registrar el nuevo servicio en el servidor.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await _dialogs.ShowAlertAsync("Error", "Ocurrió un problema al crear el servicio.");
+        }
+    }
+
     /// <summary>
-    /// Maneja el cambio de estado del Switch. Comparar con el tema actual no basta porque al salir de la pestaña
-    /// Android puede reciclar el Switch y reportar un valor invertido; CommunityToolkit solo dispara este método si
-    /// el valor difiere del anterior, por lo que la comparación siempre resultaría distinta. La bandera _paginaVisible
-    /// asegura que solo se procesen cambios manuales realizados por el usuario mientras la página está activa en pantalla.
+    /// Maneja el cambio de estado del Switch. La bandera _paginaVisible asegura que solo se procesen
+    /// cambios manuales realizados por el usuario mientras la página está activa en pantalla.
     /// </summary>
     partial void OnTemaOscuroChanged(bool value)
     {
-        // Ignorar si se está sincronizando inicialmente o si la página no está visible (evento espurio por reciclaje)
         if (_cargandoTema || !_paginaVisible)
             return;
 
@@ -140,8 +353,7 @@ public partial class PerfilViewModel : BaseViewModel
             "Cerrar sesión",
             "Cancelar");
 
-        if (!confirmar)
-            return;
+        if (!confirmar) return;
 
         try
         {
@@ -151,8 +363,7 @@ public partial class PerfilViewModel : BaseViewModel
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
-            await _dialogs.ShowAlertAsync("No se pudo cerrar sesión",
-                "Ocurrió un problema. Intenta de nuevo.");
+            await _dialogs.ShowAlertAsync("No se pudo cerrar sesión", "Ocurrió un problema. Intenta de nuevo.");
         }
     }
 }

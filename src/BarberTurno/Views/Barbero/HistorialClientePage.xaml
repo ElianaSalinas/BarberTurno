@@ -1,13 +1,54 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- Responsable: M10. Visitas anteriores del cliente. -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             xmlns:models="clr-namespace:BarberTurno.Models"
+             xmlns:controls="clr-namespace:BarberTurno.Controls"
              x:Class="BarberTurno.Views.HistorialClientePage"
              x:DataType="vm:HistorialClienteViewModel"
-             Title="Historial del cliente">
-    <VerticalStackLayout Padding="16">
-        <!-- TODO(M10): interfaz (StateView, bindings, comandos). -->
-        <Label Text="Historial del cliente - pendiente de implementar" />
-    </VerticalStackLayout>
+             Style="{StaticResource M10Page}"
+             Title="Clientes">
+    <Shell.TitleView><controls:BrandBar /></Shell.TitleView>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24,20" Spacing="18" HorizontalOptions="Center" MaximumWidthRequest="950">
+            <!-- Título y subtítulo -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="BASE DE CONTACTOS" FontSize="11" CharacterSpacing="1.2" Style="{StaticResource BtGold}" />
+                <Label Text="Lista de clientes" Style="{StaticResource BtTitle}" />
+                <Label Text="Clientes registrados en el sistema que han agendado citas." Style="{StaticResource BtMuted}" />
+            </VerticalStackLayout>
+
+            <!-- Lista de clientes -->
+            <CollectionView ItemsSource="{Binding ListaClientes}">
+                <CollectionView.EmptyView>
+                    <Border Style="{StaticResource BtCard}" Padding="30" Margin="0,16">
+                        <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                            <Label Text="👤" FontSize="36" HorizontalOptions="Center" />
+                            <Label Text="No hay clientes registrados aún" FontFamily="OpenSansSemibold" FontSize="16" HorizontalOptions="Center" />
+                            <Label Text="Los clientes aparecerán aquí automáticamente al reservar citas." FontSize="13" Style="{StaticResource BtMuted}" HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Cliente">
+                        <Border Style="{StaticResource BtCard}" Padding="16" Margin="0,0,0,10">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                                <Border WidthRequest="46" HeightRequest="46" StrokeShape="RoundRectangle 23" StrokeThickness="0"
+                                        Background="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}">
+                                    <Label Text="👤" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                
+                                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                    <Label Text="{Binding Nombre}" FontFamily="OpenSansSemibold" FontSize="15" />
+                                    <Label Text="{Binding Telefono}" FontSize="13" Style="{StaticResource BtMuted}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

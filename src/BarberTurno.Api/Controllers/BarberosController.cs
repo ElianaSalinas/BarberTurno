@@ -32,4 +32,33 @@ public class BarberosController : ControllerBase
 
         return Ok(barberos);
     }
+
+    [HttpPut("{id}/foto")]
+    public async Task<IActionResult> ActualizarFoto(int id, [FromBody] ActualizarFotoDto dto)
+    {
+        var barbero = await _context.Barberos.FindAsync(id);
+        if (barbero == null) return NotFound();
+        barbero.FotoUrl = dto.FotoUrl;
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpPut("{id}/servicios")]
+    public async Task<IActionResult> ActualizarServicios(int id, [FromBody] List<int> servicioIds)
+    {
+        var barbero = await _context.Barberos.Include(b => b.BarberoServicios).FirstOrDefaultAsync(b => b.Id == id);
+        if (barbero == null) return NotFound();
+
+        _context.BarberoServicios.RemoveRange(barbero.BarberoServicios);
+        foreach (var sid in servicioIds)
+        {
+            _context.BarberoServicios.Add(new BarberTurno.Api.Domain.BarberoServicioEntity
+            {
+                BarberoId = id,
+                ServicioId = sid
+            });
+        }
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
 }

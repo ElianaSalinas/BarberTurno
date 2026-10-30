@@ -81,6 +81,14 @@ public partial class AgendaDiaViewModel : BaseViewModel
     */
     public ObservableCollection<CitaAgendaItem> CitasDelDia { get; } = new();
 
+        private readonly BarberTurno.Services.Auth.IAuthService? _auth;
+
+    public AgendaDiaViewModel(BarberTurno.Services.Auth.IAuthService auth) : this()
+    {
+        _auth = auth;
+        NombreBarbero = _auth.SesionActual?.Nombre ?? "";
+    }
+
     public AgendaDiaViewModel()
     {
         // Se muestra la fecha real del dispositivo en español.

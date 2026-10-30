@@ -1,0 +1,32 @@
+namespace BarberTurno.Views;
+
+// Continúa el splash nativo (mismo fondo #1B1B17 y mismo icono) para que no haya salto visual.
+public partial class AnimatedSplashPage : ContentPage
+{
+    private readonly Action _alTerminar;
+
+    public AnimatedSplashPage(Action alTerminar)
+    {
+        InitializeComponent();
+        _alTerminar = alTerminar;
+        Loaded += async (_, _) => await RunAsync();
+    }
+
+    private async Task RunAsync()
+    {
+        try
+        {
+            await Task.WhenAll(
+                IconImage.FadeToAsync(1, 450, Easing.CubicOut),
+                IconImage.ScaleToAsync(1, 450, Easing.CubicOut));
+            await TitleLabel.FadeToAsync(1, 350, Easing.CubicOut);
+            await Task.Delay(450);
+        }
+        catch
+        {
+            // Si la animación falla, igual seguimos a la app.
+        }
+
+        MainThread.BeginInvokeOnMainThread(_alTerminar);
+    }
+}
