@@ -1,8 +1,13 @@
-// Responsable: M02
-// Estados de pantalla: carga, vacío, error, con datos.
+// Responsable: M01
+// Estados de pantalla comunes para StateView y BaseViewModel.
+global using ViewState = BarberTurno.Helpers.ViewState;
+
 namespace BarberTurno.Helpers;
 
-/// <summary>
-/// Representa el estado visual de una pantalla para alimentar al control StateView.
-/// </summary>
-public enum ViewState { Cargando, Vacio, Error, ConDatos }
+public enum ViewState
+{
+    Cargando,
+    Vacio,
+    Error,
+    ConDatos
+}

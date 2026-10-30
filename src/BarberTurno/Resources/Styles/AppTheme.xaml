@@ -8,6 +8,11 @@
         <ResourceDictionary Source="Resources/Styles/AppTheme.xaml" />
 
     FUENTES: usa OpenSansRegular y OpenSansSemibold, ya incluidas en la plantilla MAUI y registradas en MauiProgram.cs.
+
+    Sección M10 (Responsable: M10):
+    Tokens de color y estilos reutilizables para las pantallas del barbero:
+    Agenda, Detalle de cita e Historial.
+    No contiene datos de clientes, citas, horas ni lógica de negocio.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -249,4 +254,284 @@
         <Setter Property="LineBreakMode"     Value="WordWrap" />
     </Style>
 
+
+    <!-- ╔══════════════════════════════════════════════════════════╗
+         ║  SECCIÓN M10 — PANTALLAS DEL BARBERO                     ║
+         ║  Agenda, Detalle de cita e Historial.                    ║
+         ╚══════════════════════════════════════════════════════════╝ -->
+
+    <!-- ============================================================
+         TOKENS DE COLOR M10 — MODO CLARO
+         Basados en el diseño de Figma.
+         ============================================================ -->
+
+    <!-- Fondo principal cálido, no blanco puro. -->
+    <Color x:Key="M10LightPage">#F8F7F3</Color>
+
+    <!-- Superficies blancas: cabecera, tarjetas y filas. -->
+    <Color x:Key="M10LightSurface">#FFFFFF</Color>
+
+    <!-- Texto principal: títulos y valores destacados. -->
+    <Color x:Key="M10LightText">#18202D</Color>
+
+    <!-- Texto secundario: fecha, duración y etiquetas auxiliares. -->
+    <Color x:Key="M10LightMutedText">#7E776E</Color>
+
+    <!-- Bordes sutiles de tarjetas y filas. -->
+    <Color x:Key="M10LightBorder">#E7E1D6</Color>
+
+    <!-- Fondo oscuro de la tarjeta “Próxima cita”. -->
+    <Color x:Key="M10LightDarkCard">#2B2A23</Color>
+
+    <!-- Color de marca: dorado del diseño. -->
+    <Color x:Key="M10LightGold">#C89B3C</Color>
+
+    <!-- Fondo resaltado para la cita actual o próxima. -->
+    <Color x:Key="M10LightHighlight">#FBF6E9</Color>
+
+
+    <!-- ============================================================
+         TOKENS DE COLOR M10 — MODO OSCURO
+         Son equivalentes semánticos, no una inversión automática.
+         ============================================================ -->
+
+    <Color x:Key="M10DarkPage">#151610</Color>
+    <Color x:Key="M10DarkSurface">#20211A</Color>
+    <Color x:Key="M10DarkText">#F7F4EE</Color>
+    <Color x:Key="M10DarkMutedText">#C6BFB4</Color>
+    <Color x:Key="M10DarkBorder">#3B3C31</Color>
+    <Color x:Key="M10DarkDarkCard">#2B2C24</Color>
+    <Color x:Key="M10DarkGold">#D8AD4A</Color>
+    <Color x:Key="M10DarkHighlight">#343426</Color>
+
+
+    <!-- ============================================================
+         ESTILOS DE CONTENEDORES M10
+         Se aplican de forma explícita con Style="{StaticResource ...}".
+         Así no modificamos las vistas de Cliente pertenecientes a M09.
+         ============================================================ -->
+
+    <!-- Fondo general de páginas M10. -->
+    <Style x:Key="M10Page" TargetType="ContentPage">
+        <Setter Property="BackgroundColor"
+                Value="{AppThemeBinding Light={StaticResource M10LightPage},
+                                        Dark={StaticResource M10DarkPage}}" />
+    </Style>
+
+    <!-- Tarjeta oscura de “Próxima cita”. -->
+    <Style x:Key="M10HeroCard" TargetType="Border">
+        <Setter Property="Background"
+                Value="{AppThemeBinding Light={StaticResource M10LightDarkCard},
+                                        Dark={StaticResource M10DarkDarkCard}}" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 20" />
+        <Setter Property="Padding" Value="22" />
+    </Style>
+
+    <!-- Tarjetas blancas para métricas: turnos e ingresos. -->
+    <Style x:Key="M10MetricCard" TargetType="Border">
+        <Setter Property="Background"
+                Value="{AppThemeBinding Light={StaticResource M10LightSurface},
+                                        Dark={StaticResource M10DarkSurface}}" />
+        <Setter Property="Stroke"
+                Value="{AppThemeBinding Light={StaticResource M10LightBorder},
+                                        Dark={StaticResource M10DarkBorder}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+        <Setter Property="Padding" Value="16" />
+    </Style>
+
+    <!-- Fila individual de una cita dentro de la línea de tiempo. -->
+    <Style x:Key="M10AgendaRow" TargetType="Border">
+        <Setter Property="Background"
+                Value="{AppThemeBinding Light={StaticResource M10LightSurface},
+                                        Dark={StaticResource M10DarkSurface}}" />
+        <Setter Property="Stroke"
+                Value="{AppThemeBinding Light={StaticResource M10LightBorder},
+                                        Dark={StaticResource M10DarkBorder}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+        <Setter Property="Padding" Value="14,12" />
+    </Style>
+
+    <!-- Fila destacada; se usará para la siguiente cita real. -->
+    <Style x:Key="M10AgendaRowHighlight" TargetType="Border">
+        <Setter Property="Background"
+                Value="{AppThemeBinding Light={StaticResource M10LightHighlight},
+                                        Dark={StaticResource M10DarkHighlight}}" />
+        <Setter Property="Stroke"
+                Value="{AppThemeBinding Light={StaticResource M10LightBorder},
+                                        Dark={StaticResource M10DarkBorder}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+        <Setter Property="Padding" Value="14,12" />
+    </Style>
+
+
+    <!-- ============================================================
+         ESTILOS DE TEXTO M10
+         ============================================================ -->
+
+    <!-- Nombre de la app dentro de la cabecera. -->
+    <Style x:Key="M10BrandTitle" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="TextColor"
+                Value="{AppThemeBinding Light={StaticResource M10LightText},
+                                        Dark={StaticResource M10DarkText}}" />
+    </Style>
+
+    <!-- Etiqueta pequeña dorada: “PANEL DEL BARBERO”, “AGENDA DE HOY”. -->
+    <Style x:Key="M10Eyebrow" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="CharacterSpacing" Value="1.2" />
+        <Setter Property="TextColor"
+                Value="{AppThemeBinding Light={StaticResource M10LightGold},
+                                        Dark={StaticResource M10DarkGold}}" />
+    </Style>
+
+    <!-- Saludo principal: “Buen día, Mateo”. -->
+    <Style x:Key="M10Greeting" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="LineHeight" Value="1.15" />
+        <Setter Property="TextColor"
+                Value="{AppThemeBinding Light={StaticResource M10LightText},
+                                        Dark={StaticResource M10DarkText}}" />
+    </Style>
+
+    <!-- Fecha y descripciones secundarias. -->
+    <Style x:Key="M10Subtitle" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor"
+                Value="{AppThemeBinding Light={StaticResource M10LightMutedText},
+                                        Dark={StaticResource M10DarkMutedText}}" />
+    </Style>
+
+    <!-- Título de sección: “Tu día, de un vistazo”. -->
+    <Style x:Key="M10SectionTitle" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="TextColor"
+                Value="{AppThemeBinding Light={StaticResource M10LightText},
+                                        Dark={StaticResource M10DarkText}}" />
+    </Style>
+
+    <!-- Valor importante de una métrica, por ejemplo “7” o “$285K”. -->
+    <Style x:Key="M10MetricValue" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="23" />
+        <Setter Property="TextColor"
+                Value="{AppThemeBinding Light={StaticResource M10LightText},
+                                        Dark={StaticResource M10DarkText}}" />
+    </Style>
+
+    <!-- Texto dentro de la tarjeta oscura. -->
+    <Style x:Key="M10HeroTitle" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="30" />
+        <Setter Property="TextColor" Value="#FFFFFF" />
+    </Style>
+
+    <!-- Descripción dentro de la tarjeta oscura. -->
+    <Style x:Key="M10HeroSubtitle" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansRegular" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="TextColor" Value="#DDD8CD" />
+    </Style>
+
+
+    <!-- ============================================================
+         ESTILOS DE ACCIONES M10
+         ============================================================ -->
+
+    <!-- Botón dorado principal: “Marcar llegada”. -->
+    <Style x:Key="M10PrimaryButton" TargetType="Button">
+        <Setter Property="BackgroundColor"
+                Value="{AppThemeBinding Light={StaticResource M10LightGold},
+                                        Dark={StaticResource M10DarkGold}}" />
+        <Setter Property="TextColor" Value="#1B1B17" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="MinimumHeightRequest" Value="40" />
+    </Style>
+
+    <!-- Acción de texto: “Ver calendario”. -->
+    <Style x:Key="M10TextAction" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="TextColor"
+                Value="{AppThemeBinding Light={StaticResource M10LightGold},
+                                        Dark={StaticResource M10DarkGold}}" />
+    </Style>
+
+    <!-- ===== BarberTurno · estilos compartidos (usan la paleta M10 existente) ===== -->
+    <Style x:Key="BtTitle" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="30" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightText}, Dark={StaticResource M10DarkText}}" />
+    </Style>
+    <Style x:Key="BtH2" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightText}, Dark={StaticResource M10DarkText}}" />
+    </Style>
+    <Style x:Key="BtMuted" TargetType="Label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightMutedText}, Dark={StaticResource M10DarkMutedText}}" />
+    </Style>
+    <Style x:Key="BtGold" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
+    </Style>
+
+    <!-- Tarjeta blanca con borde fino -->
+    <Style x:Key="BtCard" TargetType="Border">
+        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource M10LightSurface}, Dark={StaticResource M10DarkSurface}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource M10LightBorder}, Dark={StaticResource M10DarkBorder}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+        <Setter Property="Padding" Value="16" />
+    </Style>
+    <!-- Tarjeta oscura (hero) -->
+    <Style x:Key="BtDarkCard" TargetType="Border">
+        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource M10LightDarkCard}, Dark={StaticResource M10DarkDarkCard}}" />
+        <Setter Property="StrokeThickness" Value="0" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 22" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+    <!-- Contenedor de campos de texto -->
+    <Style x:Key="BtField" TargetType="Border">
+        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource M10LightSurface}, Dark={StaticResource M10DarkSurface}}" />
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource M10LightBorder}, Dark={StaticResource M10DarkBorder}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+        <Setter Property="Padding" Value="14,0" />
+    </Style>
+    <Style x:Key="BtEntry" TargetType="Entry">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="HeightRequest" Value="50" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightText}, Dark={StaticResource M10DarkText}}" />
+        <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource M10LightMutedText}, Dark={StaticResource M10DarkMutedText}}" />
+    </Style>
+    <!-- Botones -->
+    <Style x:Key="BtGoldButton" TargetType="Button">
+        <Setter Property="Background" Value="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
+        <Setter Property="TextColor" Value="#1B1B17" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="HeightRequest" Value="52" />
+    </Style>
+    <Style x:Key="BtLinkButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
+    </Style>
 </ResourceDictionary>
