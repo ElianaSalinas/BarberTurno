@@ -8,6 +8,12 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Render (y otros hosts) indican el puerto en la variable PORT.
+var puerto = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(puerto))
+    builder.WebHost.UseUrls($"http://0.0.0.0:{puerto}");
+
+
 // 1. Base de datos (PostgreSQL en Supabase mediante User Secrets / variables de entorno)
 var rawConn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(rawConn))
@@ -187,7 +193,7 @@ app.UseSwaggerUI(c =>
 
 app.UseCors("AllowAll");
 
-if (!app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment() && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PORT")))
 {
     app.UseHttpsRedirection();
 }
