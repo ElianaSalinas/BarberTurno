@@ -116,7 +116,7 @@ public partial class ServiciosViewModel : ClienteViewModelBase, IQueryAttributab
 
             var lista = await _servicios.GetByBarberoAsync(_barberoId);
 
-            if (lista.Count == 0 && HayConexion)
+            if (HayConexion)
             {
                 await _sync.SincronizarCatalogosAsync();
                 lista = await _servicios.GetByBarberoAsync(_barberoId);

@@ -35,7 +35,7 @@
                         SelectionMode="None"
                         BackgroundColor="Transparent"
                         HorizontalOptions="Center"
-                        MaximumWidthRequest="430">
+                        MaximumWidthRequest="950">
 
             <!-- 
                  CABECERA: se muestra una sola vez antes de la lista.

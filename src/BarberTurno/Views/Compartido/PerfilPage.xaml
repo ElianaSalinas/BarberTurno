@@ -21,18 +21,75 @@
 
                 <!-- Tarjeta de usuario -->
                 <Border Style="{StaticResource BtDarkCard}">
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                        <!-- Avatar o foto -->
                         <Border WidthRequest="64" HeightRequest="64" StrokeShape="RoundRectangle 32" StrokeThickness="0"
                                 Background="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}">
-                            <Label Text="{Binding Inicial}" FontFamily="OpenSansSemibold" FontSize="26"
-                                   TextColor="#1B1B17" HorizontalOptions="Center" VerticalOptions="Center" />
+                            <Grid>
+                                <Label Text="{Binding Inicial}" FontFamily="OpenSansSemibold" FontSize="26"
+                                       TextColor="#1B1B17" HorizontalOptions="Center" VerticalOptions="Center" />
+                                <Image Source="{Binding FotoUrl}" Aspect="AspectFill"  />
+                            </Grid>
                         </Border>
+
                         <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
                             <Label Text="{Binding Nombre}" FontFamily="OpenSansSemibold" FontSize="19" TextColor="White" />
                             <Label Text="{Binding RolTexto}" FontSize="12" CharacterSpacing="1" Style="{StaticResource BtGold}" />
                         </VerticalStackLayout>
+
+                        <!-- Botón cambiar foto -->
+                        <Button Grid.Column="2" Text="📷 Foto" FontSize="12" HeightRequest="38" Padding="12,0"
+                                Command="{Binding CambiarFotoCommand}" Style="{StaticResource BtGoldButton}"
+                                VerticalOptions="Center" />
                     </Grid>
                 </Border>
+
+                <!-- SECCIÓN DE SERVICIOS PARA EL BARBERO -->
+                <VerticalStackLayout Spacing="12" IsVisible="{Binding EsBarbero}">
+                    <Label Text="MIS SERVICIOS OFRECIDOS" FontSize="11" CharacterSpacing="1.2" Style="{StaticResource BtGold}" />
+                    
+                    <!-- Lista de servicios con Checkboxes -->
+                    <Border Style="{StaticResource BtCard}" Padding="16">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Selecciona los servicios que realizas:" FontSize="13" Style="{StaticResource BtMuted}" />
+                            
+                            <CollectionView ItemsSource="{Binding MisServicios}">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ServicioSeleccionableItem">
+                                        <Grid ColumnDefinitions="*,Auto" Padding="0,6">
+                                            <VerticalStackLayout Spacing="2">
+                                                <Label Text="{Binding Nombre}" FontFamily="OpenSansSemibold" FontSize="14" />
+                                                <Label Text="{Binding Detalle}" FontSize="12" Style="{StaticResource BtMuted}" />
+                                            </VerticalStackLayout>
+                                            <CheckBox Grid.Column="1" IsChecked="{Binding Asignado}" Color="{StaticResource M10LightGold}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+
+                            <Button Text="Guardar servicios activos" Command="{Binding GuardarServiciosAsignadosCommand}"
+                                    Style="{StaticResource BtGoldButton}" HeightRequest="44" Margin="0,8,0,0" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Crear nuevo servicio personalizado -->
+                    <Border Style="{StaticResource BtCard}" Padding="16">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Crear nuevo servicio" Style="{StaticResource BtH2}" />
+                            <Label Text="¿Ofreces un corte o servicio especial? Agrégalo al catálogo:" FontSize="12" Style="{StaticResource BtMuted}" />
+
+                            <Entry Placeholder="Nombre del servicio (ej. Fade + Barba)" Text="{Binding NuevoServicioNombre}" />
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <Entry Placeholder="Precio ($)" Text="{Binding NuevoServicioPrecio}" Keyboard="Numeric" />
+                                <Entry Grid.Column="1" Placeholder="Duración (min)" Text="{Binding NuevoServicioDuracion}" Keyboard="Numeric" />
+                            </Grid>
+
+                            <Button Text="+ Crear y asignar servicio" Command="{Binding CrearNuevoServicioCommand}"
+                                    BackgroundColor="{AppThemeBinding Light=#18202D, Dark=#2A2C22}" TextColor="White"
+                                    CornerRadius="12" HeightRequest="44" Margin="0,6,0,0" />
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
 
                 <!-- Tema -->
                 <Border Style="{StaticResource BtCard}">
