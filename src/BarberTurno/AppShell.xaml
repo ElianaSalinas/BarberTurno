@@ -14,11 +14,13 @@
        Shell.TabBarUnselectedColor="{AppThemeBinding Light=#AAA69E, Dark=#8C877E}">
 
     <!-- Pantalla de Login inicial de la aplicación -->
-    <ShellItem x:Name="LoginItem" Route="login">
-        <ShellContent Shell.TabBarIsVisible="False"
+    <TabBar Route="auth">
+        <ShellContent Route="login"
+                      Title="Iniciar sesión"
+                      Shell.TabBarIsVisible="False"
                       Shell.NavBarIsVisible="False"
                       ContentTemplate="{DataTemplate views:LoginPage}" />
-    </ShellItem>
+    </TabBar>
 
     <!-- CLIENTE -->
     <TabBar Route="cliente">
