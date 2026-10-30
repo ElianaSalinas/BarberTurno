@@ -173,8 +173,8 @@ public partial class MisCitasViewModel : ClienteViewModelBase
             }
 
             var citas = await _citas.GetByClienteAsync(sesion.UsuarioId);
-            var barberos = (await _barberos.GetAllAsync()).ToDictionary(b => b.Id);
-            var servicios = (await _servicios.GetAllAsync()).ToDictionary(s => s.Id);
+            var barberos = (await _barberos.GetAllAsync()).GroupBy(b => b.Id).ToDictionary(g => g.Key, g => g.First());
+            var servicios = (await _servicios.GetAllAsync()).GroupBy(s => s.Id).ToDictionary(g => g.Key, g => g.First());
 
             _todas = citas
                 .Select(c => new CitaItem(

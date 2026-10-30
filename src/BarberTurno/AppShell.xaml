@@ -17,7 +17,7 @@
     <TabBar Route="barbero">
         <ShellContent Title="Agenda"
                       Route="agenda"
-                      ContentTemplate="{DataTemplate views:AgendaDiaPage}" />
+                      ContentTemplate="{DataTemplate views:LoginPage}" />
         <ShellContent Title="Perfil"
                       Route="perfilbarbero"
                       ContentTemplate="{DataTemplate views:PerfilPage}" />
