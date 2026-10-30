@@ -37,6 +37,12 @@ public class BarberTurnoApi : IBarberTurnoApi
             _httpClient.PostAsJsonAsync("auth/login", request, _jsonOptions));
     }
 
+    public async Task<ApiResult<LoginResponseDto>> RegistrarAsync(RegistroRequestDto request)
+    {
+        return await EnviarPeticionAsync<LoginResponseDto>(() =>
+            _httpClient.PostAsJsonAsync("auth/register", request, _jsonOptions));
+    }
+
     public async Task<ApiResult<List<BarberoDto>>> GetBarberosAsync()
     {
         return await EnviarPeticionAsync<List<BarberoDto>>(() =>
@@ -104,48 +110,10 @@ public class BarberTurnoApi : IBarberTurnoApi
                 };
             }
 
-            // Manejo de error retornado por el servidor
-            string mensajeError = $"Error en la llamada HTTP ({statusCode}).";
-            try
-            {
-                var errorBody = await response.Content.ReadAsStringAsync();
-                if (!string.IsNullOrWhiteSpace(errorBody))
-                {
-                    using var doc = JsonDocument.Parse(errorBody);
-                    if (doc.RootElement.TryGetProperty("mensaje", out var propMensaje))
-                    {
-                        mensajeError = propMensaje.GetString() ?? mensajeError;
-                    }
-                    else if (doc.RootElement.TryGetProperty("title", out var propTitle))
-                    {
-                        mensajeError = propTitle.GetString() ?? mensajeError;
-                    }
-                    else
-                    {
-                        mensajeError = errorBody;
-                    }
-                }
-            }
-            catch
-            {
-                // Si el cuerpo no era un JSON válido, conservamos el mensaje por defecto
-            }
-
             return new ApiResult<T>
             {
                 Exito = false,
-                CodigoHttp = statusCode,
-                SinConexion = false,
-                Error = mensajeError
-            };
-        }
-        catch (TaskCanceledException)
-        {
-            return new ApiResult<T>
-            {
-                Exito = false,
-                SinConexion = true,
-                Error = "Tiempo de espera agotado. Verifique su conexión de red o intente nuevamente."
+                CodigoHttp = statusCode
             };
         }
         catch (HttpRequestException)
@@ -153,17 +121,22 @@ public class BarberTurnoApi : IBarberTurnoApi
             return new ApiResult<T>
             {
                 Exito = false,
-                SinConexion = true,
-                Error = "No se pudo establecer conexión con el servidor. Modo sin conexión activado."
+                SinConexion = true
             };
         }
-        catch (Exception ex)
+        catch (TaskCanceledException)
         {
             return new ApiResult<T>
             {
                 Exito = false,
-                SinConexion = false,
-                Error = $"Error inesperado de red: {ex.Message}"
+                SinConexion = true
+            };
+        }
+        catch (Exception)
+        {
+            return new ApiResult<T>
+            {
+                Exito = false
             };
         }
     }

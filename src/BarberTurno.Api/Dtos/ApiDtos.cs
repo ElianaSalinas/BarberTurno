@@ -6,6 +6,15 @@ public class LoginRequestDto
     public string Password { get; set; } = "";
 }
 
+public class RegistroRequestDto
+{
+    public string Nombre { get; set; } = "";
+    public string Telefono { get; set; } = "";
+    public string Usuario { get; set; } = "";
+    public string Password { get; set; } = "";
+    public string Rol { get; set; } = "Cliente";
+}
+
 public class LoginResponseDto
 {
     public string Token { get; set; } = "";

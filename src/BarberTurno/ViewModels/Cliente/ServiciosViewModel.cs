@@ -80,16 +80,26 @@ public partial class ServiciosViewModel : ClienteViewModelBase, IQueryAttributab
     }
 
     [RelayCommand]
-    private Task SeleccionarAsync(ServicioItem? servicio)
+    private async Task SeleccionarAsync(ServicioItem? servicio)
     {
         if (servicio is null)
-            return Task.CompletedTask;
+            return;
 
-        return _navigation.GoToAsync(Routes.SeleccionHora, new Dictionary<string, object>
+        var barbero = await _barberos.GetByIdAsync(_barberoId);
+        var servicioModel = await _servicios.GetByIdAsync(servicio.Id);
+
+        var parametros = new Dictionary<string, object>
         {
             [NavParams.BarberoId] = _barberoId,
             [NavParams.ServicioId] = servicio.Id
-        });
+        };
+
+        if (barbero is not null)
+            parametros[ParametrosNavegacion.Barbero] = barbero;
+        if (servicioModel is not null)
+            parametros[ParametrosNavegacion.Servicio] = servicioModel;
+
+        await _navigation.GoToAsync(Routes.SeleccionHora, parametros);
     }
 
     private async Task CargarInternoAsync(bool mostrarCargando = true)
