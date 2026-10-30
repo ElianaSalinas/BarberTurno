@@ -10,4 +10,7 @@ public partial class AgendaDiaPage : ContentPage
         InitializeComponent();
         BindingContext = viewModel;
     }
+
+    private async void OnCampanaTapped(object? sender, TappedEventArgs e)
+        => await BarberTurno.Helpers.AvisosHelper.MostrarAsync(Handler?.MauiContext?.Services);
 }

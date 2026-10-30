@@ -53,7 +53,7 @@
                                         <Grid>
                                             <Label Text="{Binding Inicial}" FontSize="22" Style="{StaticResource BtGold}"
                                                    HorizontalOptions="Center" VerticalOptions="Center" />
-                                            <Image Source="{Binding FotoUrl}" Aspect="AspectFill" IsVisible="{Binding TieneFoto}" />
+                                            <Image Source="{Binding FotoUrl, Converter={StaticResource FotoConverter}}" Aspect="AspectFill" IsVisible="{Binding TieneFoto}" />
                                         </Grid>
                                     </Border>
 

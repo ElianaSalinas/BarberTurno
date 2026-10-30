@@ -85,6 +85,7 @@
          Al estar aquí quedan disponibles en toda la app como StaticResource.
     ══════════════════════════════════════════════════════════ -->
     <converters:ViewStateToVisibilityConverter x:Key="ViewStateToVisibility" />
+    <converters:FotoConverter x:Key="FotoConverter" />
     <converters:EstadoCitaToColorConverter     x:Key="EstadoCitaToColor" />
     <converters:FechaAmigableConverter         x:Key="FechaAmigable" />
     <converters:BoolInvertidoConverter         x:Key="BoolInvertido" />

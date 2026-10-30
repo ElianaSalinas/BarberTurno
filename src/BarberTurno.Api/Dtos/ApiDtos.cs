@@ -10,6 +10,7 @@ public class CrearServicioDto
     public string Nombre { get; set; } = "";
     public int DuracionMin { get; set; } = 30;
     public decimal Precio { get; set; }
+    public string? FotoUrl { get; set; }
 }
 
 public class LoginRequestDto
@@ -57,6 +58,7 @@ public class ServicioDto
     public string Nombre { get; set; } = "";
     public int DuracionMin { get; set; }
     public decimal Precio { get; set; }
+    public string? FotoUrl { get; set; }
 }
 
 public class CitaDto

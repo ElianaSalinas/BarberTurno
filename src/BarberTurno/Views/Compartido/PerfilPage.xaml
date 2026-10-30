@@ -29,7 +29,7 @@
                             <Grid>
                                 <Label Text="{Binding Inicial}" FontFamily="OpenSansSemibold" FontSize="26"
                                        TextColor="#1B1B17" HorizontalOptions="Center" VerticalOptions="Center" />
-                                <Image Source="{Binding FotoUrl}" Aspect="AspectFill"  />
+                                <Image Source="{Binding FotoUrl, Converter={StaticResource FotoConverter}}" Aspect="AspectFill" />
                             </Grid>
                         </Border>
 
@@ -84,6 +84,20 @@
                                 <Entry Placeholder="Precio ($)" Text="{Binding NuevoServicioPrecio}" Keyboard="Numeric" />
                                 <Entry Grid.Column="1" Placeholder="Duración (min)" Text="{Binding NuevoServicioDuracion}" Keyboard="Numeric" />
                             </Grid>
+
+                            <Border HeightRequest="130" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                                    Background="{AppThemeBinding Light={StaticResource M10LightHighlight}, Dark={StaticResource M10DarkHighlight}}">
+                                <Grid>
+                                    <Label Text="Foto del resultado (opcional)" FontSize="12" Style="{StaticResource BtMuted}"
+                                           HorizontalOptions="Center" VerticalOptions="Center" />
+                                    <Image Source="{Binding NuevoServicioFoto, Converter={StaticResource FotoConverter}}" Aspect="AspectFill" />
+                                </Grid>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ElegirFotoServicioCommand}" />
+                                </Border.GestureRecognizers>
+                            </Border>
+                            <Button Text="Elegir foto del servicio" Command="{Binding ElegirFotoServicioCommand}"
+                                    Style="{StaticResource BtLinkButton}" HeightRequest="36" />
 
                             <Button Text="+ Crear y asignar servicio" Command="{Binding CrearNuevoServicioCommand}"
                                     BackgroundColor="{AppThemeBinding Light=#18202D, Dark=#2A2C22}" TextColor="White"

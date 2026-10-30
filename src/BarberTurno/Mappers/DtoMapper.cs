@@ -74,7 +74,8 @@ public static class DtoMapper
         Id          = dto.Id, // Se conserva el Id exacto del servidor
         Nombre      = dto.Nombre ?? "",
         DuracionMin = dto.DuracionMin,
-        Precio      = dto.Precio
+        Precio      = dto.Precio,
+        FotoUrl     = dto.FotoUrl
     };
 
     /// <summary>Convierte una entidad Servicio en DTO para enviar a la API.</summary>
@@ -83,7 +84,8 @@ public static class DtoMapper
         Id          = entidad.Id,
         Nombre      = entidad.Nombre,
         DuracionMin = entidad.DuracionMin,
-        Precio      = entidad.Precio
+        Precio      = entidad.Precio,
+        FotoUrl     = entidad.FotoUrl
     };
 
     // ── Cita ──────────────────────────────────────────────────────────────────
