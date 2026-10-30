@@ -14,9 +14,10 @@
        Shell.TabBarUnselectedColor="{AppThemeBinding Light=#AAA69E, Dark=#8C877E}">
 
     <!-- Pantalla de Login inicial de la aplicación -->
-    <TabBar Route="barbero">
-        <ShellContent Title="Agenda"
-                      Route="agenda"
+    <TabBar Route="auth">
+        <ShellContent Route="login"
+                      Shell.TabBarIsVisible="False"
+                      Shell.NavBarIsVisible="False"
                       ContentTemplate="{DataTemplate views:LoginPage}" />
         <ShellContent Title="Perfil"
                       Route="perfilbarbero"
