@@ -29,5 +29,9 @@ public partial class App : Application
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
-        => new Window(new AppShell());
+    {
+        var window = new Window();
+        window.Page = new Views.AnimatedSplashPage(() => window.Page = new AppShell());
+        return window;
+    }
 }

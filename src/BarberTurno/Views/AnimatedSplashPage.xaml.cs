@@ -1,38 +1,32 @@
 namespace BarberTurno.Views;
 
+// Continúa el splash nativo (mismo fondo #1B1B17 y mismo icono) para que no haya salto visual.
 public partial class AnimatedSplashPage : ContentPage
 {
-    public AnimatedSplashPage()
+    private readonly Action _alTerminar;
+
+    public AnimatedSplashPage(Action alTerminar)
     {
         InitializeComponent();
-        this.Loaded += async (_, _) => await RunSplashAnimationAsync();
+        _alTerminar = alTerminar;
+        Loaded += async (_, _) => await RunAsync();
     }
 
-    private async Task RunSplashAnimationAsync()
+    private async Task RunAsync()
     {
-        // Fade in + scale up con rebote
-        await Task.WhenAll(
-            IconImage.FadeToAsync(1, 600, Easing.CubicOut),
-            IconImage.ScaleToAsync(1.2, 600, Easing.CubicOut)
-        );
-
-        // Rebote suave
-        await IconImage.ScaleToAsync(1.0, 300, Easing.BounceOut);
-
-        // Rotación elegante
-        await IconImage.RotateToAsync(360, 800, Easing.CubicInOut);
-        IconImage.Rotation = 0;
-
-        // Pausa breve
-        await Task.Delay(400);
-
-        // Fade out
-        await IconImage.FadeToAsync(0, 400, Easing.CubicIn);
-
-        // Navegar a la página principal
-        if (Application.Current != null)
+        try
         {
-            Application.Current.Windows[0].Page = new AppShell();
+            await Task.WhenAll(
+                IconImage.FadeToAsync(1, 450, Easing.CubicOut),
+                IconImage.ScaleToAsync(1, 450, Easing.CubicOut));
+            await TitleLabel.FadeToAsync(1, 350, Easing.CubicOut);
+            await Task.Delay(450);
         }
+        catch
+        {
+            // Si la animación falla, igual seguimos a la app.
+        }
+
+        MainThread.BeginInvokeOnMainThread(_alTerminar);
     }
 }
