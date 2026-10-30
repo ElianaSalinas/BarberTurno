@@ -1,13 +1,78 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- Responsable: M06. Usuario/contraseña, validación, errores, navegación según rol. -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
              x:Class="BarberTurno.Views.LoginPage"
              x:DataType="vm:LoginViewModel"
-             Title="Iniciar sesión">
-    <VerticalStackLayout Padding="16">
-        <!-- TODO(M06): interfaz (StateView, bindings, comandos). -->
-        <Label Text="Iniciar sesión - pendiente de implementar" />
-    </VerticalStackLayout>
+             Style="{StaticResource M10Page}"
+             Title="Iniciar sesión"
+             Shell.NavBarIsVisible="False"
+             Shell.TabBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="28,56,28,32" Spacing="14" MaximumWidthRequest="460">
+
+            <!-- Marca -->
+            <HorizontalStackLayout Spacing="10">
+                <Border WidthRequest="38" HeightRequest="38" StrokeShape="RoundRectangle 19" StrokeThickness="0"
+                        Background="{AppThemeBinding Light={StaticResource M10LightDarkCard}, Dark={StaticResource M10DarkDarkCard}}">
+                    <Image Source="icon_scissors_gold.svg" WidthRequest="20" HeightRequest="20" />
+                </Border>
+                <Label VerticalOptions="Center" FontFamily="OpenSansSemibold" FontSize="20"
+                       TextColor="{AppThemeBinding Light={StaticResource M10LightText}, Dark={StaticResource M10DarkText}}">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="Barber" />
+                            <Span Text="Turno" TextColor="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+            </HorizontalStackLayout>
+
+            <VerticalStackLayout Spacing="2" Margin="0,22,0,10">
+                <Label Text="BIENVENIDO" FontSize="10" CharacterSpacing="1.3" Style="{StaticResource BtGold}" />
+                <Label Text="Hola de nuevo." Style="{StaticResource BtTitle}" FontSize="34" />
+                <Label Text="Inicia sesión para reservar." FontFamily="OpenSansSemibold" FontSize="24"
+                       TextColor="{AppThemeBinding Light={StaticResource M10LightMutedText}, Dark={StaticResource M10DarkMutedText}}" />
+            </VerticalStackLayout>
+
+            <Border Style="{StaticResource BtField}">
+                <Entry x:Name="EntryUsuario" Style="{StaticResource BtEntry}" Text="{Binding Usuario}"
+                       Placeholder="Usuario o correo" Keyboard="Email" ReturnType="Next" />
+            </Border>
+            <Border Style="{StaticResource BtField}">
+                <Entry x:Name="EntryPassword" Style="{StaticResource BtEntry}" Text="{Binding Password}"
+                       Placeholder="Contraseña" IsPassword="True" ReturnType="Done"
+                       ReturnCommand="{Binding LoginCommand}" />
+            </Border>
+
+            <Label x:Name="LabelError" Text="{Binding MensajeError}" FontSize="13"
+                   TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" HorizontalTextAlignment="Center">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label" Binding="{Binding MensajeError}" Value="">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
+
+            <!-- Botón dorado, igual que "Reservar un turno" -->
+            <Button Text="Entrar" Command="{Binding LoginCommand}" Style="{StaticResource BtGoldButton}" Margin="0,6,0,0" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" HorizontalOptions="Center"
+                               Color="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
+
+            <!-- Tarjeta oscura para registro -->
+            <Border Style="{StaticResource BtDarkCard}" Margin="0,18,0,0">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Spacing="3" VerticalOptions="Center">
+                        <Label Text="¿PRIMERA VEZ?" FontSize="10" CharacterSpacing="1.3" Style="{StaticResource BtGold}" />
+                        <Label Text="Crea tu cuenta gratis" FontFamily="OpenSansSemibold" FontSize="16" TextColor="White" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1" Text="Registrarme" Command="{Binding IrARegistroCommand}"
+                            BackgroundColor="#D6B362" TextColor="#1B1B17" FontFamily="OpenSansSemibold"
+                            FontSize="12" CornerRadius="10" HeightRequest="40" Padding="14,0" />
+                </Grid>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

@@ -1,8 +1,8 @@
-// Responsable: M02
+// Responsable: M02 / M06
 // Code-behind de StateView: propiedades enlazables y lógica de visibilidad por estado.
-// No hay lógica de negocio aquí; solo gestión de qué layout se muestra según el estado.
 using System.Windows.Input;
 using BarberTurno.Helpers;
+using Microsoft.Maui.Controls;
 
 // Alias para evitar ambigüedad con Microsoft.Maui.Controls.ViewState
 using EstadoPantalla = BarberTurno.Helpers.ViewState;
@@ -10,15 +10,16 @@ using EstadoPantalla = BarberTurno.Helpers.ViewState;
 namespace BarberTurno.Controls;
 
 /// <summary>
-/// Control reutilizable que muestra uno de cuatro estados de pantalla.
-/// Los ViewModels de M09 y M10 enlazan la propiedad <see cref="Estado"/>
-/// para controlar qué se muestra sin código en el code-behind de las páginas.
+/// Control reutilizable que muestra uno de cuatro estados de pantalla:
+/// Cargando, Vacío, Error (con reintento) y Con datos.
+/// Soporta propiedades en español (Estado, TextoVacio, TextoError, ComandoReintentar, Contenido)
+/// y en inglés (State, EmptyText, ErrorText, RetryCommand, Content).
 /// </summary>
+[ContentProperty(nameof(Contenido))]
 public partial class StateView : ContentView
 {
-    // ── Propiedades enlazables ────────────────────────────────────────────────
+    // ── Propiedades enlazables (Español) ────────────────────────────────────────
 
-    /// <summary>Estado actual de la pantalla. Cambiarlo actualiza automáticamente la vista.</summary>
     public static readonly BindableProperty EstadoProperty =
         BindableProperty.Create(
             propertyName:    nameof(Estado),
@@ -27,7 +28,6 @@ public partial class StateView : ContentView
             defaultValue:    EstadoPantalla.Cargando,
             propertyChanged: OnEstadoCambiado);
 
-    /// <summary>Mensaje que se muestra cuando el estado es <see cref="EstadoPantalla.Vacio"/>.</summary>
     public static readonly BindableProperty TextoVacioProperty =
         BindableProperty.Create(
             propertyName:    nameof(TextoVacio),
@@ -36,7 +36,6 @@ public partial class StateView : ContentView
             defaultValue:    "No hay datos disponibles.",
             propertyChanged: OnTextoVacioCambiado);
 
-    /// <summary>Mensaje que se muestra cuando el estado es <see cref="EstadoPantalla.Error"/>.</summary>
     public static readonly BindableProperty TextoErrorProperty =
         BindableProperty.Create(
             propertyName:    nameof(TextoError),
@@ -45,7 +44,6 @@ public partial class StateView : ContentView
             defaultValue:    "Ocurrió un error inesperado.",
             propertyChanged: OnTextoErrorCambiado);
 
-    /// <summary>Comando enlazado al botón "Reintentar" en el estado Error.</summary>
     public static readonly BindableProperty ComandoReintentarProperty =
         BindableProperty.Create(
             propertyName:    nameof(ComandoReintentar),
@@ -54,7 +52,6 @@ public partial class StateView : ContentView
             defaultValue:    null,
             propertyChanged: OnComandoReintentarCambiado);
 
-    /// <summary>Vista que se presenta cuando el estado es <see cref="EstadoPantalla.ConDatos"/>.</summary>
     public static readonly BindableProperty ContenidoProperty =
         BindableProperty.Create(
             propertyName:    nameof(Contenido),
@@ -63,37 +60,106 @@ public partial class StateView : ContentView
             defaultValue:    null,
             propertyChanged: OnContenidoCambiado);
 
+    // ── Propiedades enlazables (Inglés / Alias) ────────────────────────────────
+
+    public static readonly BindableProperty StateProperty =
+        BindableProperty.Create(
+            propertyName:    nameof(State),
+            returnType:      typeof(EstadoPantalla),
+            declaringType:   typeof(StateView),
+            defaultValue:    EstadoPantalla.Cargando,
+            propertyChanged: (b, o, n) => ((StateView)b).Estado = (EstadoPantalla)n);
+
+    public static readonly BindableProperty EmptyTextProperty =
+        BindableProperty.Create(
+            propertyName:    nameof(EmptyText),
+            returnType:      typeof(string),
+            declaringType:   typeof(StateView),
+            defaultValue:    "No hay datos disponibles.",
+            propertyChanged: (b, o, n) => ((StateView)b).TextoVacio = n as string ?? "");
+
+    public static readonly BindableProperty ErrorTextProperty =
+        BindableProperty.Create(
+            propertyName:    nameof(ErrorText),
+            returnType:      typeof(string),
+            declaringType:   typeof(StateView),
+            defaultValue:    "Ocurrió un error inesperado.",
+            propertyChanged: (b, o, n) => ((StateView)b).TextoError = n as string ?? "");
+
+    public static readonly BindableProperty RetryCommandProperty =
+        BindableProperty.Create(
+            propertyName:    nameof(RetryCommand),
+            returnType:      typeof(ICommand),
+            declaringType:   typeof(StateView),
+            defaultValue:    null,
+            propertyChanged: (b, o, n) => ((StateView)b).ComandoReintentar = n as ICommand);
+
     // ── Propiedades CLR ───────────────────────────────────────────────────────
 
-    /// <inheritdoc cref="EstadoProperty"/>
     public EstadoPantalla Estado
     {
         get => (EstadoPantalla)GetValue(EstadoProperty);
         set => SetValue(EstadoProperty, value);
     }
 
-    /// <inheritdoc cref="TextoVacioProperty"/>
+    public EstadoPantalla State
+    {
+        get => Estado;
+        set
+        {
+            SetValue(StateProperty, value);
+            Estado = value;
+        }
+    }
+
     public string TextoVacio
     {
         get => (string)GetValue(TextoVacioProperty);
         set => SetValue(TextoVacioProperty, value);
     }
 
-    /// <inheritdoc cref="TextoErrorProperty"/>
+    public string EmptyText
+    {
+        get => TextoVacio;
+        set
+        {
+            SetValue(EmptyTextProperty, value);
+            TextoVacio = value;
+        }
+    }
+
     public string TextoError
     {
         get => (string)GetValue(TextoErrorProperty);
         set => SetValue(TextoErrorProperty, value);
     }
 
-    /// <inheritdoc cref="ComandoReintentarProperty"/>
+    public string ErrorText
+    {
+        get => TextoError;
+        set
+        {
+            SetValue(ErrorTextProperty, value);
+            TextoError = value;
+        }
+    }
+
     public ICommand? ComandoReintentar
     {
         get => (ICommand?)GetValue(ComandoReintentarProperty);
         set => SetValue(ComandoReintentarProperty, value);
     }
 
-    /// <inheritdoc cref="ContenidoProperty"/>
+    public ICommand? RetryCommand
+    {
+        get => ComandoReintentar;
+        set
+        {
+            SetValue(RetryCommandProperty, value);
+            ComandoReintentar = value;
+        }
+    }
+
     public View? Contenido
     {
         get => (View?)GetValue(ContenidoProperty);
@@ -118,36 +184,35 @@ public partial class StateView : ContentView
 
     private static void OnTextoVacioCambiado(BindableObject bindable, object oldVal, object newVal)
     {
-        if (bindable is StateView sv)
+        if (bindable is StateView sv && sv.LblVacio != null)
             sv.LblVacio.Text = newVal as string ?? "";
     }
 
     private static void OnTextoErrorCambiado(BindableObject bindable, object oldVal, object newVal)
     {
-        if (bindable is StateView sv)
+        if (bindable is StateView sv && sv.LblError != null)
             sv.LblError.Text = newVal as string ?? "";
     }
 
     private static void OnComandoReintentarCambiado(BindableObject bindable, object oldVal, object newVal)
     {
-        if (bindable is StateView sv)
+        if (bindable is StateView sv && sv.BtnReintentar != null)
             sv.BtnReintentar.Command = newVal as ICommand;
     }
 
     private static void OnContenidoCambiado(BindableObject bindable, object oldVal, object newVal)
     {
-        if (bindable is StateView sv)
+        if (bindable is StateView sv && sv.ConDatosLayout != null)
             sv.ConDatosLayout.Content = newVal as View;
     }
 
     // ── Lógica de estados ─────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Muestra solo el layout correspondiente al estado indicado y oculta los demás.
-    /// Esta es la única responsabilidad de este code-behind.
-    /// </summary>
     private void AplicarEstado(EstadoPantalla estado)
     {
+        if (CargandoLayout == null || VacioLayout == null || ErrorLayout == null || ConDatosLayout == null)
+            return;
+
         CargandoLayout.IsVisible = estado == EstadoPantalla.Cargando;
         VacioLayout.IsVisible    = estado == EstadoPantalla.Vacio;
         ErrorLayout.IsVisible    = estado == EstadoPantalla.Error;
