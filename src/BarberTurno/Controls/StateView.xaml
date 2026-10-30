@@ -22,71 +22,73 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="BarberTurno.Controls.StateView"
              x:Name="Root">
-    <Grid>
+    <ContentView.Content>
+        <Grid>
 
-        <!-- ── Estado: Cargando ──────────────────────────────────────────── -->
-        <VerticalStackLayout x:Name="CargandoLayout"
-                             IsVisible="False"
-                             HorizontalOptions="Center"
-                             VerticalOptions="Center"
-                             Spacing="16">
-            <ActivityIndicator IsRunning="True"
-                               Color="{AppThemeBinding Light=#C0392B, Dark=#C0392B}"
-                               HeightRequest="48"
-                               WidthRequest="48"
-                               HorizontalOptions="Center" />
-            <Label Text="Cargando..."
-                   HorizontalOptions="Center"
-                   FontSize="14"
-                   FontFamily="OpenSansRegular"
-                   TextColor="{AppThemeBinding Light=#5A5A5A, Dark=#A8A8A8}" />
-        </VerticalStackLayout>
+            <!-- ── Estado: Cargando ──────────────────────────────────────────── -->
+            <VerticalStackLayout x:Name="CargandoLayout"
+                                 IsVisible="False"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 Spacing="16">
+                <ActivityIndicator IsRunning="True"
+                                   Color="{AppThemeBinding Light=#C0392B, Dark=#C0392B}"
+                                   HeightRequest="48"
+                                   WidthRequest="48"
+                                   HorizontalOptions="Center" />
+                <Label Text="Cargando..."
+                       HorizontalOptions="Center"
+                       FontSize="14"
+                       FontFamily="OpenSansRegular"
+                       TextColor="{AppThemeBinding Light=#5A5A5A, Dark=#A8A8A8}" />
+            </VerticalStackLayout>
 
-        <!-- ── Estado: Vacío ─────────────────────────────────────────────── -->
-        <VerticalStackLayout x:Name="VacioLayout"
-                             IsVisible="False"
-                             HorizontalOptions="Center"
-                             VerticalOptions="Center"
-                             Spacing="12"
-                             Padding="32,0">
-            <Label x:Name="LblVacio"
-                   HorizontalOptions="Center"
-                   HorizontalTextAlignment="Center"
-                   FontSize="16"
-                   FontFamily="OpenSansRegular"
-                   LineBreakMode="WordWrap"
-                   TextColor="{AppThemeBinding Light=#5A5A5A, Dark=#A8A8A8}" />
-        </VerticalStackLayout>
+            <!-- ── Estado: Vacío ─────────────────────────────────────────────── -->
+            <VerticalStackLayout x:Name="VacioLayout"
+                                 IsVisible="False"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 Spacing="12"
+                                 Padding="32,0">
+                <Label x:Name="LblVacio"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       FontSize="16"
+                       FontFamily="OpenSansRegular"
+                       LineBreakMode="WordWrap"
+                       TextColor="{AppThemeBinding Light=#5A5A5A, Dark=#A8A8A8}" />
+            </VerticalStackLayout>
 
-        <!-- ── Estado: Error ─────────────────────────────────────────────── -->
-        <VerticalStackLayout x:Name="ErrorLayout"
-                             IsVisible="False"
-                             HorizontalOptions="Center"
-                             VerticalOptions="Center"
-                             Spacing="20"
-                             Padding="32,0">
-            <Label x:Name="LblError"
-                   HorizontalOptions="Center"
-                   HorizontalTextAlignment="Center"
-                   FontSize="16"
-                   FontFamily="OpenSansRegular"
-                   LineBreakMode="WordWrap"
-                   TextColor="#E74C3C" />
-            <Button x:Name="BtnReintentar"
-                    Text="Reintentar"
-                    BackgroundColor="#C0392B"
-                    TextColor="White"
-                    FontFamily="OpenSansSemibold"
-                    FontSize="16"
-                    CornerRadius="12"
-                    Padding="20,14"
-                    MinimumHeightRequest="52"
-                    HorizontalOptions="Center" />
-        </VerticalStackLayout>
+            <!-- ── Estado: Error ─────────────────────────────────────────────── -->
+            <VerticalStackLayout x:Name="ErrorLayout"
+                                 IsVisible="False"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 Spacing="20"
+                                 Padding="32,0">
+                <Label x:Name="LblError"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       FontSize="16"
+                       FontFamily="OpenSansRegular"
+                       LineBreakMode="WordWrap"
+                       TextColor="#E74C3C" />
+                <Button x:Name="BtnReintentar"
+                        Text="Reintentar"
+                        BackgroundColor="#C0392B"
+                        TextColor="White"
+                        FontFamily="OpenSansSemibold"
+                        FontSize="16"
+                        CornerRadius="12"
+                        Padding="20,14"
+                        MinimumHeightRequest="52"
+                        HorizontalOptions="Center" />
+            </VerticalStackLayout>
 
-        <!-- ── Estado: Con datos (contenido real) ────────────────────────── -->
-        <ContentView x:Name="ConDatosLayout"
-                     IsVisible="False" />
+            <!-- ── Estado: Con datos (contenido real) ────────────────────────── -->
+            <ContentView x:Name="ConDatosLayout"
+                         IsVisible="False" />
 
-    </Grid>
+        </Grid>
+    </ContentView.Content>
 </ContentView>

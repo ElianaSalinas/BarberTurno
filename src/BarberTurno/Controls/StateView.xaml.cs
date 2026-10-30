@@ -1,5 +1,7 @@
 // Responsable: M02 / M06
 // Code-behind de StateView: propiedades enlazables y lógica de visibilidad por estado.
+using System;
+using System.Diagnostics;
 using System.Windows.Input;
 using BarberTurno.Helpers;
 using Microsoft.Maui.Controls;
@@ -104,7 +106,7 @@ public partial class StateView : ContentView
 
     public EstadoPantalla State
     {
-        get => Estado;
+        get => (EstadoPantalla)GetValue(StateProperty);
         set
         {
             SetValue(StateProperty, value);
@@ -120,7 +122,7 @@ public partial class StateView : ContentView
 
     public string EmptyText
     {
-        get => TextoVacio;
+        get => (string)GetValue(EmptyTextProperty);
         set
         {
             SetValue(EmptyTextProperty, value);
@@ -136,7 +138,7 @@ public partial class StateView : ContentView
 
     public string ErrorText
     {
-        get => TextoError;
+        get => (string)GetValue(ErrorTextProperty);
         set
         {
             SetValue(ErrorTextProperty, value);
@@ -152,7 +154,7 @@ public partial class StateView : ContentView
 
     public ICommand? RetryCommand
     {
-        get => ComandoReintentar;
+        get => (ICommand?)GetValue(RetryCommandProperty);
         set
         {
             SetValue(RetryCommandProperty, value);
@@ -203,7 +205,13 @@ public partial class StateView : ContentView
     private static void OnContenidoCambiado(BindableObject bindable, object oldVal, object newVal)
     {
         if (bindable is StateView sv && sv.ConDatosLayout != null)
+        {
+            // Protección contra ciclos recursivos si la plantilla interna es asignada a Contenido
+            if (ReferenceEquals(newVal, sv.Content) || ReferenceEquals(newVal, sv.ConDatosLayout))
+                return;
+
             sv.ConDatosLayout.Content = newVal as View;
+        }
     }
 
     // ── Lógica de estados ─────────────────────────────────────────────────────
