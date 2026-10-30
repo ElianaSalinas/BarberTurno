@@ -26,7 +26,19 @@ public class FotoConverter : IValueConverter
             }
 
             if (texto.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                return ImageSource.FromUri(new Uri(texto));
+            {
+                // Sin internet no se intenta descargar la foto: se muestra la inicial en su lugar.
+                // (Una descarga fallida de imagen remota en Android puede cerrar la app en algunos equipos.)
+                if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+                    return null;
+
+                return new UriImageSource
+                {
+                    Uri = new Uri(texto),
+                    CachingEnabled = true,
+                    CacheValidity = TimeSpan.FromDays(7)
+                };
+            }
 
             return ImageSource.FromFile(texto);
         }
