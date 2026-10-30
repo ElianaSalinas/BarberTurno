@@ -6,9 +6,11 @@ using BarberTurno.Services.Availability;
 using BarberTurno.Services.Booking;
 using BarberTurno.Services.Dialogs;
 using BarberTurno.Services.Navigation;
+using BarberTurno.Services.Notifications;
 using BarberTurno.Services.Sync;
 using BarberTurno.ViewModels;
 using BarberTurno.Views;
+using Plugin.LocalNotification;
 
 // Responsable: M01 (composición de la app). Cada capa registra sus servicios en su propio archivo *Registration.cs.
 namespace BarberTurno;
@@ -20,15 +22,17 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
+            .UseLocalNotification() // <--- Registro del plugin de notificaciones locales
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // Servicios fundamentales de navegación y diálogos
+        // Servicios fundamentales de navegación, diálogos y recordatorios (M10)
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddSingleton<IDialogService, DialogService>();
+        builder.Services.AddSingleton<IReminderService, ReminderService>();
 
         builder.Services
             .AddDataLayer()          // M02

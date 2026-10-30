@@ -1,152 +1,217 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using BarberTurno.Data.Repositories;
+using BarberTurno.Helpers;
+using BarberTurno.Models;
+using BarberTurno.Services.Navigation;
 
-// Responsable: M10.
-
-// Los datos reales llegarán después desde:
-// - ICitaRepository.GetHistorialClienteAsync.
-// - IClienteRepository.GetByIdAsync.
-// - IAuthService.SesionActual.
 namespace BarberTurno.ViewModels;
 
-public class HistorialClienteViewModel : BaseViewModel
+/// <summary>
+/// Responsable: M10.
+/// ViewModel de la pantalla de Historial de Visitas del Cliente.
+/// 
+/// ¿QUÉ HACE?
+/// - Recibe el "clienteId" desde DetalleCitaPage mediante navegación Shell.
+/// - Consulta las visitas pasadas del cliente en SQLite con ICitaRepository.GetHistorialClienteAsync.
+/// - Cruza los datos con IServicioRepository para conocer qué se realizó en cada visita.
+/// - Calcula el resumen del cliente: total de visitas y monto total invertido en la barbería.
+/// - Si no tiene historial, presenta limpiamente el estado vacío (cero datos inventados).
+/// </summary>
+[QueryProperty(nameof(ClienteIdParametro), "clienteId")]
+public partial class HistorialClienteViewModel : BaseViewModel
 {
-    /*
-        Controla si la pantalla recibió un cliente real desde DetalleCitaPage.
+    // Dependencias inyectadas
+    private readonly ICitaRepository _citaRepository;
+    private readonly IClienteRepository _clienteRepository;
+    private readonly IServicioRepository _servicioRepository;
+    private readonly INavigationService _navigationService;
 
-        False: muestra “Selecciona un cliente”.
-        True: muestra la cabecera del cliente y sus visitas anteriores.
-    */
-    private bool tieneClienteSeleccionado;
+    // ════════════════════════════════════════════════════════════════════════════
+    // PROPIEDADES OBSERVABLES (Datos reales del cliente)
+    // ════════════════════════════════════════════════════════════════════════════
 
-    public bool TieneClienteSeleccionado
+    private string _clienteIdParametro = string.Empty;
+    public string ClienteIdParametro
     {
-        get => tieneClienteSeleccionado;
-        private set => SetProperty(ref tieneClienteSeleccionado, value);
+        get => _clienteIdParametro;
+        set
+        {
+            if (SetProperty(ref _clienteIdParametro, value) && int.TryParse(value, out int id))
+            {
+                _ = CargarHistorialAsync(id);
+            }
+        }
     }
 
-    /*
-        Controla el estado “sin visitas”.
-
-        Solo debe ser true cuando sí existe un cliente seleccionado,
-        pero no hay citas anteriores registradas.
-    */
-    private bool estaHistorialVacio;
-
-    public bool EstaHistorialVacio
-    {
-        get => estaHistorialVacio;
-        private set => SetProperty(ref estaHistorialVacio, value);
-    }
-
-    // ID real del cliente. Se recibirá mediante navegación más adelante.
-    private int? clienteId;
-
-    public int? ClienteId
-    {
-        get => clienteId;
-        private set => SetProperty(ref clienteId, value);
-    }
-
-    // Datos reales del cliente.
+    /// <summary>Nombre del cliente en consulta.</summary>
+    [ObservableProperty]
     private string nombreCliente = string.Empty;
 
-    public string NombreCliente
-    {
-        get => nombreCliente;
-        private set => SetProperty(ref nombreCliente, value);
-    }
-
+    /// <summary>Iniciales para el avatar.</summary>
+    [ObservableProperty]
     private string inicialesCliente = string.Empty;
 
-    public string InicialesCliente
-    {
-        get => inicialesCliente;
-        private set => SetProperty(ref inicialesCliente, value);
-    }
-
+    /// <summary>Teléfono del cliente.</summary>
+    [ObservableProperty]
     private string telefonoCliente = string.Empty;
 
-    public string TelefonoCliente
-    {
-        get => telefonoCliente;
-        private set => SetProperty(ref telefonoCliente, value);
-    }
-
-    /*
-        Total de visitas cargadas desde el repositorio.
-
-        Cero es el estado inicial real de una colección aún no cargada;
-        no representa un dato de demostración.
-    */
+    /// <summary>Total de citas históricas que ha tenido el cliente.</summary>
+    [ObservableProperty]
     private int totalVisitas;
 
-    public int TotalVisitas
+    /// <summary>Total acumulado gastado por el cliente en la barbería.</summary>
+    [ObservableProperty]
+    private string totalInvertido = "$0";
+
+    /// <summary>Indica si el cliente no tiene citas pasadas.</summary>
+    [ObservableProperty]
+    private bool historialVacio = true;
+
+    /// <summary>Colección observable de visitas para el listado.</summary>
+    public ObservableCollection<VisitaHistorialItem> Visitas { get; } = new();
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // CONSTRUCTOR
+    // ════════════════════════════════════════════════════════════════════════════
+    public HistorialClienteViewModel(
+        ICitaRepository citaRepository,
+        IClienteRepository clienteRepository,
+        IServicioRepository servicioRepository,
+        INavigationService navigationService)
     {
-        get => totalVisitas;
-        private set => SetProperty(ref totalVisitas, value);
+        _citaRepository = citaRepository;
+        _clienteRepository = clienteRepository;
+        _servicioRepository = servicioRepository;
+        _navigationService = navigationService;
+
+        Titulo = "Historial del Cliente";
     }
 
-    /*
-        Lista enlazada al CollectionView.
-
-        ObservableCollection notifica a la vista al agregar, eliminar
-        o reemplazar visitas reales.
-    */
-    public ObservableCollection<HistorialVisitaItem> Visitas { get; } = new();
-
-    public HistorialClienteViewModel()
+    // ════════════════════════════════════════════════════════════════════════════
+    // CARGA REAL DESDE SQLITE
+    // ════════════════════════════════════════════════════════════════════════════
+    public async Task CargarHistorialAsync(int idCliente)
     {
-        LimpiarHistorial();
+        if (IsBusy) return;
+
+        try
+        {
+            IsBusy = true;
+            Visitas.Clear();
+
+            // 1. Obtener datos del cliente
+            var cliente = await _clienteRepository.GetByIdAsync(idCliente);
+            NombreCliente = cliente?.Nombre ?? $"Cliente #{idCliente}";
+            InicialesCliente = ObtenerIniciales(NombreCliente);
+            TelefonoCliente = !string.IsNullOrWhiteSpace(cliente?.Telefono)
+                ? cliente.Telefono
+                : "Sin teléfono registrado";
+
+            // 2. Consultar citas pasadas del cliente en SQLite (ordenadas descendente)
+            List<Cita> citas = await _citaRepository.GetHistorialClienteAsync(idCliente);
+
+            if (citas is null || citas.Count == 0)
+            {
+                TotalVisitas = 0;
+                TotalInvertido = "$0";
+                HistorialVacio = true;
+                return;
+            }
+
+            // 3. Traer catálogo de servicios para mapear nombres y precios
+            List<Servicio> servicios = await _servicioRepository.GetAllAsync();
+            var serviciosDict = servicios.ToDictionary(s => s.Id);
+
+            decimal sumaInvertido = 0;
+            CultureInfo cultura = CultureInfo.GetCultureInfo("es-DO");
+
+            foreach (var cita in citas)
+            {
+                serviciosDict.TryGetValue(cita.ServicioId, out var serv);
+
+                string nomServ = serv?.Nombre ?? "Servicio";
+                decimal precio = serv?.Precio ?? 0;
+
+                // Solo sumar ingresos de citas que fueron efectivamente atendidas o confirmadas
+                if (cita.Estado == EstadoCita.Atendida || cita.Estado == EstadoCita.Confirmada)
+                {
+                    sumaInvertido += precio;
+                }
+
+                DateTime fechaLocal = cita.Inicio.ToLocalTime();
+                string fechaFormateada = fechaLocal.ToString("d 'de' MMMM, yyyy", cultura);
+
+                Visitas.Add(new VisitaHistorialItem
+                {
+                    Id = cita.Id,
+                    Fecha = fechaFormateada,
+                    Hora = fechaLocal.ToString("hh:mm tt"),
+                    Servicio = nomServ,
+                    Precio = precio.ToString("C0", cultura),
+                    Estado = cita.Estado,
+                    EstadoTexto = cita.Estado.ToString()
+                });
+            }
+
+            TotalVisitas = Visitas.Count;
+            TotalInvertido = sumaInvertido.ToString("C0", cultura);
+            HistorialVacio = Visitas.Count == 0;
+        }
+        catch (Exception ex)
+        {
+            MensajeError = ex.Message;
+            HistorialVacio = true;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
-    /*
-        Restablece la pantalla a un estado seguro.
-
-        Más adelante, antes de buscar un cliente diferente, este método
-        limpia los datos anteriores para evitar mostrar información vieja.
-    */
-    private void LimpiarHistorial()
+    [RelayCommand]
+    public async Task VolverAsync()
     {
-        ClienteId = null;
-        NombreCliente = string.Empty;
-        InicialesCliente = string.Empty;
-        TelefonoCliente = string.Empty;
-        TotalVisitas = 0;
+        await _navigationService.GoBackAsync();
+    }
 
-        Visitas.Clear();
-
-        TieneClienteSeleccionado = false;
-        EstaHistorialVacio = false;
+    private static string ObtenerIniciales(string nombre)
+    {
+        if (string.IsNullOrWhiteSpace(nombre)) return "BT";
+        var partes = nombre.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (partes.Length == 1)
+        {
+            return partes[0].Length >= 2 ? partes[0][..2].ToUpperInvariant() : partes[0].ToUpperInvariant();
+        }
+        return $"{partes[0][0]}{partes[1][0]}".ToUpperInvariant();
     }
 }
 
-/*
-    Modelo de presentación para una visita anterior.
-
-    No reemplaza Models/Cita.cs de M02. Esta clase solamente contiene
-    texto listo para dibujar en la interfaz de HistorialClientePage.
-*/
-public class HistorialVisitaItem
+/// <summary>
+/// Modelo de presentación para cada fila de visita pasada en el historial.
+/// </summary>
+public partial class VisitaHistorialItem : ObservableObject
 {
-    // Ejemplo futuro: “18 JUL”.
-    public string FechaCorta { get; set; } = string.Empty;
+    [ObservableProperty]
+    private Guid id;
 
-    // Ejemplo futuro: “Jueves, 18 de julio”.
-    public string FechaCompleta { get; set; } = string.Empty;
+    [ObservableProperty]
+    private string fecha = string.Empty;
 
-    // Hora formateada para presentación.
-    public string Hora { get; set; } = string.Empty;
+    [ObservableProperty]
+    private string hora = string.Empty;
 
-    // Servicio real asociado a la cita.
-    public string Servicio { get; set; } = string.Empty;
+    [ObservableProperty]
+    private string servicio = string.Empty;
 
-    // Duración real obtenida desde Servicio.DuracionMin.
-    public string Duracion { get; set; } = string.Empty;
+    [ObservableProperty]
+    private string precio = string.Empty;
 
-    // Estado real: Atendida, Ausente, Cancelada, etc.
-    public string Estado { get; set; } = string.Empty;
+    [ObservableProperty]
+    private EstadoCita estado;
 
-    // Precio real obtenido desde Servicio.Precio.
-    public string Precio { get; set; } = string.Empty;
+    [ObservableProperty]
+    private string estadoTexto = string.Empty;
 }
