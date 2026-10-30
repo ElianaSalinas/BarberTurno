@@ -65,6 +65,7 @@ public static class MauiProgram
         services.AddTransient<PerfilPage>();
         services.AddTransient<AgendaDiaViewModel>();
         services.AddTransient<AgendaDiaPage>();
+        services.AddTransient<CalendarioPage>();
         services.AddTransient<HistorialClienteViewModel>();
         services.AddTransient<HistorialClientePage>();
         services.AddTransient<DetalleCitaViewModel>();
@@ -72,3 +73,4 @@ public static class MauiProgram
         return services;
     }
 }
+
