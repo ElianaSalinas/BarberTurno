@@ -5,6 +5,7 @@ using System.Diagnostics;
 using BarberTurno.Data.Repositories;
 using BarberTurno.Models;
 using BarberTurno.Services.Auth;
+using Plugin.LocalNotification.Core.Models;
 #if ANDROID || IOS || MACCATALYST || WINDOWS
 using Plugin.LocalNotification;
 #endif
