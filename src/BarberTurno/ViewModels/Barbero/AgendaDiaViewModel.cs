@@ -26,8 +26,7 @@ public partial class AgendaDiaViewModel : BaseViewModel
     private readonly ISyncService? _sync;
     private readonly INavigationService? _nav;
 
-    private int _barberoId;
-    private bool _cargando;
+    private int _versionCarga;
 
     [ObservableProperty]
     private string nombreBarbero = string.Empty;
@@ -46,6 +45,9 @@ public partial class AgendaDiaViewModel : BaseViewModel
 
     [ObservableProperty]
     private string metaIngresos = string.Empty;
+
+    [ObservableProperty]
+    private bool tieneMetaIngresos;
 
     [ObservableProperty]
     private CitaAgendaItem proximaCita = new();
@@ -98,6 +100,21 @@ public partial class AgendaDiaViewModel : BaseViewModel
     {
         base.OnAppearing();
         _ = CargarAgendaAsync();
+        _ = SincronizarEnSegundoPlanoAsync();
+    }
+
+    private async Task SincronizarEnSegundoPlanoAsync()
+    {
+        if (_sync == null) return;
+        try
+        {
+            await _sync.SincronizarCitasAsync();
+            await CargarAgendaAsync(mostrarCargando: false);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[AgendaDiaViewModel] Error en sincronización de fondo: {ex.Message}");
+        }
     }
 
     [RelayCommand]
@@ -106,6 +123,7 @@ public partial class AgendaDiaViewModel : BaseViewModel
         FechaSeleccionada = FechaSeleccionada.AddDays(-1);
         ActualizarTextoFecha();
         await CargarAgendaAsync();
+        _ = SincronizarEnSegundoPlanoAsync();
     }
 
     [RelayCommand]
@@ -114,6 +132,7 @@ public partial class AgendaDiaViewModel : BaseViewModel
         FechaSeleccionada = FechaSeleccionada.AddDays(1);
         ActualizarTextoFecha();
         await CargarAgendaAsync();
+        _ = SincronizarEnSegundoPlanoAsync();
     }
 
     [RelayCommand]
@@ -123,6 +142,7 @@ public partial class AgendaDiaViewModel : BaseViewModel
         FechaSeleccionada = DateTime.Today;
         ActualizarTextoFecha();
         await CargarAgendaAsync();
+        _ = SincronizarEnSegundoPlanoAsync();
     }
 
     [RelayCommand]
@@ -137,7 +157,7 @@ public partial class AgendaDiaViewModel : BaseViewModel
             {
                 await _sync.SincronizarCitasAsync();
             }
-            await CargarAgendaAsync();
+            await CargarAgendaAsync(mostrarCargando: false);
         }
         finally
         {
@@ -145,92 +165,66 @@ public partial class AgendaDiaViewModel : BaseViewModel
         }
     }
 
-    public async Task CargarAgendaAsync()
+    public async Task CargarAgendaAsync(bool mostrarCargando = true)
     {
-        if (_cargando) return;
-        _cargando = true;
-        State = ViewState.Cargando;
-        MensajeError = null;
+        int versionActual = Interlocked.Increment(ref _versionCarga);
+
+        if (mostrarCargando)
+        {
+            State = ViewState.Cargando;
+            MensajeError = null;
+        }
 
         try
         {
             var sesion = _auth?.SesionActual;
             NombreBarbero = sesion?.Nombre ?? "Barbero";
 
-            // Resolver el BarberoId local
-            if (_barberoId == 0 && _barberoRepo != null)
+            // Obtener el BarberoId real directamente de la sesión activa en cada carga (no se cachea en campo privado).
+            int? barberoId = AgendaLoader.ObtenerBarberoId(sesion);
+            if (barberoId is null)
             {
-                var barberos = await _barberoRepo.GetAllAsync();
-                var barbero = barberos.FirstOrDefault(b =>
-                    !string.IsNullOrWhiteSpace(sesion?.Nombre) &&
-                    b.Nombre.Equals(sesion.Nombre, StringComparison.OrdinalIgnoreCase))
-                    ?? barberos.FirstOrDefault();
-
-                if (barbero != null)
-                    _barberoId = barbero.Id;
+                if (versionActual != _versionCarga) return;
+                ActualizarEstadoSinDatos();
+                MensajeError = "No se encontró tu perfil de barbero.";
+                State = ViewState.Error;
+                return;
             }
 
-            if (_citaRepo == null || _barberoId == 0)
+            if (_citaRepo == null || _clienteRepo == null || _servicioRepo == null)
             {
+                if (versionActual != _versionCarga) return;
                 ActualizarEstadoSinDatos();
                 State = ViewState.ConDatos;
                 return;
             }
 
-            // Consultar citas del día seleccionado
-            var dia = DateOnly.FromDateTime(FechaSeleccionada);
-            var citas = await _citaRepo.GetAgendaBarberoAsync(_barberoId, dia);
+            // Lógica compartida con Calendario: BarberoId de la sesión, horas locales y filtro de estados.
+            var resultado = await AgendaLoader.CargarAsync(
+                sesion, DateOnly.FromDateTime(FechaSeleccionada), DateTime.Now,
+                _citaRepo, _clienteRepo, _servicioRepo);
+
+            // Si se inició una carga posterior mientras esperábamos la consulta, descartar este resultado desfasado
+            if (versionActual != _versionCarga) return;
+
+            var items = resultado?.Items ?? new List<CitaAgendaItem>();
+            var totalIngresos = resultado?.Ingresos ?? 0m;
+            var primeraProxima = resultado?.Proxima;
+
+            // Comprobación de versión antes de volcar cambios en colecciones y propiedades observables
+            if (versionActual != _versionCarga) return;
 
             CitasDelDia.Clear();
-            decimal totalIngresos = 0m;
-            CitaAgendaItem? primeraProxima = null;
-            var ahora = DateTime.Now;
-
-            foreach (var cita in citas.OrderBy(c => c.Inicio))
+            foreach (var item in items)
             {
-                var cliente = _clienteRepo != null ? await _clienteRepo.GetByIdAsync(cita.ClienteId) : null;
-                var servicio = _servicioRepo != null ? await _servicioRepo.GetByIdAsync(cita.ServicioId) : null;
-
-                var nombreCli = cliente?.Nombre ?? "Cliente";
-                var nombreServ = servicio?.Nombre ?? "Servicio";
-                var duracion = servicio?.DuracionMin ?? 30;
-                var precio = servicio?.Precio ?? 0m;
-
-                if (cita.Estado != EstadoCita.Cancelada && cita.Estado != EstadoCita.Rechazada)
-                {
-                    totalIngresos += precio;
-                }
-
-                // Generar iniciales del cliente
-                var partes = nombreCli.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                var iniciales = partes.Length >= 2
-                    ? $"{partes[0][..1]}{partes[1][..1]}".ToUpperInvariant()
-                    : (nombreCli.Length > 0 ? nombreCli[..1].ToUpperInvariant() : "CL");
-
-                var item = new CitaAgendaItem
-                {
-                    Hora = cita.Inicio.ToString("hh:mm", CultureInfo.InvariantCulture),
-                    Periodo = cita.Inicio.ToString("tt", CultureInfo.InvariantCulture).ToUpperInvariant(),
-                    NombreCliente = nombreCli,
-                    InicialesCliente = iniciales,
-                    Servicio = $"{nombreServ} · {duracion} min",
-                    Resumen = $"{nombreCli} · {nombreServ}"
-                };
-
                 CitasDelDia.Add(item);
-
-                // Si es hoy y la cita aún no ha pasado, buscar la próxima cita más cercana
-                if (FechaSeleccionada.Date == ahora.Date && cita.Inicio >= ahora && primeraProxima == null
-                    && cita.Estado is EstadoCita.Confirmada or EstadoCita.Pendiente)
-                {
-                    primeraProxima = item;
-                }
             }
 
             CantidadCitas = CitasDelDia.Count;
             EstaAgendaVacia = CantidadCitas == 0;
             IngresosDelDia = totalIngresos > 0 ? $"RD$ {totalIngresos:N0}" : "RD$ 0";
-            MetaIngresos = "Meta: RD$ 4,000";
+            MetaIngresos = string.Empty;
+            TieneMetaIngresos = false;
 
             if (primeraProxima != null)
             {
@@ -247,13 +241,10 @@ public partial class AgendaDiaViewModel : BaseViewModel
         }
         catch (Exception ex)
         {
+            if (versionActual != _versionCarga) return;
             Debug.WriteLine($"[AgendaDiaViewModel] Error al cargar agenda: {ex}");
             MensajeError = "No se pudieron cargar las citas de este día. Intenta de nuevo.";
             State = ViewState.Error;
-        }
-        finally
-        {
-            _cargando = false;
         }
     }
 
@@ -283,7 +274,8 @@ public partial class AgendaDiaViewModel : BaseViewModel
         ProximaCita = new CitaAgendaItem();
         EstaAgendaVacia = true;
         IngresosDelDia = "RD$ 0";
-        MetaIngresos = "Meta: RD$ 4,000";
+        MetaIngresos = string.Empty;
+        TieneMetaIngresos = false;
     }
 }
 

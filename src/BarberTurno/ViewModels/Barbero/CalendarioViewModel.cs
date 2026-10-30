@@ -42,16 +42,26 @@ public partial class CalendarioViewModel : BaseViewModel
     {
         try
         {
-            var (items, ingresos) = await AgendaLoader.CargarAsync(
-                _auth, _citas, _clientes, _servicios, DateOnly.FromDateTime(FechaSeleccionada));
+            var resultado = await AgendaLoader.CargarAsync(
+                _auth.SesionActual, DateOnly.FromDateTime(FechaSeleccionada), DateTime.Now,
+                _citas, _clientes, _servicios);
 
             Citas.Clear();
-            foreach (var i in items) Citas.Add(i);
+
+            if (resultado is null)
+            {
+                // Sesión sin BarberoId: no se consulta nada (nunca se usa otro Id).
+                SinCitas = true;
+                Resumen = "No se encontró tu perfil de barbero. Cierra sesión e inicia de nuevo.";
+                return;
+            }
+
+            foreach (var i in resultado.Items) Citas.Add(i);
 
             SinCitas = Citas.Count == 0;
             Resumen = Citas.Count == 0
                 ? "Sin turnos este día"
-                : $"{Citas.Count} turno{(Citas.Count == 1 ? "" : "s")}" + (ingresos > 0 ? $" · ${ingresos:N0}" : "");
+                : $"{Citas.Count} turno{(Citas.Count == 1 ? "" : "s")}" + (resultado.Ingresos > 0 ? $" · ${resultado.Ingresos:N0}" : "");
         }
         catch (Exception ex)
         {
