@@ -558,4 +558,15 @@
         <Setter Property="FontSize" Value="13" />
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
     </Style>
+    <Style x:Key="BtSecondaryButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#ECE6DC, Dark=#2A2C22}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light=#1B1B17, Dark=#F7F4EE}" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="CornerRadius" Value="10" />
+    </Style>
+    <Style x:Key="BtText" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightText}, Dark={StaticResource M10DarkText}}" />
+    </Style>
 </ResourceDictionary>
