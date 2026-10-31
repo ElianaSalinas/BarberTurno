@@ -24,7 +24,7 @@ public partial class App : Application
         var window = new Window();
         window.Page = new Views.AnimatedSplashPage(() => window.Page = new AppShell());
 
-        // Ciclo de vida: al pasar a segundo plano se intenta subir lo pendiente; al volver, nada se pierde.
+        // Ciclo de vida: al pasar a segundo plano (Stopped / OnStop) se intenta subir lo pendiente; al volver (Resumed / OnResume), se refrescan datos.
         window.Stopped += async (_, _) =>
         {
             try
@@ -38,6 +38,24 @@ public partial class App : Application
                 // Sin conexión: quedará pendiente para el siguiente intento.
             }
         };
+
+        window.Resumed += async (_, _) =>
+        {
+            try
+            {
+                var sync = IPlatformApplication.Current?.Services.GetService<BarberTurno.Services.Sync.ISyncService>();
+                if (sync is not null)
+                {
+                    await sync.SincronizarPendientesAsync();
+                    await sync.SincronizarCitasAsync();
+                }
+            }
+            catch
+            {
+                // Sin conexión: se continúa visualizando la información local de SQLite.
+            }
+        };
+
         return window;
     }
 }
