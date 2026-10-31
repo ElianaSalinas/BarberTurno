@@ -31,6 +31,45 @@ public partial class LoginViewModel : BaseViewModel
     [ObservableProperty]
     private string _password = string.Empty;
 
+    [ObservableProperty]
+    private string _usuarioError = string.Empty;
+
+    [ObservableProperty]
+    private string _passwordError = string.Empty;
+
+    private bool _haIntentadoLogin;
+
+    partial void OnUsuarioChanged(string value)
+    {
+        // Validación en tiempo real (mientras escribe): solo caracteres no permitidos
+        if (!Validaciones.EsUsuarioCaracteresValidos(value, permiteArroba: true))
+        {
+            UsuarioError = "Sin espacios. Solo letras, números, punto, guion o correo.";
+            return;
+        }
+
+        // Si ya intentó entrar antes, revalidar obligatoriedad en tiempo real
+        if (_haIntentadoLogin && string.IsNullOrWhiteSpace(value))
+        {
+            UsuarioError = "El usuario es obligatorio.";
+            return;
+        }
+
+        UsuarioError = string.Empty;
+    }
+
+    partial void OnPasswordChanged(string value)
+    {
+        // En login, la contraseña solo es obligatoria (sin longitud mínima)
+        if (_haIntentadoLogin && string.IsNullOrEmpty(value))
+        {
+            PasswordError = "La contraseña es obligatoria.";
+            return;
+        }
+
+        PasswordError = string.Empty;
+    }
+
     // ── Constructor ───────────────────────────────────────────────────────────
     public LoginViewModel(IAuthService authService, INavigationService nav, ISyncService? sync = null)
     {
@@ -75,15 +114,42 @@ public partial class LoginViewModel : BaseViewModel
         // Evita el doble clic: si ya está cargando, ignoramos la llamada.
         if (IsBusy) return;
 
-        // Limpiamos el error del intento anterior.
+        _haIntentadoLogin = true;
+
+        // Limpiamos el error global del intento anterior.
         MensajeError = string.Empty;
 
-        // Validación local: no molestamos al servidor con campos vacíos.
-        if (string.IsNullOrWhiteSpace(Usuario) || string.IsNullOrWhiteSpace(Password))
+        bool hayError = false;
+
+        // Validación 1: usuario
+        if (string.IsNullOrWhiteSpace(Usuario))
         {
-            MensajeError = "Ingresa tu usuario y contraseña.";
-            return;
+            UsuarioError = "El usuario es obligatorio.";
+            hayError = true;
         }
+        else if (!Validaciones.EsUsuarioCaracteresValidos(Usuario, permiteArroba: true))
+        {
+            UsuarioError = "Sin espacios. Solo letras, números, punto, guion o correo.";
+            hayError = true;
+        }
+        else
+        {
+            UsuarioError = string.Empty;
+        }
+
+        // Validación 2: contraseña
+        if (string.IsNullOrEmpty(Password))
+        {
+            PasswordError = "La contraseña es obligatoria.";
+            hayError = true;
+        }
+        else
+        {
+            PasswordError = string.Empty;
+        }
+
+        if (hayError)
+            return;
 
         try
         {

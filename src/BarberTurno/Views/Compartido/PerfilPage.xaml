@@ -51,12 +51,12 @@
                 <!-- SECCIÓN DE SERVICIOS PARA EL BARBERO -->
                 <VerticalStackLayout Spacing="12" IsVisible="{Binding EsBarbero}">
                     <Label Text="MIS SERVICIOS OFRECIDOS" FontSize="11" CharacterSpacing="1.2" Style="{StaticResource BtGold}" />
-                    
+
                     <!-- Lista de servicios con Checkboxes -->
                     <Border Style="{StaticResource BtCard}" Padding="16">
                         <VerticalStackLayout Spacing="10">
                             <Label Text="Selecciona los servicios que realizas:" FontSize="13" Style="{StaticResource BtMuted}" />
-                            
+
                             <VerticalStackLayout BindableLayout.ItemsSource="{Binding MisServicios}" Spacing="6">
                                 <BindableLayout.ItemTemplate>
                                     <DataTemplate x:DataType="vm:ServicioSeleccionableItem">
@@ -84,13 +84,30 @@
 
                             <VerticalStackLayout Spacing="4">
                                 <Label Text="Nombre del servicio" FontSize="12" FontAttributes="Bold" Style="{StaticResource BtText}" />
-                                <Entry Placeholder="Ej. Corte Ejecutivo + Barba" Text="{Binding NuevoServicioNombre}" />
+                                <Entry Placeholder="Ej. Corte Ejecutivo + Barba" Text="{Binding NuevoServicioNombre}"
+                                       MaxLength="50" Keyboard="Text" />
+                                <Label Text="{Binding NuevoServicioNombreError}" FontSize="11"
+                                       TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding NuevoServicioNombreError}" Value="">
+                                            <Setter Property="IsVisible" Value="False" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
                             </VerticalStackLayout>
 
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                 <VerticalStackLayout Spacing="4">
                                     <Label Text="Precio (RD$)" FontSize="12" FontAttributes="Bold" Style="{StaticResource BtText}" />
-                                    <Entry Placeholder="Ej. 600" Text="{Binding NuevoServicioPrecio}" Keyboard="Numeric" />
+                                    <Entry Placeholder="Ej. 600" Text="{Binding NuevoServicioPrecio}" Keyboard="Numeric" MaxLength="10" />
+                                    <Label Text="{Binding NuevoServicioPrecioError}" FontSize="11"
+                                           TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding NuevoServicioPrecioError}" Value="">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Column="1" Spacing="4">
