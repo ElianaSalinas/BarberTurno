@@ -7,7 +7,7 @@
     - Presenta la información completa de la reserva seleccionada desde la agenda.
     - Muestra los datos del cliente (nombre, avatar con iniciales y teléfono).
     - Muestra el estado actual de la cita con su color dinámico oficial (EstadoCitaToColor).
-    - Proporciona botones de acción para marcar la cita como "Atendida" o "Ausente".
+    - Proporciona botones de acción para marcar la cita como "Atendida" o "Ausente"s.
     - Permite acceder al historial de visitas del cliente.
     - Respeta el diseño moderno urbano con compatibilidad total con tema claro/oscuro.
 -->
