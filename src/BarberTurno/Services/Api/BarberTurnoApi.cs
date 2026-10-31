@@ -5,11 +5,13 @@ using BarberTurno.Dtos;
 
 namespace BarberTurno.Services.Api;
 
+/// <summary>Cliente HTTP que implementa <see cref="IBarberTurnoApi"/> y traduce respuestas REST a <see cref="ApiResult{T}"/>.</summary>
 public class BarberTurnoApi : IBarberTurnoApi
 {
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonOptions;
 
+    /// <summary>Recibe el cliente configurado por DI con la dirección base de la API.</summary>
     public BarberTurnoApi(HttpClient httpClient)
     {
         _httpClient = httpClient;
@@ -19,6 +21,7 @@ public class BarberTurnoApi : IBarberTurnoApi
         };
     }
 
+    /// <summary>Adjunta el JWT a las solicitudes posteriores o lo limpia al cerrar sesión.</summary>
     public void SetAuthToken(string? token)
     {
         if (string.IsNullOrWhiteSpace(token))
@@ -31,12 +34,14 @@ public class BarberTurnoApi : IBarberTurnoApi
         }
     }
 
+    /// <summary>Envía las credenciales al endpoint de inicio de sesión.</summary>
     public async Task<ApiResult<LoginResponseDto>> LoginAsync(LoginRequestDto request)
     {
         return await EnviarPeticionAsync<LoginResponseDto>(() =>
             _httpClient.PostAsJsonAsync("auth/login", request, _jsonOptions));
     }
 
+    /// <summary>Registra un usuario mediante la API y devuelve su sesión.</summary>
     public async Task<ApiResult<LoginResponseDto>> RegistrarAsync(RegistroRequestDto request)
     {
         return await EnviarPeticionAsync<LoginResponseDto>(() =>
@@ -105,10 +110,12 @@ public class BarberTurnoApi : IBarberTurnoApi
             _httpClient.PostAsJsonAsync("servicios", request, _jsonOptions));
     }
 
+    /// <summary>Ejecuta una solicitud, deserializa su respuesta y normaliza errores de red y HTTP.</summary>
     private async Task<ApiResult<T>> EnviarPeticionAsync<T>(Func<Task<HttpResponseMessage>> accionHttp)
     {
         try
         {
+            // Todas las operaciones públicas pasan por aquí para devolver un resultado uniforme.
             using var response = await accionHttp();
             int statusCode = (int)response.StatusCode;
 

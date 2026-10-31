@@ -41,6 +41,8 @@
                       ContentTemplate="{DataTemplate views:AgendaDiaPage}" />
         <ShellContent Title="Calendario" Icon="tab_calendar.svg" Route="calendario"
                       ContentTemplate="{DataTemplate views:CalendarioPage}" />
+        <ShellContent Title="Servicios" Icon="tab_scissors.svg" Route="misservicios"
+                      ContentTemplate="{DataTemplate views:MisServiciosPage}" />
         <ShellContent Title="Clientes" Icon="tab_user.svg" Route="clientes"
                       ContentTemplate="{DataTemplate views:HistorialClientePage}" />
         <ShellContent Title="Perfil" Icon="tab_user.svg" Route="perfilbarbero"

@@ -1,9 +1,13 @@
-﻿using System.Collections.ObjectModel;
+// Responsable: M09
+// Datos del usuario, cambio de tema (claro/oscuro), gestión de perfil de barbero y cerrar sesión.
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Media;
+using Microsoft.Maui.Storage;
 using BarberTurno.Data.Repositories;
 using BarberTurno.Dtos;
 using BarberTurno.Helpers;
@@ -16,6 +20,7 @@ using BarberTurno.Services.Sync;
 
 namespace BarberTurno.ViewModels;
 
+/// <summary>Servicio seleccionable al configurar los servicios ofrecidos por un barbero.</summary>
 public partial class ServicioSeleccionableItem : ObservableObject
 {
     public int Id { get; set; }
@@ -26,9 +31,10 @@ public partial class ServicioSeleccionableItem : ObservableObject
     [ObservableProperty]
     private bool asignado;
 
-    public string Detalle => $"${Precio:F0} · {DuracionMin} min";
+    public string Detalle => $"{FormatoCliente.Precio(Precio)} · {DuracionMin} min";
 }
 
+/// <summary>Gestiona el perfil y, para barberos, la foto y los servicios publicados en la API.</summary>
 public partial class PerfilViewModel : BaseViewModel
 {
     public const string PrefTemaOscuro = "tema_oscuro";
@@ -40,8 +46,10 @@ public partial class PerfilViewModel : BaseViewModel
     private readonly IBarberoRepository _barberos;
     private readonly IServicioRepository _servicios;
     private readonly ISyncService _sync;
+    private readonly IClienteRepository? _clientes;
 
     private bool _cargandoTema;
+    private bool _paginaVisible;
     private int _barberoId;
 
     public ObservableCollection<ServicioSeleccionableItem> MisServicios { get; } = new();
@@ -53,7 +61,8 @@ public partial class PerfilViewModel : BaseViewModel
         IBarberTurnoApi api,
         IBarberoRepository barberos,
         IServicioRepository servicios,
-        ISyncService sync)
+        ISyncService sync,
+        IClienteRepository? clientes = null)
     {
         _auth = auth;
         _navigation = navigation;
@@ -62,6 +71,7 @@ public partial class PerfilViewModel : BaseViewModel
         _barberos = barberos;
         _servicios = servicios;
         _sync = sync;
+        _clientes = clientes;
     }
 
     [ObservableProperty]
@@ -83,6 +93,9 @@ public partial class PerfilViewModel : BaseViewModel
     private bool temaOscuro;
 
     [ObservableProperty]
+    private string? nuevoServicioFoto;
+
+    [ObservableProperty]
     private string nuevoServicioNombre = "";
 
     [ObservableProperty]
@@ -91,14 +104,12 @@ public partial class PerfilViewModel : BaseViewModel
     [ObservableProperty]
     private string nuevoServicioDuracion = "30";
 
+    // ── Validación por campo (M5) ─────────────────────────────────────────────
     [ObservableProperty]
     private string nuevoServicioNombreError = "";
 
     [ObservableProperty]
     private string nuevoServicioPrecioError = "";
-
-    [ObservableProperty]
-    private string nuevoServicioDuracionError = "";
 
     private bool _haIntentadoCrearServicio;
 
@@ -152,73 +163,105 @@ public partial class PerfilViewModel : BaseViewModel
         NuevoServicioPrecioError = "";
     }
 
-    partial void OnNuevoServicioDuracionChanged(string value)
+    // ── Duración con selector (develop) ───────────────────────────────────────
+    public List<int> DuracionesDisponibles { get; } = new() { 15, 20, 30, 45, 60, 90, 120 };
+
+    [ObservableProperty]
+    private int duracionSeleccionada = 30;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TieneErrorServicio))]
+    private string? mensajeErrorServicio;
+
+    public bool TieneErrorServicio => !string.IsNullOrEmpty(MensajeErrorServicio);
+
+    /// <summary>La página avisa al aparecer: marca visible y delega la carga.</summary>
+    public override void OnAppearing()
     {
-        if (!Validaciones.EsEnteroCaracteresValidos(value))
-        {
-            NuevoServicioDuracionError = "Solo se permiten números enteros.";
-            return;
-        }
-
-        if (_haIntentadoCrearServicio)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                NuevoServicioDuracionError = "La duración es obligatoria.";
-                return;
-            }
-            if (!Validaciones.EsDuracionValida(value, out _))
-            {
-                NuevoServicioDuracionError = "Ingresa una duración válida entre 5 y 480 minutos.";
-                return;
-            }
-        }
-
-        NuevoServicioDuracionError = "";
+        base.OnAppearing();
+        _paginaVisible = true;
+        _ = CargarAsync();
     }
 
-    public override void OnAppearing() => _ = CargarAsync();
+    /// <summary>La página avisa al desaparecer: marca invisible para ignorar reciclaje de controles en Android.</summary>
+    public override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _paginaVisible = false;
+    }
 
     [RelayCommand]
     private async Task CargarAsync()
     {
-        var sesion = _auth.SesionActual;
-        if (sesion is null)
+        try
         {
-            MensajeError = "No hay una sesión activa. Inicia sesión de nuevo.";
+            var sesion = _auth.SesionActual;
+            if (sesion is null)
+            {
+                MensajeError = "No hay una sesión activa. Inicia sesión de nuevo.";
+                State = ViewState.Error;
+                return;
+            }
+
+            Nombre = sesion.Nombre;
+            EsBarbero = sesion.Rol == RolUsuario.Barbero;
+            RolTexto = EsBarbero ? "Barbero" : "Cliente";
+            Inicial = string.IsNullOrWhiteSpace(sesion.Nombre) ? "?" : sesion.Nombre.Trim()[..1].ToUpperInvariant();
+
+            _cargandoTema = true;
+            try
+            {
+                var app = Application.Current;
+                var tema = app?.UserAppTheme ?? AppTheme.Unspecified;
+                if (tema == AppTheme.Unspecified)
+                    tema = app?.RequestedTheme ?? AppTheme.Unspecified;
+                TemaOscuro = tema == AppTheme.Dark;
+            }
+            finally
+            {
+                _cargandoTema = false;
+            }
+
+            if (EsBarbero)
+            {
+                await CargarDatosBarberoAsync(sesion.BarberoId);
+            }
+            else
+            {
+                // Cargar foto del cliente persistida localmente
+                var fotoGuardada = Preferences.Default.Get<string?>($"foto_perfil_{sesion.UsuarioId}", null);
+                if (string.IsNullOrEmpty(fotoGuardada) && sesion.UsuarioId > 0 && _clientes is not null)
+                {
+                    var cliente = await _clientes.GetByIdAsync(sesion.UsuarioId);
+                    fotoGuardada = cliente?.FotoRuta;
+                }
+                FotoUrl = fotoGuardada;
+            }
+
+            MensajeError = null;
+            State = ViewState.ConDatos;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[PerfilViewModel] Error general al cargar perfil: {ex}");
+            MensajeError = "Ocurrió un error al cargar el perfil.";
             State = ViewState.Error;
-            return;
         }
-
-        Nombre = sesion.Nombre;
-        EsBarbero = sesion.Rol == RolUsuario.Barbero;
-        RolTexto = EsBarbero ? "Barbero" : "Cliente";
-        Inicial = string.IsNullOrWhiteSpace(sesion.Nombre) ? "?" : sesion.Nombre.Trim()[..1].ToUpperInvariant();
-
-        _cargandoTema = true;
-        var app = Application.Current;
-        var tema = app?.UserAppTheme ?? AppTheme.Unspecified;
-        if (tema == AppTheme.Unspecified)
-            tema = app?.RequestedTheme ?? AppTheme.Unspecified;
-        TemaOscuro = tema == AppTheme.Dark;
-        _cargandoTema = false;
-
-        if (EsBarbero)
-        {
-            await CargarDatosBarberoAsync(sesion.UsuarioId);
-        }
-
-        MensajeError = null;
-        State = ViewState.ConDatos;
     }
 
-    private async Task CargarDatosBarberoAsync(int usuarioId)
+    private async Task CargarDatosBarberoAsync(int? barberoId)
     {
         try
         {
-            var todosBarberos = await _barberos.GetAllAsync();
-            var barbero = todosBarberos.FirstOrDefault(b => b.Nombre.Equals(Nombre, StringComparison.OrdinalIgnoreCase))
-                ?? todosBarberos.FirstOrDefault(b => b.Nombre.Equals(Nombre, StringComparison.OrdinalIgnoreCase));
+            // El barbero se identifica por BarberoId de la sesión (no por nombre).
+            if (barberoId is not > 0)
+            {
+                _barberoId = 0;
+                Debug.WriteLine("[PerfilViewModel] La sesión no tiene BarberoId.");
+                return;
+            }
+
+            var barbero = await _barberos.GetByIdAsync(barberoId.Value);
 
             if (barbero != null)
             {
@@ -229,17 +272,31 @@ public partial class PerfilViewModel : BaseViewModel
                 var serviciosDelBarbero = await _servicios.GetByBarberoAsync(barbero.Id);
                 var idsAsignados = serviciosDelBarbero.Select(s => s.Id).ToHashSet();
 
-                MisServicios.Clear();
-                foreach (var serv in todosServicios)
+                var itemsNuevos = todosServicios.Select(serv => new ServicioSeleccionableItem
                 {
-                    MisServicios.Add(new ServicioSeleccionableItem
+                    Id = serv.Id,
+                    Nombre = serv.Nombre,
+                    Precio = serv.Precio,
+                    DuracionMin = serv.DuracionMin,
+                    Asignado = idsAsignados.Contains(serv.Id)
+                }).ToList();
+
+                void ActualizarUI()
+                {
+                    MisServicios.Clear();
+                    foreach (var item in itemsNuevos)
                     {
-                        Id = serv.Id,
-                        Nombre = serv.Nombre,
-                        Precio = serv.Precio,
-                        DuracionMin = serv.DuracionMin,
-                        Asignado = idsAsignados.Contains(serv.Id)
-                    });
+                        MisServicios.Add(item);
+                    }
+                }
+
+                if (MainThread.IsMainThread)
+                {
+                    ActualizarUI();
+                }
+                else
+                {
+                    MainThread.BeginInvokeOnMainThread(ActualizarUI);
                 }
             }
         }
@@ -249,32 +306,25 @@ public partial class PerfilViewModel : BaseViewModel
         }
     }
 
+    /// <summary>
+    /// Seleccionar foto desde la galería.
+    /// </summary>
     [RelayCommand]
     private async Task CambiarFotoAsync()
     {
         try
         {
-            var results = await MediaPicker.Default.PickPhotosAsync(new MediaPickerOptions
+            var (foto, denegado) = await FotoHelper.ElegirAsync(480);
+            if (denegado)
             {
-                Title = "Selecciona una foto de perfil"
-            });
+                await _dialogs.ShowAlertAsync("Permiso necesario",
+                    "Para cambiar tu foto necesitamos acceso a tus fotos. Puedes activarlo en Ajustes del teléfono.");
+                return;
+            }
 
-            var result = results?.FirstOrDefault();
-            if (result == null) return;
-
-            FotoUrl = result.FullPath;
-
-            if (_barberoId > 0)
+            if (foto is not null)
             {
-                var barbero = await _barberos.GetByIdAsync(_barberoId);
-                if (barbero != null)
-                {
-                    barbero.FotoUrl = FotoUrl;
-                    await _barberos.UpsertAsync(barbero, []);
-                }
-
-                await _api.ActualizarFotoBarberoAsync(_barberoId, FotoUrl);
-                await _dialogs.ShowAlertAsync("Foto actualizada", "Tu foto de perfil se ha guardado correctamente.");
+                await GuardarFotoPerfilAsync(foto);
             }
         }
         catch (Exception ex)
@@ -282,6 +332,68 @@ public partial class PerfilViewModel : BaseViewModel
             Debug.WriteLine(ex);
             await _dialogs.ShowAlertAsync("Error", "No se pudo actualizar la foto.");
         }
+    }
+
+    /// <summary>
+    /// Tomar foto directamente con la cámara.
+    /// </summary>
+    [RelayCommand]
+    private async Task TomarFotoAsync()
+    {
+        try
+        {
+            var (foto, denegado) = await FotoHelper.TomarAsync(480);
+            if (denegado)
+            {
+                await _dialogs.ShowAlertAsync("Permiso necesario",
+                    "Para tomar una foto necesitamos acceso a la cámara. Puedes activarlo en Ajustes del teléfono.");
+                return;
+            }
+
+            if (foto is not null)
+            {
+                await GuardarFotoPerfilAsync(foto);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await _dialogs.ShowAlertAsync("Error", "No se pudo tomar la foto con la cámara.");
+        }
+    }
+
+    private async Task GuardarFotoPerfilAsync(string nuevaFoto)
+    {
+        FotoUrl = nuevaFoto;
+
+        var sesion = _auth.SesionActual;
+        if (sesion != null)
+        {
+            Preferences.Default.Set($"foto_perfil_{sesion.UsuarioId}", nuevaFoto);
+        }
+
+        if (_barberoId > 0)
+        {
+            var barbero = await _barberos.GetByIdAsync(_barberoId);
+            if (barbero != null)
+            {
+                barbero.FotoUrl = FotoUrl;
+                await _barberos.UpsertAsync(barbero, []);
+            }
+
+            await _api.ActualizarFotoBarberoAsync(_barberoId, FotoUrl);
+        }
+        else if (sesion != null && sesion.UsuarioId > 0 && _clientes is not null)
+        {
+            var cliente = await _clientes.GetByIdAsync(sesion.UsuarioId);
+            if (cliente != null)
+            {
+                cliente.FotoRuta = FotoUrl;
+                await _clientes.UpsertAsync(cliente);
+            }
+        }
+
+        await _dialogs.ShowAlertAsync("Foto actualizada", "Tu foto de perfil se ha guardado correctamente.");
     }
 
     [RelayCommand]
@@ -309,11 +421,35 @@ public partial class PerfilViewModel : BaseViewModel
     }
 
     [RelayCommand]
+    private async Task ElegirFotoServicioAsync()
+    {
+        try
+        {
+            var (foto, denegado) = await FotoHelper.ElegirAsync(800);
+            if (denegado)
+            {
+                await _dialogs.ShowAlertAsync("Permiso necesario",
+                    "Necesitamos acceso a tus fotos. Puedes activarlo en Ajustes del teléfono.");
+                return;
+            }
+            if (foto is not null)
+                NuevoServicioFoto = foto;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await _dialogs.ShowAlertAsync("Error", "No se pudo cargar la foto.");
+        }
+    }
+
+    [RelayCommand]
     private async Task CrearNuevoServicioAsync()
     {
         _haIntentadoCrearServicio = true;
+        MensajeErrorServicio = null;
         bool hayError = false;
 
+        // Nombre
         if (string.IsNullOrWhiteSpace(NuevoServicioNombre))
         {
             NuevoServicioNombreError = "El nombre del servicio es obligatorio.";
@@ -334,6 +470,7 @@ public partial class PerfilViewModel : BaseViewModel
             NuevoServicioNombreError = "";
         }
 
+        // Precio
         decimal precio = 0;
         if (string.IsNullOrWhiteSpace(NuevoServicioPrecio))
         {
@@ -355,29 +492,11 @@ public partial class PerfilViewModel : BaseViewModel
             NuevoServicioPrecioError = "";
         }
 
-        int duracion = 0;
-        if (string.IsNullOrWhiteSpace(NuevoServicioDuracion))
-        {
-            NuevoServicioDuracionError = "La duración es obligatoria.";
-            hayError = true;
-        }
-        else if (!Validaciones.EsEnteroCaracteresValidos(NuevoServicioDuracion))
-        {
-            NuevoServicioDuracionError = "Solo se permiten números enteros.";
-            hayError = true;
-        }
-        else if (!Validaciones.EsDuracionValida(NuevoServicioDuracion, out duracion))
-        {
-            NuevoServicioDuracionError = "Ingresa una duración válida entre 5 y 480 minutos.";
-            hayError = true;
-        }
-        else
-        {
-            NuevoServicioDuracionError = "";
-        }
-
         if (hayError)
             return;
+
+        // Duración: viene de un selector, siempre es válida
+        int duracion = DuracionSeleccionada > 0 ? DuracionSeleccionada : 30;
 
         try
         {
@@ -385,7 +504,8 @@ public partial class PerfilViewModel : BaseViewModel
             {
                 Nombre = NuevoServicioNombre.Trim(),
                 Precio = precio,
-                DuracionMin = duracion
+                DuracionMin = duracion,
+                FotoUrl = NuevoServicioFoto
             });
 
             if (res.Exito && res.Datos != null)
@@ -401,41 +521,100 @@ public partial class PerfilViewModel : BaseViewModel
                 }
 
                 NuevoServicioNombre = "";
+                NuevoServicioFoto = null;
                 NuevoServicioPrecio = "";
-                NuevoServicioDuracion = "30";
+                DuracionSeleccionada = 30;
                 NuevoServicioNombreError = "";
                 NuevoServicioPrecioError = "";
-                NuevoServicioDuracionError = "";
+                MensajeErrorServicio = null;
                 _haIntentadoCrearServicio = false;
 
                 var sesion = _auth.SesionActual;
                 if (sesion != null)
-                    await CargarDatosBarberoAsync(sesion.UsuarioId);
+                    await CargarDatosBarberoAsync(sesion.BarberoId);
 
                 await _dialogs.ShowAlertAsync("Servicio creado", "El nuevo servicio ha sido registrado y asignado a tu perfil.");
             }
             else
             {
-                await _dialogs.ShowAlertAsync("Error", "No se pudo registrar el nuevo servicio en el servidor.");
+                MensajeErrorServicio = "No se pudo registrar el nuevo servicio en el servidor.";
             }
         }
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
-            await _dialogs.ShowAlertAsync("Error", "Ocurrió un problema al crear el servicio.");
+            MensajeErrorServicio = "Ocurrió un problema al crear el servicio.";
         }
     }
 
+    /// <summary>
+    /// Valida y analiza de manera robusta precios ingresados por el usuario.
+    /// Soporta formatos con separador de miles y decimales ("1,500", "1.500", "1,500.50", "1.500,50", "500").
+    /// </summary>
+    public static bool TryParsePrecio(string? raw, out decimal precio)
+    {
+        precio = 0m;
+        if (string.IsNullOrWhiteSpace(raw)) return false;
+
+        var texto = raw.Trim();
+
+        // 1. Si contiene tanto punto como coma: el último separador es el decimal y el anterior es miles
+        if (texto.Contains('.') && texto.Contains(','))
+        {
+            int idxPunto = texto.LastIndexOf('.');
+            int idxComa = texto.LastIndexOf(',');
+            if (idxPunto > idxComa)
+            {
+                texto = texto.Replace(",", "");
+            }
+            else
+            {
+                texto = texto.Replace(".", "").Replace(',', '.');
+            }
+        }
+        // 2. Si solo contiene un separador (',' o '.') seguido de exactamente 3 dígitos al final (ej. 1,500 o 1.500), es separador de miles
+        else if (System.Text.RegularExpressions.Regex.IsMatch(texto, @"^\d{1,3}[,\.]\d{3}$"))
+        {
+            texto = texto.Replace(",", "").Replace(".", "");
+        }
+        else
+        {
+            texto = texto.Replace(',', '.');
+        }
+
+        return decimal.TryParse(texto, NumberStyles.Any, CultureInfo.InvariantCulture, out precio) && precio > 0;
+    }
+
+    /// <summary>
+    /// Maneja el cambio de estado del Switch. La bandera _paginaVisible asegura que solo se procesen
+    /// cambios manuales realizados por el usuario mientras la página está activa en pantalla.
+    /// </summary>
     partial void OnTemaOscuroChanged(bool value)
     {
-        if (_cargandoTema) return;
+        if (_cargandoTema || !_paginaVisible)
+            return;
 
         try
         {
-            if (Application.Current is { } app)
-                app.UserAppTheme = value ? AppTheme.Dark : AppTheme.Light;
+            var app = Application.Current;
+            if (app is null)
+                return;
+
+            var temaActual = app.UserAppTheme == AppTheme.Unspecified
+                ? (app.RequestedTheme == AppTheme.Dark)
+                : (app.UserAppTheme == AppTheme.Dark);
+
+            // Si el tema actual ya coincide, evitar reestilizar la app y bloquear la navegación
+            if (temaActual == value)
+                return;
 
             Preferences.Default.Set(PrefTemaOscuro, value);
+
+            // Despachar a la cola del hilo principal para no interrumpir el evento del switch ni la transición de Shell
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                app.UserAppTheme = value ? AppTheme.Dark : AppTheme.Light;
+            });
         }
         catch (Exception ex)
         {

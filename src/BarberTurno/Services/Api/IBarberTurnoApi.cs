@@ -2,8 +2,10 @@ using BarberTurno.Dtos;
 
 namespace BarberTurno.Services.Api;
 
+/// <summary>Define las llamadas REST que conectan la aplicación móvil con la API de BarberTurno.</summary>
 public interface IBarberTurnoApi
 {
+    /// <summary>Configura o elimina el token JWT que acompaña las solicitudes autenticadas.</summary>
     void SetAuthToken(string? token);
     Task<ApiResult<LoginResponseDto>> LoginAsync(LoginRequestDto request);
     Task<ApiResult<LoginResponseDto>> RegistrarAsync(RegistroRequestDto request);

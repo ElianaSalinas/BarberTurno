@@ -1,10 +1,12 @@
 namespace BarberTurno.Views;
 
 // Continúa el splash nativo (mismo fondo #1B1B17 y mismo icono) para que no haya salto visual.
+/// <summary>Muestra la animación inicial y continúa hacia AppShell al finalizar.</summary>
 public partial class AnimatedSplashPage : ContentPage
 {
     private readonly Action _alTerminar;
 
+    /// <summary>Recibe la acción que instala la pantalla principal después del splash.</summary>
     public AnimatedSplashPage(Action alTerminar)
     {
         InitializeComponent();
@@ -12,6 +14,7 @@ public partial class AnimatedSplashPage : ContentPage
         Loaded += async (_, _) => await RunAsync();
     }
 
+    /// <summary>Ejecuta la animación visual sin bloquear el arranque de la aplicación.</summary>
     private async Task RunAsync()
     {
         try

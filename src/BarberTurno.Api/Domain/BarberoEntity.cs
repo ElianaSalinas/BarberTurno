@@ -1,5 +1,6 @@
 namespace BarberTurno.Api.Domain;
 
+/// <summary>Entidad persistida del perfil profesional asociado opcionalmente a un usuario.</summary>
 public class BarberoEntity
 {
     public int Id { get; set; }

@@ -21,6 +21,7 @@ public enum ResultadoReservaTipo
 /// Encapsula el resultado de BookingService.ReservarAsync().
 /// Siempre incluye un Mensaje descriptivo para mostrar en la UI.
 /// </summary>
+/// <summary>Comunica a la interfaz si una reserva fue confirmada, quedó pendiente o falló.</summary>
 public class ResultadoReserva
 {
     /// <summary>Clasificación del resultado.</summary>

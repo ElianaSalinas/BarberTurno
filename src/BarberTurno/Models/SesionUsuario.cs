@@ -6,10 +6,14 @@ namespace BarberTurno.Models;
 /// Representa la sesión del usuario que está autenticado en este momento.
 /// Se crea desde LoginResponseDto en DtoMapper y se mantiene en memoria durante la sesión.
 /// </summary>
+/// <summary>Contiene los datos mínimos del usuario autenticado que consumen las vistas.</summary>
 public class SesionUsuario
 {
     /// <summary>Id del Cliente o del Barbero según el rol activo.</summary>
     public int UsuarioId { get; set; }
+
+    /// <summary>Id del Barbero asociado al usuario cuando Rol == Barbero; null si es Cliente o no existe.</summary>
+    public int? BarberoId { get; set; }
 
     /// <summary>Nombre para mostrar en la UI.</summary>
     public string Nombre { get; set; } = "";

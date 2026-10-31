@@ -5,6 +5,7 @@ namespace BarberTurno.Models;
 /// <summary>
 /// Representa un bloque horario libre disponible para reservar (en memoria, no va a SQLite).
 /// </summary>
+/// <summary>Representa un intervalo horario que puede mostrarse para reservar.</summary>
 public class SlotDisponible
 {
     public DateTime Inicio { get; set; }

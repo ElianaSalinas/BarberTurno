@@ -5,6 +5,7 @@ using BarberTurno.Models;
 // La conexión la entrega IAppDatabase (M03), ya inicializada: tablas, índices y migraciones listos.
 namespace BarberTurno.Data.Repositories;
 
+/// <summary>Administra los barberos y sus relaciones con servicios dentro de SQLite.</summary>
 public sealed class BarberoRepository : IBarberoRepository
 {
     private readonly IAppDatabase _db;
@@ -51,6 +52,7 @@ public sealed class BarberoRepository : IBarberoRepository
     }
 
 
+    /// <summary>Reemplaza el catálogo local de barberos y servicios durante una sincronización completa.</summary>
     public async Task ReplaceAllAsync(IEnumerable<Barbero> barberos, IEnumerable<BarberoServicio> relaciones)
     {
         // Si el servidor repite un Id, se queda la última versión (evita violar la clave primaria).

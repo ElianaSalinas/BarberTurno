@@ -8,6 +8,7 @@ namespace BarberTurno.Models;
 /// Representa a un cliente registrado. La tabla se crea en M03 (AppDatabase).
 /// </summary>
 [Table("clientes")]
+/// <summary>Representa el cliente asociado a una sesión o a una cita.</summary>
 public class Cliente
 {
     /// <summary>

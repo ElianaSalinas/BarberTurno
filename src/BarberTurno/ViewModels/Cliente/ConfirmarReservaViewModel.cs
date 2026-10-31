@@ -14,6 +14,7 @@ using CommunityToolkit.Mvvm.Input;
 // y traduce el ResultadoReserva a mensajes claros. La decisión final siempre es del servidor (409 = hora ocupada).
 namespace BarberTurno.ViewModels;
 
+/// <summary>Valida y envía la reserva final mediante el servicio de reservas.</summary>
 public partial class ConfirmarReservaViewModel : BaseViewModel, IQueryAttributable
 {
     private readonly IBookingService _reservas;
@@ -64,6 +65,7 @@ public partial class ConfirmarReservaViewModel : BaseViewModel, IQueryAttributab
     /// <summary>Aviso visible si se va a reservar sin conexión (la cita quedará Pendiente).</summary>
     public bool SinConexion => !_red.HayConexion;
 
+    /// <summary>Recibe los datos de la reserva seleccionados en las pantallas anteriores.</summary>
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.TryGetValue(ParametrosNavegacion.Barbero, out var b) && b is Barbero barberoRecibido)
@@ -76,6 +78,7 @@ public partial class ConfirmarReservaViewModel : BaseViewModel, IQueryAttributab
             _origen = origen;
     }
 
+    /// <summary>Comprueba que la navegación entregó todos los datos necesarios para reservar.</summary>
     public Task AlAparecerAsync()
     {
         MensajeError = null;
@@ -98,6 +101,7 @@ public partial class ConfirmarReservaViewModel : BaseViewModel, IQueryAttributab
     private Task VolverAsync() => _navegacion.GoBackAsync();
 
     [RelayCommand]
+    // Revalida la franja y delega la creación al servicio, cuya API tiene la decisión final.
     private async Task ConfirmarAsync()
     {
         if (IsBusy)

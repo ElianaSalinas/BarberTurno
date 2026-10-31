@@ -3,8 +3,10 @@ using BarberTurno.Api.Domain;
 
 namespace BarberTurno.Api.Data;
 
+/// <summary>Contexto EF Core que conecta las entidades de la API con su base de datos.</summary>
 public class ApiDbContext : DbContext
 {
+    /// <summary>Configura el contexto con las opciones registradas en Program.</summary>
     public ApiDbContext(DbContextOptions<ApiDbContext> options) : base(options)
     {
     }
@@ -16,6 +18,7 @@ public class ApiDbContext : DbContext
     public DbSet<CitaEntity> Citas => Set<CitaEntity>();
     public DbSet<CitaBloqueEntity> CitaBloques => Set<CitaBloqueEntity>();
 
+    /// <summary>Define relaciones, índices de concurrencia y datos iniciales del dominio.</summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -50,7 +53,8 @@ public class ApiDbContext : DbContext
 
         // Semilla de datos (Seed Data)
         // Hash de BCrypt para "123456"
-        string passwordHash = BCrypt.Net.BCrypt.HashPassword("123456");
+        // Hash fijo de BCrypt para "123456" que coincide exactamente con el sembrado en Supabase
+        const string passwordHash = "$2a$11$z9N8IviCtl4FShxUiMhUyedH2UXHd30R66OlqflT5lO1748MXpEWi";
 
         modelBuilder.Entity<UsuarioEntity>().HasData(
             new UsuarioEntity

@@ -5,15 +5,18 @@ using BarberTurno.Api.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace BarberTurno.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+/// <summary>Gestiona consultas, creación y cancelación de las reservas autenticadas.</summary>
 public class CitasController : ControllerBase
 {
     private readonly ApiDbContext _context;
 
+    /// <summary>Recibe el contexto EF Core que coordina citas y bloques de agenda.</summary>
     public CitasController(ApiDbContext context)
     {
         _context = context;
@@ -21,6 +24,7 @@ public class CitasController : ControllerBase
 
     [HttpGet]
     [Authorize]
+    /// <summary>Devuelve las citas del cliente actual o las del barbero autenticado.</summary>
     public async Task<ActionResult<List<CitaDto>>> GetMisCitas()
     {
         var rol = User.FindFirstValue(ClaimTypes.Role) ?? "";
@@ -31,6 +35,7 @@ public class CitasController : ControllerBase
             return Unauthorized();
         }
 
+        // El rol del JWT define qué subconjunto de la agenda puede consultar el usuario.
         IQueryable<CitaEntity> query = _context.Citas;
 
         if (rol.Equals("Barbero", StringComparison.OrdinalIgnoreCase))
@@ -70,6 +75,7 @@ public class CitasController : ControllerBase
 
     [HttpPost]
     [Authorize]
+    /// <summary>Crea una reserva idempotente y bloquea su horario frente a concurrencia.</summary>
     public async Task<ActionResult<CitaDto>> CrearCita([FromBody] CrearCitaRequestDto request)
     {
         if (request == null || request.Id == Guid.Empty || request.BarberoId <= 0 || request.ServicioId <= 0)
@@ -138,6 +144,20 @@ public class CitasController : ControllerBase
             };
 
             _context.Citas.Add(nuevaCita);
+
+            // Garantía final contra la carrera: cada cita reserva sus bloques de 5 min en CitaBloques, que tiene
+            // un índice ÚNICO (BarberoId, BloqueInicioUtc). Si otra petición simultánea ya tomó algún bloque,
+            // la base de datos rechaza esta inserción aunque la comprobación de arriba haya pasado (ADR-0008).
+            foreach (var bloque in BloquesDe(nuevaCita.InicioUtc, nuevaCita.FinUtc))
+            {
+                _context.CitaBloques.Add(new CitaBloqueEntity
+                {
+                    BarberoId = nuevaCita.BarberoId,
+                    BloqueInicioUtc = bloque,
+                    CitaId = nuevaCita.Id
+                });
+            }
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -154,6 +174,12 @@ public class CitasController : ControllerBase
 
             return StatusCode(StatusCodes.Status201Created, dto);
         }
+        catch (DbUpdateException ex) when (EsViolacionUnica(ex))
+        {
+            // Otra reserva tomó la hora en el mismo instante: se informa igual que un solape normal.
+            await transaction.RollbackAsync();
+            return StatusCode(StatusCodes.Status409Conflict, new { mensaje = "La hora seleccionada ya se encuentra ocupada por otra reserva." });
+        }
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
@@ -163,6 +189,7 @@ public class CitasController : ControllerBase
 
     [HttpPost("{id}/cancelar")]
     [Authorize]
+    /// <summary>Cancela una cita y libera los bloques que ocupaba en la agenda.</summary>
     public async Task<ActionResult<CitaDto>> CancelarCita(Guid id)
     {
         var cita = await _context.Citas.FindAsync(id);
@@ -172,6 +199,11 @@ public class CitasController : ControllerBase
         }
 
         cita.Estado = "Cancelada";
+
+        // La hora vuelve a quedar libre: se liberan los bloques que la cita tenía reservados.
+        var bloques = await _context.CitaBloques.Where(b => b.CitaId == id).ToListAsync();
+        _context.CitaBloques.RemoveRange(bloques);
+
         await _context.SaveChangesAsync();
 
         return Ok(new CitaDto
@@ -186,4 +218,28 @@ public class CitasController : ControllerBase
             MotivoRechazo = cita.MotivoRechazo
         });
     }
+
+    /// <summary>Tamaño del bloque de reserva. Todas las duraciones del catálogo son múltiplos de 5 minutos.</summary>
+    private const int MinutosPorBloque = 5;
+
+    /// <summary>
+    /// Bloques de 5 min que ocupa [inicio, fin). El primero se redondea hacia abajo: así dos citas que se
+    /// solapen en cualquier instante comparten al menos un bloque (puede haber algún falso conflicto de
+    /// pocos minutos si una hora no está alineada, nunca un solape sin detectar).
+    /// </summary>
+    internal static IEnumerable<DateTime> BloquesDe(DateTime inicioUtc, DateTime finUtc)
+    {
+        var ticksBloque = TimeSpan.FromMinutes(MinutosPorBloque).Ticks;
+        var actual = new DateTime(inicioUtc.Ticks - inicioUtc.Ticks % ticksBloque, inicioUtc.Kind);
+        while (actual < finUtc)
+        {
+            yield return actual;
+            actual = actual.AddMinutes(MinutosPorBloque);
+        }
+    }
+
+    /// <summary>Identifica conflictos de índices únicos de PostgreSQL o SQLite.</summary>
+    private static bool EsViolacionUnica(DbUpdateException ex)
+        => ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation }
+           || (ex.InnerException?.Message.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase) ?? false);
 }

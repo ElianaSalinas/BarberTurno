@@ -1,5 +1,6 @@
 namespace BarberTurno.Api.Domain;
 
+/// <summary>Entidad de autenticación que representa a clientes y barberos.</summary>
 public class UsuarioEntity
 {
     public int Id { get; set; }

@@ -6,8 +6,10 @@ using Microsoft.Maui.Storage;
 // MauiProgram (módulo 1) ya llama a AddDataLayer(); no hace falta tocarlo.
 namespace BarberTurno.Data;
 
+/// <summary>Registra la base SQLite compartida y los repositorios que consumen los servicios.</summary>
 public static class DataServiceRegistration
 {
+    /// <summary>Agrega la configuración local, conexión SQLite y repositorios al contenedor DI.</summary>
     public static IServiceCollection AddDataLayer(this IServiceCollection services)
     {
         // ---------- Módulo 3 · Base de datos ----------
@@ -15,7 +17,7 @@ public static class DataServiceRegistration
         services.AddSingleton(_ => new DatabaseOptions(
             RutaArchivo: Path.Combine(FileSystem.Current.AppDataDirectory, DatabaseOptions.NombreArchivoPorDefecto),
 #if DEBUG
-            SembrarDatosDePrueba: true));
+            SembrarDatosDePrueba: false));
 #else
             SembrarDatosDePrueba: false));
 #endif

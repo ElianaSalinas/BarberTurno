@@ -11,6 +11,7 @@ using BarberTurno.Services.Sync;
 // Servicios del barbero elegido. Recibe barberoId por parámetros de navegación (IQueryAttributable).
 namespace BarberTurno.ViewModels;
 
+/// <summary>Muestra los servicios del barbero recibido y conduce a la selección de hora.</summary>
 public partial class ServiciosViewModel : ClienteViewModelBase, IQueryAttributable
 {
     private readonly IBarberoRepository _barberos;
@@ -40,6 +41,7 @@ public partial class ServiciosViewModel : ClienteViewModelBase, IQueryAttributab
     [ObservableProperty]
     private string subtitulo = "Elige el servicio que quieres reservar";
 
+    /// <summary>Recibe el identificador del barbero enviado por la navegación y carga sus servicios.</summary>
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.TryGetValue(NavParams.BarberoId, out var valor)
@@ -48,7 +50,7 @@ public partial class ServiciosViewModel : ClienteViewModelBase, IQueryAttributab
             _barberoId = barberoId;
             _ = CargarInternoAsync();
         }
-        else
+        else if (_barberoId <= 0)
         {
             MensajeError = "No se indicó qué barbero elegiste. Vuelve atrás e inténtalo de nuevo.";
             State = ViewState.Error;
@@ -64,14 +66,13 @@ public partial class ServiciosViewModel : ClienteViewModelBase, IQueryAttributab
         try
         {
             if (HayConexion)
-            {
                 await _sync.SincronizarCatalogosAsync();
-                await CargarInternoAsync(mostrarCargando: false);
-            }
+
+            await CargarInternoAsync(mostrarCargando: false);
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);   // se conservan los datos locales
+            Debug.WriteLine(ex);
         }
         finally
         {
@@ -80,6 +81,7 @@ public partial class ServiciosViewModel : ClienteViewModelBase, IQueryAttributab
     }
 
     [RelayCommand]
+    // Lee las entidades locales y las pasa a la siguiente pantalla de reserva.
     private async Task SeleccionarAsync(ServicioItem? servicio)
     {
         if (servicio is null)

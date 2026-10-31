@@ -1,5 +1,6 @@
 namespace BarberTurno.Api.Domain;
 
+/// <summary>Entidad de reserva que conecta cliente, barbero, servicio y horario.</summary>
 public class CitaEntity
 {
     public Guid Id { get; set; }

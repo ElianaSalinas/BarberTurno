@@ -1,11 +1,13 @@
 namespace BarberTurno.Api.Domain;
 
+/// <summary>Entidad del catálogo de servicios ofrecidos por la barbería.</summary>
 public class ServicioEntity
 {
     public int Id { get; set; }
     public string Nombre { get; set; } = string.Empty;
     public int DuracionMin { get; set; }
     public decimal Precio { get; set; }
+    public string? FotoUrl { get; set; }
 
     public ICollection<BarberoServicioEntity> BarberoServicios { get; set; } = new List<BarberoServicioEntity>();
 }

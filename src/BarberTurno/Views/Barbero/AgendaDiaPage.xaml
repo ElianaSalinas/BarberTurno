@@ -9,6 +9,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
+             xmlns:controls="clr-namespace:BarberTurno.Controls"
              x:Class="BarberTurno.Views.AgendaDiaPage"
              x:DataType="vm:AgendaDiaViewModel"
              Style="{StaticResource M10Page}"
@@ -62,14 +63,8 @@
                                 HeightRequest="40"
                                 WidthRequest="40">
 
-                            <Label Text="BT"
-                                   FontFamily="OpenSansSemibold"
-                                   FontSize="11"
-                                   TextColor="{AppThemeBinding Light={StaticResource M10LightGold},
-                                                                   Dark={StaticResource M10DarkGold}}"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center"
-                                   HorizontalTextAlignment="Center" />
+                            <Image Source="icon_scissors_gold.svg" WidthRequest="20" HeightRequest="20"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
 
                         <Label Grid.Column="1"
@@ -89,15 +84,16 @@
                                 HeightRequest="44"
                                 WidthRequest="44">
 
-                            <Label Text="•"
-                                   FontSize="20"
-                                   TextColor="{AppThemeBinding Light={StaticResource M10LightText},
-                                                                   Dark={StaticResource M10DarkText}}"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center"
-                                   HorizontalTextAlignment="Center" />
+                            <Image Source="{AppThemeBinding Light=icon_bell.svg, Dark=icon_bell_dark.svg}"
+                                   WidthRequest="20" HeightRequest="20"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnCampanaTapped" />
+                            </Border.GestureRecognizers>
                         </Border>
                     </Grid>
+
+                    <controls:EstadoBanner State="{Binding State}" ErrorText="{Binding MensajeError}" RetryCommand="{Binding ReintentarCommand}" />
 
                     <!-- Saludo del barbero: NombreBarbero vendrá de M06. -->
                     <VerticalStackLayout Spacing="3">
@@ -117,6 +113,71 @@
                         <Label Text="{Binding FechaResumen}"
                                Style="{StaticResource M10Subtitle}" />
                     </VerticalStackLayout>
+
+                    <!-- Barra de navegacion de fecha (Dia anterior, Fecha, Dia siguiente, Boton Hoy) -->
+                    <Border Background="{AppThemeBinding Light={StaticResource M10LightSurface},
+                                                         Dark={StaticResource M10DarkSurface}}"
+                            Stroke="{AppThemeBinding Light={StaticResource M10LightBorder},
+                                                     Dark={StaticResource M10DarkBorder}}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="8,4">
+                        <Grid ColumnDefinitions="44,*,44,Auto"
+                              ColumnSpacing="4"
+                              VerticalOptions="Center">
+
+                            <!-- Boton Dia Anterior (minimo 44x44 para accesibilidad tactil) -->
+                            <Button Text="&#x2039;"
+                                    FontSize="24"
+                                    FontAttributes="Bold"
+                                    TextColor="{AppThemeBinding Light={StaticResource M10LightText},
+                                                                 Dark={StaticResource M10DarkText}}"
+                                    BackgroundColor="Transparent"
+                                    HeightRequest="44"
+                                    WidthRequest="44"
+                                    Padding="0"
+                                    Command="{Binding DiaAnteriorCommand}" />
+
+                            <!-- Texto Fecha Seleccionada -->
+                            <Label Grid.Column="1"
+                                   Text="{Binding FechaResumen}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light={StaticResource M10LightText},
+                                                               Dark={StaticResource M10DarkText}}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   HorizontalTextAlignment="Center" />
+
+                            <!-- Boton Dia Siguiente (minimo 44x44) -->
+                            <Button Grid.Column="2"
+                                    Text="&#x203A;"
+                                    FontSize="24"
+                                    FontAttributes="Bold"
+                                    TextColor="{AppThemeBinding Light={StaticResource M10LightText},
+                                                                 Dark={StaticResource M10DarkText}}"
+                                    BackgroundColor="Transparent"
+                                    HeightRequest="44"
+                                    WidthRequest="44"
+                                    Padding="0"
+                                    Command="{Binding DiaSiguienteCommand}" />
+
+                            <!-- Boton 'Hoy' si la vista esta en un dia diferente a hoy -->
+                            <Button Grid.Column="3"
+                                    Text="Hoy"
+                                    FontSize="12"
+                                    FontFamily="OpenSansSemibold"
+                                    TextColor="{AppThemeBinding Light={StaticResource M10LightGold},
+                                                                 Dark={StaticResource M10DarkGold}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource M10LightDarkCard},
+                                                                       Dark={StaticResource M10DarkDarkCard}}"
+                                    CornerRadius="12"
+                                    HeightRequest="36"
+                                    Padding="10,0"
+                                    Command="{Binding HoyCommand}"
+                                    IsVisible="{Binding PuedeVolverAHoy}" />
+                        </Grid>
+                    </Border>
 
                     <!--
                         Próxima cita.
@@ -187,8 +248,9 @@
                                 <Label Text="{Binding IngresosDelDia}"
                                        Style="{StaticResource M10MetricValue}" />
 
-                                <!-- Meta de negocio: se conectará cuando se defina. -->
+                                <!-- Meta de negocio: oculta si no hay meta real configurada. -->
                                 <Label Text="{Binding MetaIngresos}"
+                                       IsVisible="{Binding TieneMetaIngresos}"
                                        Style="{StaticResource M10Subtitle}" />
                             </VerticalStackLayout>
                         </Border>
@@ -210,7 +272,11 @@
                         <Label Grid.Column="1"
                                Text="Ver calendario"
                                Style="{StaticResource M10TextAction}"
-                               VerticalOptions="End" />
+                               VerticalOptions="End">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnVerCalendarioTapped" />
+                            </Label.GestureRecognizers>
+                        </Label>
                     </Grid>
                     <!--
                     Estado vacío propio de M10.
@@ -254,7 +320,13 @@
                 <DataTemplate x:DataType="vm:CitaAgendaItem">
 
                     <Border Style="{StaticResource M10AgendaRow}"
-                            Margin="24,0,24,10">
+                            Margin="24,0,24,10"
+                            SemanticProperties.Hint="Toca para ver el detalle y el historial del cliente">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AgendaDiaViewModel}}, Path=AbrirCitaCommand}"
+                                CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
 
                         <!--
                             Estructura:

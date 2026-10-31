@@ -7,24 +7,26 @@
              x:Class="BarberTurno.Views.HistorialClientePage"
              x:DataType="vm:HistorialClienteViewModel"
              Style="{StaticResource M10Page}"
-             Title="Clientes">
+             Title="Clientes"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
     <Shell.TitleView><controls:BrandBar /></Shell.TitleView>
 
     <ScrollView>
-        <VerticalStackLayout Padding="24,20" Spacing="18" HorizontalOptions="Center" MaximumWidthRequest="950">
+        <VerticalStackLayout motion:Motion.Enter="True" Padding="24,20" Spacing="18" HorizontalOptions="Center" MaximumWidthRequest="950">
             <!-- Título y subtítulo -->
             <VerticalStackLayout Spacing="4">
                 <Label Text="BASE DE CONTACTOS" FontSize="11" CharacterSpacing="1.2" Style="{StaticResource BtGold}" />
                 <Label Text="Lista de clientes" Style="{StaticResource BtTitle}" />
                 <Label Text="Clientes registrados en el sistema que han agendado citas." Style="{StaticResource BtMuted}" />
             </VerticalStackLayout>
+            <controls:EstadoBanner State="{Binding State}" ErrorText="{Binding MensajeError}" RetryCommand="{Binding CargarClientesCommand}" />
+
 
             <!-- Lista de clientes -->
             <CollectionView ItemsSource="{Binding ListaClientes}">
                 <CollectionView.EmptyView>
                     <Border Style="{StaticResource BtCard}" Padding="30" Margin="0,16">
                         <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
-                            <Label Text="👤" FontSize="36" HorizontalOptions="Center" />
                             <Label Text="No hay clientes registrados aún" FontFamily="OpenSansSemibold" FontSize="16" HorizontalOptions="Center" />
                             <Label Text="Los clientes aparecerán aquí automáticamente al reservar citas." FontSize="13" Style="{StaticResource BtMuted}" HorizontalTextAlignment="Center" />
                         </VerticalStackLayout>
@@ -37,7 +39,7 @@
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
                                 <Border WidthRequest="46" HeightRequest="46" StrokeShape="RoundRectangle 23" StrokeThickness="0"
                                         Background="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}">
-                                    <Label Text="👤" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                                    <Image Source="icon_scissors_gold.svg" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center" />
                                 </Border>
                                 
                                 <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">

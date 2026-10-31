@@ -5,6 +5,7 @@ namespace BarberTurno.Models;
 /// <summary>
 /// Parámetros necesarios para solicitar una reserva desde la UI hacia BookingService.
 /// </summary>
+/// <summary>Transporta la selección del usuario hacia el servicio de reservas.</summary>
 public class ReservaSolicitud
 {
     public int BarberoId { get; set; }

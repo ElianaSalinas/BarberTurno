@@ -5,6 +5,7 @@ using BarberTurno.Models;
 // clientes de su agenda para mostrar nombres y teléfono sin conexión.
 namespace BarberTurno.Data.Repositories;
 
+/// <summary>Contrato de almacenamiento local para clientes.</summary>
 public interface IClienteRepository
 {
     // Cliente por Id, o <c>null</c> si no existe localmente

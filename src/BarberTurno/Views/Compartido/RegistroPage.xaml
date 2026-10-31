@@ -7,7 +7,8 @@
              Style="{StaticResource M10Page}"
              Title="Crear cuenta"
              Shell.NavBarIsVisible="False"
-             Shell.TabBarIsVisible="False">
+             Shell.TabBarIsVisible="False"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
 
     <ContentPage.Resources>
         <!-- RadioButton convertido en "chip" de rol: se ilumina en dorado al seleccionarlo -->
@@ -37,7 +38,7 @@
     </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout Padding="28,56,28,32" Spacing="14" MaximumWidthRequest="460">
+        <VerticalStackLayout motion:Motion.Enter="True" Padding="28,56,28,32" Spacing="14" MaximumWidthRequest="460">
 
             <Label Text="NUEVA CUENTA" FontSize="10" CharacterSpacing="1.3" Style="{StaticResource BtGold}" />
             <Label Text="Crea tu cuenta" Style="{StaticResource BtTitle}" Margin="0,-10,0,0" />

@@ -11,11 +11,13 @@ namespace BarberTurno.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+/// <summary>Expone el inicio de sesión y registro que crean la sesión JWT de la aplicación.</summary>
 public class AuthController : ControllerBase
 {
     private readonly ApiDbContext _context;
     private readonly IConfiguration _configuration;
 
+    /// <summary>Recibe el contexto de datos y la configuración usada para firmar los tokens.</summary>
     public AuthController(ApiDbContext context, IConfiguration configuration)
     {
         _context = context;
@@ -23,6 +25,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    /// <summary>Valida credenciales y devuelve un token JWT junto con el perfil del usuario.</summary>
     public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
     {
         if (request == null || string.IsNullOrWhiteSpace(request.Usuario) || string.IsNullOrWhiteSpace(request.Password))
@@ -30,6 +33,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { mensaje = "Usuario y contraseña requeridos." });
         }
 
+        // Busca el usuario persistido antes de verificar su hash BCrypt.
         var usuario = await _context.Usuarios
             .FirstOrDefaultAsync(u => u.Usuario.ToLower() == request.Usuario.Trim().ToLower());
 
@@ -53,7 +57,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { mensaje = "Credenciales incorrectas." });
         }
 
-        var jwtKey = _configuration["Jwt:Key"] ?? "BarberTurnoClaveSuperSecretaDeSeguridad126!JwtKey2026";
+        var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("Falta la configuración Jwt:Key.");
         var jwtIssuer = _configuration["Jwt:Issuer"] ?? "BarberTurnoApi";
         var jwtAudience = _configuration["Jwt:Audience"] ?? "BarberTurnoApp";
         var expiraEnUtc = DateTime.UtcNow.AddHours(24);
@@ -61,6 +65,7 @@ public class AuthController : ControllerBase
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.UTF8.GetBytes(jwtKey);
 
+        // El token conecta las peticiones posteriores con el usuario y su rol.
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
@@ -79,17 +84,26 @@ public class AuthController : ControllerBase
         var securityToken = tokenHandler.CreateToken(tokenDescriptor);
         var tokenString = tokenHandler.WriteToken(securityToken);
 
+        int? barberoId = null;
+        if (usuario.Rol.Equals("Barbero", StringComparison.OrdinalIgnoreCase))
+        {
+            var barbero = await _context.Barberos.FirstOrDefaultAsync(b => b.UsuarioId == usuario.Id);
+            barberoId = barbero?.Id;
+        }
+
         return Ok(new LoginResponseDto
         {
             Token = tokenString,
             ExpiraEnUtc = expiraEnUtc,
             Rol = usuario.Rol,
             UsuarioId = usuario.Id,
-            Nombre = usuario.Nombre
+            Nombre = usuario.Nombre,
+            BarberoId = barberoId
         });
     }
 
     [HttpPost("register")]
+    /// <summary>Crea un usuario y devuelve la sesión JWT que la aplicación guarda localmente.</summary>
     public async Task<ActionResult<LoginResponseDto>> Register([FromBody] RegistroRequestDto request)
     {
         if (request == null || string.IsNullOrWhiteSpace(request.Usuario) || string.IsNullOrWhiteSpace(request.Password) || string.IsNullOrWhiteSpace(request.Nombre))
@@ -119,8 +133,10 @@ public class AuthController : ControllerBase
         _context.Usuarios.Add(nuevoUsuario);
         await _context.SaveChangesAsync();
 
+        int? barberoId = null;
         if (rol == "Barbero")
         {
+            // Un registro de barbero necesita además el perfil que usan citas y disponibilidad.
             var barbero = new BarberTurno.Api.Domain.BarberoEntity
             {
                 Nombre = nuevoUsuario.Nombre,
@@ -128,9 +144,10 @@ public class AuthController : ControllerBase
             };
             _context.Barberos.Add(barbero);
             await _context.SaveChangesAsync();
+            barberoId = barbero.Id;
         }
 
-        var jwtKey = _configuration["Jwt:Key"] ?? "BarberTurnoClaveSuperSecretaDeSeguridad126!JwtKey2026";
+        var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("Falta la configuración Jwt:Key.");
         var jwtIssuer = _configuration["Jwt:Issuer"] ?? "BarberTurnoApi";
         var jwtAudience = _configuration["Jwt:Audience"] ?? "BarberTurnoApp";
         var expiraEnUtc = DateTime.UtcNow.AddHours(24);
@@ -162,7 +179,8 @@ public class AuthController : ControllerBase
             ExpiraEnUtc = expiraEnUtc,
             Rol = nuevoUsuario.Rol,
             UsuarioId = nuevoUsuario.Id,
-            Nombre = nuevoUsuario.Nombre
+            Nombre = nuevoUsuario.Nombre,
+            BarberoId = barberoId
         });
     }
 }

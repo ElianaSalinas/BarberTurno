@@ -13,6 +13,7 @@ using BarberTurno.Services.Sync;
 // Próximas y anteriores; estado de cada cita (pendiente / confirmada / rechazada) y cancelación (opcional).
 namespace BarberTurno.ViewModels;
 
+/// <summary>Lista, filtra y cancela las citas del cliente usando la caché y sincronización local.</summary>
 public partial class MisCitasViewModel : ClienteViewModelBase
 {
     private readonly ICitaRepository _citas;

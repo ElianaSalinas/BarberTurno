@@ -3,6 +3,7 @@
 // el mensaje adecuado sin depender de códigos HTTP ni excepciones.
 namespace BarberTurno.Services.Auth;
 
+/// <summary>Describe el resultado que el ViewModel debe mostrar después de registrar una cuenta.</summary>
 public enum ResultadoRegistro
 {
     Exito,             // Cuenta creada y sesión iniciada automáticamente.

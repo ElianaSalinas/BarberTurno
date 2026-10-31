@@ -1,5 +1,6 @@
 namespace BarberTurno.ViewModels;
 
+/// <summary>Datos resumidos de un barbero para las listas de la interfaz.</summary>
 public sealed class BarberoItem
 {
     public int Id { get; }

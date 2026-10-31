@@ -11,6 +11,7 @@ using BarberTurno.Services.Navigation;
 
 namespace BarberTurno.ViewModels;
 
+/// <summary>Valida y registra una cuenta antes de dirigirla al área correspondiente a su rol.</summary>
 public partial class RegistroViewModel : BaseViewModel
 {
     // ── Dependencias ─────────────────────────────────────────────────────────

@@ -5,15 +5,10 @@ using Microsoft.UI.Xaml;
 
 namespace BarberTurno.WinUI;
 
-/// <summary>
-/// Provides application-specific behavior to supplement the default Application class.
-/// </summary>
+/// <summary>Entrada WinUI que inicia MAUI y registra errores no controlados de Windows.</summary>
 public partial class App : MauiWinUIApplication
 {
-	/// <summary>
-	/// Initializes the singleton application object.  This is the first line of authored code
-	/// executed, and as such is the logical equivalent of main() or WinMain().
-	/// </summary>
+	/// <summary>Inicializa la aplicación WinUI y el registro de errores no controlados.</summary>
 	public App()
 	{
 		this.InitializeComponent();
@@ -25,5 +20,6 @@ public partial class App : MauiWinUIApplication
 		};
 	}
 
+	/// <summary>Obtiene la aplicación MAUI configurada en el proyecto compartido.</summary>
 	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 }

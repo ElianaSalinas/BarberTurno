@@ -85,6 +85,7 @@
          Al estar aquí quedan disponibles en toda la app como StaticResource.
     ══════════════════════════════════════════════════════════ -->
     <converters:ViewStateToVisibilityConverter x:Key="ViewStateToVisibility" />
+    <converters:FotoConverter x:Key="FotoConverter" />
     <converters:EstadoCitaToColorConverter     x:Key="EstadoCitaToColor" />
     <converters:FechaAmigableConverter         x:Key="FechaAmigable" />
     <converters:BoolInvertidoConverter         x:Key="BoolInvertido" />
@@ -527,11 +528,45 @@
         <Setter Property="FontSize" Value="14" />
         <Setter Property="CornerRadius" Value="14" />
         <Setter Property="HeightRequest" Value="52" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="Scale" Value="1" />
+                            <Setter Property="Opacity" Value="1" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Scale" Value="0.97" />
+                            <Setter Property="Opacity" Value="0.9" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.5" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
     </Style>
     <Style x:Key="BtLinkButton" TargetType="Button">
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="FontFamily" Value="OpenSansSemibold" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightGold}, Dark={StaticResource M10DarkGold}}" />
+    </Style>
+    <Style x:Key="BtSecondaryButton" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#ECE6DC, Dark=#2A2C22}" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light=#1B1B17, Dark=#F7F4EE}" />
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="CornerRadius" Value="10" />
+    </Style>
+    <Style x:Key="BtText" TargetType="Label">
+        <Setter Property="FontFamily" Value="OpenSansSemibold" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource M10LightText}, Dark={StaticResource M10DarkText}}" />
     </Style>
 </ResourceDictionary>

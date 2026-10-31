@@ -20,6 +20,7 @@ public sealed record DatabaseOptions(string RutaArchivo, bool SembrarDatosDePrue
         SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.SharedCache;
 }
 
+/// <summary>Administra la única conexión SQLite local, su esquema, migraciones y datos de desarrollo.</summary>
 public sealed class AppDatabase : IAppDatabase, IAsyncDisposable
 {
     // ---------- Esquema ----------
@@ -65,6 +66,7 @@ public sealed class AppDatabase : IAppDatabase, IAsyncDisposable
     private readonly SemaphoreSlim _candado = new(1, 1);
     private volatile SQLiteAsyncConnection? _conexion;
 
+    /// <summary>Recibe la configuración de archivo y el registrador usados durante la inicialización.</summary>
     public AppDatabase(DatabaseOptions opciones, ILogger<AppDatabase> logger)
     {
         _opciones = opciones;
@@ -73,8 +75,10 @@ public sealed class AppDatabase : IAppDatabase, IAsyncDisposable
 
     // ---------- IAppDatabase ----------
 
+    /// <summary>Fuerza la apertura e inicialización de la base local.</summary>
     public Task InitAsync() => GetConnectionAsync();
 
+    /// <summary>Devuelve la conexión compartida, inicializándola una sola vez de forma segura.</summary>
     public async Task<SQLiteAsyncConnection> GetConnectionAsync()
     {
         // Camino rápido: ya inicializada, sin esperar el candado.
@@ -110,6 +114,7 @@ public sealed class AppDatabase : IAppDatabase, IAsyncDisposable
         }
     }
 
+    /// <summary>Cierra la conexión local y libera el candado de inicialización.</summary>
     public async ValueTask DisposeAsync()
     {
         if (_conexion is { } conexion)

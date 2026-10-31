@@ -6,10 +6,11 @@
              x:Class="BarberTurno.Views.BarberosPage"
              x:DataType="vm:BarberosViewModel"
              Style="{StaticResource M10Page}"
-             Title="Barberos">
+             Title="Barberos"
+             xmlns:motion="clr-namespace:BarberTurno.Helpers">
     <Shell.TitleView><controls:BrandBar /></Shell.TitleView>
 
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid motion:Motion.Enter="True" RowDefinitions="Auto,Auto,*">
 
         <Border Grid.Row="0" IsVisible="{Binding SinConexion}" StrokeThickness="0" Padding="16,8"
                 BackgroundColor="{AppThemeBinding Light=#FEF3C7, Dark=#78350F}">
@@ -52,7 +53,7 @@
                                         <Grid>
                                             <Label Text="{Binding Inicial}" FontSize="22" Style="{StaticResource BtGold}"
                                                    HorizontalOptions="Center" VerticalOptions="Center" />
-                                            <Image Source="{Binding FotoUrl}" Aspect="AspectFill" IsVisible="{Binding TieneFoto}" />
+                                            <Image Source="{Binding FotoUrl, Converter={StaticResource FotoConverter}}" Aspect="AspectFill" IsVisible="{Binding TieneFoto}" />
                                         </Grid>
                                     </Border>
 

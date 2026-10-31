@@ -6,8 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BarberTurno.Services.Auth;
 
+/// <summary>Registra el almacenamiento seguro y el servicio de autenticación en DI.</summary>
 public static class AuthServiceRegistration
 {
+    /// <summary>Agrega implementaciones singleton que comparten la sesión activa en toda la app.</summary>
     public static IServiceCollection AddAuthLayer(this IServiceCollection services)
     {
         // Singleton: una sola instancia para toda la vida de la app.

@@ -9,6 +9,7 @@ namespace BarberTurno.Models;
 /// La tabla se crea en M03 (AppDatabase) y M07 usa su horario para generar franjas libres sin conexión.
 /// </summary>
 [Table("barberos")]
+/// <summary>Representa al profesional disponible en el catálogo local y en las reservas.</summary>
 public class Barbero
 {
     /// <summary>

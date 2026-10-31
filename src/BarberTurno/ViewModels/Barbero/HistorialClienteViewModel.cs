@@ -8,6 +8,7 @@ using BarberTurno.Services.Sync;
 
 namespace BarberTurno.ViewModels;
 
+/// <summary>Carga la lista de clientes para consultar el historial de sus citas.</summary>
 public partial class HistorialClienteViewModel : BaseViewModel
 {
     private readonly IClienteRepository _clientes;
@@ -25,8 +26,12 @@ public partial class HistorialClienteViewModel : BaseViewModel
     public override void OnAppearing() => _ = CargarClientesAsync();
 
     [RelayCommand]
+    /// <summary>Carga desde el repositorio los clientes que el barbero puede consultar.</summary>
     public async Task CargarClientesAsync()
     {
+        State = ViewState.Cargando;
+        MensajeError = null;
+
         try
         {
             await _sync.SincronizarCatalogosAsync();
@@ -36,10 +41,14 @@ public partial class HistorialClienteViewModel : BaseViewModel
             {
                 ListaClientes.Add(c);
             }
+
+            State = ListaClientes.Count == 0 ? ViewState.Vacio : ViewState.ConDatos;
         }
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
+            MensajeError = "No se pudo cargar la lista de clientes.";
+            State = ViewState.Error;
         }
     }
 }

@@ -3,6 +3,7 @@
 // mensajes distintos sin depender de códigos HTTP ni excepciones.
 namespace BarberTurno.Services.Auth;
 
+/// <summary>Describe el resultado que el ViewModel debe mostrar después de iniciar sesión.</summary>
 public enum ResultadoLogin
 {
     Exito,                // Token recibido, sesión guardada.

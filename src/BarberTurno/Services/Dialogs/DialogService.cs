@@ -1,26 +1,54 @@
 // Responsable: M01
-// Implementa IDialogService con DisplayAlert de MAUI.
+// Implementa IDialogService con DisplayAlertAsync de MAUI en el hilo principal y protegido con try/catch.
+using System.Diagnostics;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
+
 namespace BarberTurno.Services.Dialogs;
 
+/// <summary>Muestra alertas y confirmaciones MAUI desde servicios o ViewModels de forma segura.</summary>
 public class DialogService : IDialogService
 {
+    /// <summary>Muestra una alerta en la página activa del hilo principal.</summary>
     public async Task ShowAlertAsync(string titulo, string mensaje)
     {
-        var pagina = ObtenerPaginaActiva();
-        if (pagina != null)
+        try
         {
-            await pagina.DisplayAlert(titulo, mensaje, "Aceptar");
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                var pagina = ObtenerPaginaActiva();
+                if (pagina != null)
+                {
+                    await pagina.DisplayAlertAsync(titulo, mensaje, "Aceptar");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[DialogService] Error al mostrar alerta: {ex}");
         }
     }
 
+    /// <summary>Pide confirmación en la página activa y devuelve la opción elegida.</summary>
     public async Task<bool> ConfirmAsync(string titulo, string mensaje, string aceptar = "Aceptar", string cancelar = "Cancelar")
     {
-        var pagina = ObtenerPaginaActiva();
-        if (pagina != null)
+        try
         {
-            return await pagina.DisplayAlert(titulo, mensaje, aceptar, cancelar);
+            return await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                var pagina = ObtenerPaginaActiva();
+                if (pagina != null)
+                {
+                    return await pagina.DisplayAlertAsync(titulo, mensaje, aceptar, cancelar);
+                }
+                return false;
+            });
         }
-        return false;
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[DialogService] Error al mostrar confirmación: {ex}");
+            return false;
+        }
     }
 
     private static Page? ObtenerPaginaActiva()

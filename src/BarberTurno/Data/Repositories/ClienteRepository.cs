@@ -4,6 +4,7 @@ using BarberTurno.Models;
 // Implementa IClienteRepository sobre SQLite (sqlite-net-pcl).
 namespace BarberTurno.Data.Repositories;
 
+/// <summary>Lee y actualiza la copia local de clientes usada por las vistas de barbero.</summary>
 public sealed class ClienteRepository : IClienteRepository
 {
     // SQLite limita cuántos parámetros (?) admite una consulta; se consulta por bloques para no rozar ese límite
@@ -57,6 +58,7 @@ public sealed class ClienteRepository : IClienteRepository
     }
 
 
+    /// <summary>Inserta o actualiza los clientes descargados desde la API.</summary>
     public async Task UpsertRangeAsync(IEnumerable<Cliente> clientes)
     {
         var lista = (clientes ?? []).ToList();
