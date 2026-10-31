@@ -232,30 +232,44 @@ public partial class AgendaDiaViewModel : BaseViewModel
             // Comprobación de versión antes de volcar cambios en colecciones y propiedades observables
             if (versionActual != _versionCarga) return;
 
-            CitasDelDia.Clear();
-            foreach (var item in items)
+            void AplicarUI()
             {
-                CitasDelDia.Add(item);
+                if (versionActual != _versionCarga) return;
+
+                CitasDelDia.Clear();
+                foreach (var item in items)
+                {
+                    CitasDelDia.Add(item);
+                }
+
+                CantidadCitas = CitasDelDia.Count;
+                EstaAgendaVacia = CantidadCitas == 0;
+                IngresosDelDia = totalIngresos > 0 ? $"RD$ {totalIngresos:N0}" : "RD$ 0";
+                MetaIngresos = string.Empty;
+                TieneMetaIngresos = false;
+
+                if (primeraProxima != null)
+                {
+                    ProximaCita = primeraProxima;
+                    TieneProximaCita = true;
+                }
+                else
+                {
+                    TieneProximaCita = false;
+                    ProximaCita = new CitaAgendaItem();
+                }
+
+                State = EstaAgendaVacia ? ViewState.Vacio : ViewState.ConDatos;
             }
 
-            CantidadCitas = CitasDelDia.Count;
-            EstaAgendaVacia = CantidadCitas == 0;
-            IngresosDelDia = totalIngresos > 0 ? $"RD$ {totalIngresos:N0}" : "RD$ 0";
-            MetaIngresos = string.Empty;
-            TieneMetaIngresos = false;
-
-            if (primeraProxima != null)
+            if (MainThread.IsMainThread)
             {
-                ProximaCita = primeraProxima;
-                TieneProximaCita = true;
+                AplicarUI();
             }
             else
             {
-                TieneProximaCita = false;
-                ProximaCita = new CitaAgendaItem();
+                MainThread.BeginInvokeOnMainThread(AplicarUI);
             }
-
-            State = EstaAgendaVacia ? ViewState.Vacio : ViewState.ConDatos;
         }
         catch (Exception ex)
         {
@@ -287,13 +301,22 @@ public partial class AgendaDiaViewModel : BaseViewModel
 
     private void ActualizarEstadoSinDatos()
     {
-        CantidadCitas = 0;
-        TieneProximaCita = false;
-        ProximaCita = new CitaAgendaItem();
-        EstaAgendaVacia = true;
-        IngresosDelDia = "RD$ 0";
-        MetaIngresos = string.Empty;
-        TieneMetaIngresos = false;
+        void Limpiar()
+        {
+            CitasDelDia.Clear();
+            CantidadCitas = 0;
+            TieneProximaCita = false;
+            ProximaCita = new CitaAgendaItem();
+            EstaAgendaVacia = true;
+            IngresosDelDia = "RD$ 0";
+            MetaIngresos = string.Empty;
+            TieneMetaIngresos = false;
+        }
+
+        if (MainThread.IsMainThread)
+            Limpiar();
+        else
+            MainThread.BeginInvokeOnMainThread(Limpiar);
     }
 }
 

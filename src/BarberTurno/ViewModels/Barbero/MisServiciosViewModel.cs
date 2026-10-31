@@ -50,13 +50,22 @@ public partial class MisServiciosViewModel : BaseViewModel
                 return;
             }
 
-            Servicios.Clear();
             var lista = await _servicios.GetByBarberoAsync(barberoId.Value);
-            foreach (var s in lista)
-                Servicios.Add(ServicioItem.Desde(s));
 
-            SinServicios = Servicios.Count == 0;
-            State = ViewState.ConDatos;
+            void ActualizarUI()
+            {
+                Servicios.Clear();
+                foreach (var s in lista)
+                    Servicios.Add(ServicioItem.Desde(s));
+
+                SinServicios = Servicios.Count == 0;
+                State = ViewState.ConDatos;
+            }
+
+            if (MainThread.IsMainThread)
+                ActualizarUI();
+            else
+                MainThread.BeginInvokeOnMainThread(ActualizarUI);
         }
         catch (Exception ex)
         {
