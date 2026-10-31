@@ -79,22 +79,40 @@
                             <Label Text="Crear nuevo servicio" Style="{StaticResource BtH2}" />
                             <Label Text="¿Ofreces un corte o servicio especial? Agrégalo al catálogo:" FontSize="12" Style="{StaticResource BtMuted}" />
 
-                            <VerticalStackLayout Spacing="4">
-                                <Label Text="Nombre del servicio" FontSize="12" FontAttributes="Bold" Style="{StaticResource BtText}" />
-                                <Entry Placeholder="Ej. Corte Ejecutivo + Barba" Text="{Binding NuevoServicioNombre}" />
-                            </VerticalStackLayout>
+                                                        <Label Text="{Binding NuevoServicioNombreError}" FontSize="12"
+                                   TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" Margin="2,0,0,-4">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding NuevoServicioNombreError}" Value="">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                            <Entry Placeholder="Nombre del servicio (ej. Fade + Barba)" Text="{Binding NuevoServicioNombre}"
+                                   MaxLength="50" Keyboard="Text" />
 
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                 <VerticalStackLayout Spacing="4">
-                                    <Label Text="Precio (RD$)" FontSize="12" FontAttributes="Bold" Style="{StaticResource BtText}" />
-                                    <Entry Placeholder="Ej. 600" Text="{Binding NuevoServicioPrecio}" Keyboard="Numeric" />
+                                    <Label Text="{Binding NuevoServicioPrecioError}" FontSize="11"
+                                           TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding NuevoServicioPrecioError}" Value="">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                    <Entry Placeholder="Precio (RD$)" Text="{Binding NuevoServicioPrecio}" Keyboard="Numeric" MaxLength="10" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Column="1" Spacing="4">
-                                    <Label Text="Duración (minutos)" FontSize="12" FontAttributes="Bold" Style="{StaticResource BtText}" />
-                                    <Picker ItemsSource="{Binding DuracionesDisponibles}"
-                                            SelectedItem="{Binding DuracionSeleccionada}"
-                                            Title="Seleccionar minutos" />
+                                    <Label Text="{Binding NuevoServicioDuracionError}" FontSize="11"
+                                           TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding NuevoServicioDuracionError}" Value="">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                    <Entry Placeholder="Duración (min)" Text="{Binding NuevoServicioDuracion}" Keyboard="Numeric" MaxLength="4" />
                                 </VerticalStackLayout>
                             </Grid>
 

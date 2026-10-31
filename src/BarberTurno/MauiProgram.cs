@@ -31,14 +31,12 @@ public static class MauiProgram
         // Servicios fundamentales de navegación y diálogos
         builder.Services.AddSingleton<INavigationService, NavigationService>();
         builder.Services.AddSingleton<IDialogService, DialogService>();
-        builder.Services.AddSingleton<IReminderService, ReminderService>();
 
         builder.Services
             .AddDataLayer()          // M02
             .AddApiLayer()           // M05
             .AddAuthLayer()          // M06
             .AddSyncLayer()          // M07
-            .AddNotificationLayer()  // M06 (recordatorios locales)
             .AddBookingLayer()       // M08
             .AddPresentationLayer(); // M01 (ViewModels y páginas)
 

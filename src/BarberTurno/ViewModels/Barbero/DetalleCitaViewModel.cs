@@ -23,13 +23,9 @@ public class DetalleCitaViewModel : BaseViewModel
 
     public bool TieneCitaSeleccionada
     {
-        _citas = citas;
-        _clientes = clientes;
-        _servicios = servicios;
-        _auth = auth;
-        State = ViewState.Vacio; // hasta recibir una cita real: "Selecciona una cita"
+        get => tieneCitaSeleccionada;
+        private set => SetProperty(ref tieneCitaSeleccionada, value);
     }
-
     /*
         ID real de la cita.
 
@@ -150,9 +146,7 @@ public class DetalleCitaViewModel : BaseViewModel
     */
     private void LimpiarDetalle()
     {
-        _citaActual = null;
         CitaId = null;
-        ClienteId = 0;
         NombreCliente = string.Empty;
         InicialesCliente = string.Empty;
         TelefonoCliente = string.Empty;
@@ -162,10 +156,6 @@ public class DetalleCitaViewModel : BaseViewModel
         Duracion = string.Empty;
         PrecioServicio = string.Empty;
         EstadoCita = string.Empty;
-        TelefonoCliente = string.Empty;
         TieneCitaSeleccionada = false;
-        Historial.Clear();
-        HayHistorial = false;
-        SinHistorial = false;
     }
 }

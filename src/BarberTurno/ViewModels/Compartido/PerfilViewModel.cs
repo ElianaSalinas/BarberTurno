@@ -1,6 +1,4 @@
-// Responsable: M09
-// Datos del usuario, cambio de tema (claro/oscuro), gestión de perfil de barbero y cerrar sesión.
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -98,31 +96,96 @@ public partial class PerfilViewModel : BaseViewModel
     [ObservableProperty]
     private string nuevoServicioDuracion = "30";
 
-    public List<int> DuracionesDisponibles { get; } = new() { 15, 20, 30, 45, 60, 90, 120 };
+    [ObservableProperty]
+    private string nuevoServicioNombreError = "";
 
     [ObservableProperty]
-    private int duracionSeleccionada = 30;
+    private string nuevoServicioPrecioError = "";
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(TieneErrorServicio))]
-    private string? mensajeErrorServicio;
+    private string nuevoServicioDuracionError = "";
 
-    public bool TieneErrorServicio => !string.IsNullOrEmpty(MensajeErrorServicio);
+    [ObservableProperty]
+    private string mensajeErrorServicio = "";
 
-    /// <summary>La página avisa al aparecer: marca visible y delega la carga.</summary>
-    public override void OnAppearing()
+    private bool _haIntentadoCrearServicio;
+
+    partial void OnNuevoServicioNombreChanged(string value)
     {
-        base.OnAppearing();
-        _paginaVisible = true;
-        _ = CargarAsync();
+        if (!Validaciones.EsNombreServicioCaracteresValidos(value))
+        {
+            NuevoServicioNombreError = "Solo se permiten letras, números y signos comunes (+, -).";
+            return;
+        }
+
+        if (_haIntentadoCrearServicio)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                NuevoServicioNombreError = "El nombre del servicio es obligatorio.";
+                return;
+            }
+            if (value.Trim().Length < 3)
+            {
+                NuevoServicioNombreError = "El nombre del servicio debe tener al menos 3 caracteres.";
+                return;
+            }
+        }
+
+        NuevoServicioNombreError = "";
     }
 
-    /// <summary>La página avisa al desaparecer: marca invisible para ignorar reciclaje de controles en Android.</summary>
-    public override void OnDisappearing()
+    partial void OnNuevoServicioPrecioChanged(string value)
     {
-        base.OnDisappearing();
-        _paginaVisible = false;
+        if (!Validaciones.EsPrecioCaracteresValidos(value))
+        {
+            NuevoServicioPrecioError = "Solo se permiten números y un punto decimal.";
+            return;
+        }
+
+        if (_haIntentadoCrearServicio)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                NuevoServicioPrecioError = "El precio es obligatorio.";
+                return;
+            }
+            if (!Validaciones.EsPrecioValido(value, out _))
+            {
+                NuevoServicioPrecioError = "Ingresa un precio válido mayor a 0 (ej. 450.50).";
+                return;
+            }
+        }
+
+        NuevoServicioPrecioError = "";
     }
+
+    partial void OnNuevoServicioDuracionChanged(string value)
+    {
+        if (!Validaciones.EsEnteroCaracteresValidos(value))
+        {
+            NuevoServicioDuracionError = "Solo se permiten números enteros.";
+            return;
+        }
+
+        if (_haIntentadoCrearServicio)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                NuevoServicioDuracionError = "La duración es obligatoria.";
+                return;
+            }
+            if (!Validaciones.EsDuracionValida(value, out _))
+            {
+                NuevoServicioDuracionError = "Ingresa una duración válida entre 5 y 480 minutos.";
+                return;
+            }
+        }
+
+        NuevoServicioDuracionError = "";
+    }
+
+    public override void OnAppearing() => _ = CargarAsync();
 
     [RelayCommand]
     private async Task CargarAsync()
@@ -308,22 +371,73 @@ public partial class PerfilViewModel : BaseViewModel
     [RelayCommand]
     private async Task CrearNuevoServicioAsync()
     {
-        MensajeErrorServicio = null;
+        _haIntentadoCrearServicio = true;
+        bool hayError = false;
 
         if (string.IsNullOrWhiteSpace(NuevoServicioNombre))
         {
-            // El error se muestra únicamente junto al campo sin alert duplicado
-            MensajeErrorServicio = "Ingresa el nombre del servicio.";
-            return;
+            NuevoServicioNombreError = "El nombre del servicio es obligatorio.";
+            hayError = true;
         }
-
-        if (!TryParsePrecio(NuevoServicioPrecio, out var precio))
+        else if (!Validaciones.EsNombreServicioCaracteresValidos(NuevoServicioNombre))
         {
-            MensajeErrorServicio = "Ingresa un precio válido mayor a 0 (ej. 500).";
-            return;
+            NuevoServicioNombreError = "Solo se permiten letras, números y signos comunes (+, -).";
+            hayError = true;
+        }
+        else if (NuevoServicioNombre.Trim().Length < 3)
+        {
+            NuevoServicioNombreError = "El nombre del servicio debe tener al menos 3 caracteres.";
+            hayError = true;
+        }
+        else
+        {
+            NuevoServicioNombreError = "";
         }
 
-        int duracion = DuracionSeleccionada > 0 ? DuracionSeleccionada : 30;
+        decimal precio = 0;
+        if (string.IsNullOrWhiteSpace(NuevoServicioPrecio))
+        {
+            NuevoServicioPrecioError = "El precio es obligatorio.";
+            hayError = true;
+        }
+        else if (!Validaciones.EsPrecioCaracteresValidos(NuevoServicioPrecio))
+        {
+            NuevoServicioPrecioError = "Solo se permiten números y un punto decimal.";
+            hayError = true;
+        }
+        else if (!Validaciones.EsPrecioValido(NuevoServicioPrecio, out precio))
+        {
+            NuevoServicioPrecioError = "Ingresa un precio válido mayor a 0 (ej. 450.50).";
+            hayError = true;
+        }
+        else
+        {
+            NuevoServicioPrecioError = "";
+        }
+
+        int duracion = 0;
+        if (string.IsNullOrWhiteSpace(NuevoServicioDuracion))
+        {
+            NuevoServicioDuracionError = "La duración es obligatoria.";
+            hayError = true;
+        }
+        else if (!Validaciones.EsEnteroCaracteresValidos(NuevoServicioDuracion))
+        {
+            NuevoServicioDuracionError = "Solo se permiten números enteros.";
+            hayError = true;
+        }
+        else if (!Validaciones.EsDuracionValida(NuevoServicioDuracion, out duracion))
+        {
+            NuevoServicioDuracionError = "Ingresa una duración válida entre 5 y 480 minutos.";
+            hayError = true;
+        }
+        else
+        {
+            NuevoServicioDuracionError = "";
+        }
+
+        if (hayError)
+            return;
 
         try
         {
@@ -350,8 +464,11 @@ public partial class PerfilViewModel : BaseViewModel
                 NuevoServicioNombre = "";
                 NuevoServicioFoto = null;
                 NuevoServicioPrecio = "";
-                DuracionSeleccionada = 30;
-                MensajeErrorServicio = null;
+                NuevoServicioDuracion = "30";
+                NuevoServicioNombreError = "";
+                NuevoServicioPrecioError = "";
+                NuevoServicioDuracionError = "";
+                _haIntentadoCrearServicio = false;
 
                 var sesion = _auth.SesionActual;
                 if (sesion != null)

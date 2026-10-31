@@ -39,13 +39,9 @@
                 <Grid ColumnDefinitions="Auto,*,Auto"
                       VerticalOptions="Center">
 
-                <Label Text="Información de la reserva"
-                       Style="{StaticResource M10SectionTitle}" />
-            </VerticalStackLayout>
-
-            <!--
-                Estado vacío.
-
+                    <Label Grid.Column="1"
+                           Text="Información de la reserva"
+                           Style="{StaticResource M10SectionTitle}" />
                     <!-- Espacio compensador a la derecha -->
                     <BoxView Grid.Column="2"
                              WidthRequest="40"
@@ -242,6 +238,7 @@
                     M02: ICitaRepository.ActualizarEstadoAsync.
                     M08: reglas de transición de EstadoCita.
                 -->
+                </VerticalStackLayout>
             </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>

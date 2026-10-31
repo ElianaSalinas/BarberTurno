@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
@@ -52,25 +52,69 @@
                              ControlTemplate="{StaticResource RolChip}" IsChecked="{Binding EsBarbero, Mode=TwoWay}" />
             </Grid>
 
+                        <Label Text="{Binding NombreError}" FontSize="12"
+                   TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" Margin="2,0,0,-6">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label" Binding="{Binding NombreError}" Value="">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
             <Border Style="{StaticResource BtField}">
                 <Entry x:Name="EntryNombre" Style="{StaticResource BtEntry}" Text="{Binding Nombre}"
-                       Placeholder="Nombre completo" Keyboard="Text" ReturnType="Next" />
+                       Placeholder="Nombre completo" Keyboard="Text" ReturnType="Next" MaxLength="60" />
             </Border>
+
+            <Label Text="{Binding TelefonoError}" FontSize="12"
+                   TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" Margin="2,0,0,-6">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label" Binding="{Binding TelefonoError}" Value="">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
             <Border Style="{StaticResource BtField}">
                 <Entry x:Name="EntryTelefono" Style="{StaticResource BtEntry}" Text="{Binding Telefono}"
-                       Placeholder="Teléfono (10 dígitos)" Keyboard="Telephone" ReturnType="Next" />
+                       Placeholder="Teléfono (10 dígitos)" Keyboard="Telephone" ReturnType="Next" MaxLength="15" />
             </Border>
+
+            <Label Text="{Binding UsuarioError}" FontSize="12"
+                   TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" Margin="2,0,0,-6">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label" Binding="{Binding UsuarioError}" Value="">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
             <Border Style="{StaticResource BtField}">
                 <Entry x:Name="EntryUsuario" Style="{StaticResource BtEntry}" Text="{Binding Usuario}"
-                       Placeholder="Usuario" Keyboard="Email" ReturnType="Next" />
+                       Placeholder="Usuario" Keyboard="Email" ReturnType="Next" MaxLength="30" />
             </Border>
+
+            <Label Text="{Binding PasswordError}" FontSize="12"
+                   TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" Margin="2,0,0,-6">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label" Binding="{Binding PasswordError}" Value="">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
             <Border Style="{StaticResource BtField}">
                 <Entry x:Name="EntryPassword" Style="{StaticResource BtEntry}" Text="{Binding Password}"
-                       Placeholder="Contraseña (mínimo 6 caracteres)" IsPassword="True" ReturnType="Next" />
+                       Placeholder="Contraseña (mínimo 6 caracteres)" IsPassword="True" ReturnType="Next" MaxLength="64" />
             </Border>
+
+            <Label Text="{Binding ConfirmarPasswordError}" FontSize="12"
+                   TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" Margin="2,0,0,-6">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label" Binding="{Binding ConfirmarPasswordError}" Value="">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
             <Border Style="{StaticResource BtField}">
                 <Entry x:Name="EntryConfirmarPassword" Style="{StaticResource BtEntry}" Text="{Binding ConfirmarPassword}"
-                       Placeholder="Confirmar contraseña" IsPassword="True" ReturnType="Done"
+                       Placeholder="Confirmar contraseña" IsPassword="True" ReturnType="Done" MaxLength="64"
                        ReturnCommand="{Binding RegistrarCommand}" />
             </Border>
 

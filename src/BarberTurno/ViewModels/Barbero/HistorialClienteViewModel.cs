@@ -16,5 +16,7 @@ namespace BarberTurno.ViewModels;
 [QueryProperty(nameof(ClienteIdParametro), "clienteId")]
 public partial class HistorialClienteViewModel : BaseViewModel
 {
-    // TODO(M10): propiedades, comandos y carga de datos. Sin lógica de negocio aquí: delegar en servicios.
+    public string ClienteIdParametro { get; set; } = string.Empty;
+
+    // TODO(M10): propiedades, comandos y carga de datos.
 }

@@ -140,6 +140,9 @@ public partial class AgendaDiaViewModel : BaseViewModel
 */
 public partial class CitaAgendaItem : ObservableObject
 {
+    public Guid CitaId { get; set; }
+    public int ClienteId { get; set; }
+
     // Hora visible de la cita, por ejemplo: “10:00”.
     [ObservableProperty]
     public partial string Hora { get; set; } = string.Empty;

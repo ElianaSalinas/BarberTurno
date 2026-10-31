@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:BarberTurno.ViewModels"
@@ -37,13 +37,29 @@
                        TextColor="{AppThemeBinding Light={StaticResource M10LightMutedText}, Dark={StaticResource M10DarkMutedText}}" />
             </VerticalStackLayout>
 
+                        <Label Text="{Binding UsuarioError}" FontSize="12"
+                   TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" Margin="2,0,0,-6">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label" Binding="{Binding UsuarioError}" Value="">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
             <Border Style="{StaticResource BtField}">
-                <Entry x:Name="EntryUsuario" Style="{StaticResource BtEntry}" Text="{Binding Usuario}"
+                <Entry x:Name="EntryUsuario" Style="{StaticResource BtEntry}" Text="{Binding Usuario}" MaxLength="30"
                        Placeholder="Usuario o correo" Keyboard="Email" ReturnType="Next" />
             </Border>
+                        <Label Text="{Binding PasswordError}" FontSize="12"
+                   TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FCA5A5}" Margin="2,0,0,-6">
+                <Label.Triggers>
+                    <DataTrigger TargetType="Label" Binding="{Binding PasswordError}" Value="">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Label.Triggers>
+            </Label>
             <Border Style="{StaticResource BtField}">
                 <Entry x:Name="EntryPassword" Style="{StaticResource BtEntry}" Text="{Binding Password}"
-                       Placeholder="Contraseña" IsPassword="True" ReturnType="Done"
+                       Placeholder="Contraseña" IsPassword="True" ReturnType="Done" MaxLength="64"
                        ReturnCommand="{Binding LoginCommand}" />
             </Border>
 

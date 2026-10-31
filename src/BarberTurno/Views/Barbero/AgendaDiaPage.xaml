@@ -28,11 +28,7 @@
 
             No usamos ScrollView: CollectionView ya administra el desplazamiento.
         -->
-        <CollectionView ItemsSource="{Binding CitasDelDia}"
-                        SelectionMode="None"
-                        BackgroundColor="Transparent"
-                        HorizontalOptions="Center"
-                        MaximumWidthRequest="430">
+        <ScrollView BackgroundColor="Transparent">
 
             <VerticalStackLayout Padding="22,24,22,32"
                                  Spacing="18">
@@ -233,9 +229,6 @@
                                Style="{StaticResource M10TextAction}"
                                VerticalOptions="End" />
                     </Grid>
-                    <!--
-                    Estado vacío propio de M10.
-
                     <VerticalStackLayout>
 
                         <!-- ESTADO VACÍO PROFESIONAL -->
@@ -258,10 +251,12 @@
                                    TextColor="{AppThemeBinding Light=#8A857C, Dark=#9C988F}" />
                         </VerticalStackLayout>
 
-                <DataTemplate x:DataType="vm:CitaAgendaItem">
-
-                    <Border Style="{StaticResource M10AgendaRow}"
-                            Margin="24,0,24,10">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding CitasDelDia}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:CitaAgendaItem">
+                                    <Grid ColumnDefinitions="Auto,Auto,*,Auto"
+                                          Style="{StaticResource M10AgendaRow}"
+                                          Margin="24,0,24,10">
 
                                         <Grid.GestureRecognizers>
                                             <TapGestureRecognizer 
@@ -356,7 +351,6 @@
                             </BindableLayout.ItemTemplate>
                         </VerticalStackLayout>
                     </VerticalStackLayout>
-                </Border>
 
             </VerticalStackLayout>
         </ScrollView>
